@@ -92,6 +92,57 @@
 
   .blank { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 4px, #f2f2f2 4px, #f2f2f2 8px); border: 1px dashed #ddd; border-radius: 2.6mm; width: var(--cw); height: var(--ch); display: flex; align-items: center; justify-content: center; color: #c4c4c4; font-size: var(--evfs); }
 
+  /* ===== 卡牌背面 ===== */
+  .card.back {
+    display: block;
+    padding: 3mm;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .back-frame {
+    position: absolute; inset: 3mm;
+    border-radius: 1.6mm;
+    border: 0.6mm solid currentColor;
+    opacity: .72;
+    pointer-events: none;
+  }
+  .back-face {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: calc(var(--cw) * 0.075);
+  }
+  .back-face .w { font-size: calc(var(--cw) * 0.185); font-weight: 700; line-height: 1; }
+  .back-face .sym { font-size: calc(var(--cw) * 0.30); font-weight: 700; line-height: 1; opacity: .5; }
+  .back-en {
+    position: absolute; left: 0; right: 0; top: 63%;
+    font-size: calc(var(--cw) * 0.055); letter-spacing: .45em; text-indent: .45em;
+    text-align: center; opacity: .7;
+  }
+  .card.back.chance { color: #fff; }
+  .card.back.fate { color: #2C3E6B; }
+  .back-stamp {
+    position: absolute;
+    top: calc(var(--ch) * 0.19 - var(--cw) * 0.1);
+    left: calc(var(--cw) * 0.04);
+    width: calc(var(--cw) * 0.2); height: calc(var(--cw) * 0.2);
+    transform: rotate(-12deg);
+    opacity: .85;
+    pointer-events: none;
+  }
+  .back-stamp circle {
+    fill: none; stroke: currentColor; stroke-width: 4;
+    stroke-dasharray: 6 5; opacity: .88;
+  }
+  .back-stamp text {
+    fill: currentColor; font-weight: 700;
+    font-size: calc(var(--cw) * 0.048);
+    text-anchor: middle; dominant-baseline: central;
+  }
+  .back-ver {
+    position: absolute; right: 5.5%; bottom: 5.5%;
+    font-size: calc(var(--cw) * 0.058); letter-spacing: .18em;
+    opacity: .82; pointer-events: none;
+  }
+
   @media print {
     body { background: #fff; }
     .chrome { display: none !important; }
@@ -116,6 +167,9 @@
     <span class="sep"></span>
     <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
     <button class="btn" data-mode="split">按花色分页</button>
+    <span class="sep"></span>
+    <button class="btn on" data-side="front">正面</button>
+    <button class="btn" data-side="back">背面（对背打印）</button>
     <button class="btn print" id="doPrint">打印</button>
   </div>
   <div class="specs" id="specs"></div>
@@ -190,6 +244,7 @@ const DECK_NAME = { chance: '机会', fate: '命运' };
 let currentPaper = 'photo6';
 let currentLayout = 'standard';
 let pageMode = 'flow';
+let side = 'front';
 
 function activeLayout() {
   return currentPaper === 'photo6' ? LAYOUTS.photo4 : LAYOUTS[currentLayout];
@@ -239,11 +294,33 @@ function deckList(kind) {
   return CARDS.filter(c => c.c === kind).map((c, i) => ({ card: c, i }));
 }
 
+// ===== 卡牌背面：同色底 + 双线内框 + 「机？会/命！运」中央构图 + 斜章 + 邪恶版 =====
+function backNode(kind) {
+  const isChance = kind === 'chance';
+  const w1 = isChance ? '机' : '命';
+  const w2 = isChance ? '会' : '运';
+  const sym = isChance ? '？' : '！';
+  const en = isChance ? 'CHANCE' : 'FATE';
+  const el = document.createElement('div');
+  el.className = 'card back ' + kind;
+  el.innerHTML =
+    '<div class="back-frame"></div>' +
+    '<div class="back-stamp"><svg viewBox="0 0 40 40">' +
+      '<circle cx="20" cy="20" r="17.5"/>' +
+      '<text x="20" y="20">大富翁</text>' +
+    '</svg></div>' +
+    '<div class="back-face"><span class="w">' + w1 + '</span><span class="sym">' + sym + '</span><span class="w">' + w2 + '</span></div>' +
+    '<div class="back-en">' + en + '</div>' +
+    '<div class="back-ver">邪恶版</div>';
+  return el;
+}
+
 function render() {
   const L = activeLayout();
   const P = PAPERS[currentPaper];
+  const split = pageMode === 'split' || side === 'back'; // 背面强制按花色分页（整页同色，翻面不错格）
   const pages = [];
-  if (pageMode === 'split') {
+  if (split) {
     ['chance', 'fate'].forEach(kind => {
       const list = deckList(kind);
       for (let i = 0; i < list.length; i += L.per) pages.push(list.slice(i, i + L.per));
@@ -260,7 +337,8 @@ function render() {
     tag.className = 'page-tag';
     tag.style.width = P.w + 'mm';
     const kinds = [...new Set(pageItems.map(x => DECK_NAME[x.card.c]))].join(' + ');
-    tag.textContent = '第 ' + (pi + 1) + ' 页 / 共 ' + pages.length + ' 页 · ' + kinds + '牌';
+    tag.textContent = '第 ' + (pi + 1) + ' 页 / 共 ' + pages.length + ' 页 · ' + kinds + '牌' +
+      (side === 'back' ? ' · 背面（对背打印，先印正面再翻面印本页）' : '');
     wrap.appendChild(tag);
 
     const sheet = document.createElement('div');
@@ -279,7 +357,7 @@ function render() {
     sheet.style.setProperty('--nfs', L.nfs + 'px');
     sheet.style.setProperty('--wms', L.wms + 'mm');
 
-    pageItems.forEach(x => sheet.appendChild(cardNode(x.card, x.i)));
+    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.c) : cardNode(x.card, x.i)));
     for (let k = pageItems.length; k < L.per; k++) {
       const b = document.createElement('div');
       b.className = 'blank';
@@ -310,7 +388,10 @@ function updateSpecs(pageCount) {
   const L = activeLayout();
   const P = PAPERS[currentPaper];
   const rows = L.per / L.cols;
-  const modeText = pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）';
+  const split = pageMode === 'split' || side === 'back';
+  const modeText = side === 'back'
+    ? '按花色分页（背面模式自动锁定，整页同色）'
+    : (pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）');
   document.getElementById('specs').innerHTML =
     '<span>纸张 <b>' + P.name + '（' + P.w + ' × ' + P.h + ' mm）</b></span>' +
     '<span>卡片尺寸 <b>' + L.cw + ' × ' + L.ch + ' mm</b></span>' +
@@ -323,8 +404,12 @@ function syncPaperUI() {
   const isPhoto = currentPaper === 'photo6';
   document.getElementById('pageStyle').textContent =
     '@page { size: ' + PAPERS[currentPaper].css + '; margin: 0; }';
-  document.getElementById('tip').textContent = PAPERS[currentPaper].tip;
+  document.getElementById('tip').textContent = side === 'back'
+    ? '背面模式：自动按花色分页（整页同色，翻面不错格）。流程 = 先印正面 → 翻面 → 印背面（页数与格子一一对齐）。' + PAPERS[currentPaper].tip
+    : PAPERS[currentPaper].tip;
   document.querySelectorAll('.btn[data-layout]').forEach(b => b.classList.toggle('off', isPhoto));
+  // 背面强制按花色分页，锁定分页按钮
+  document.querySelectorAll('.btn[data-mode]').forEach(b => b.classList.toggle('off', side === 'back'));
 }
 
 document.querySelectorAll('.btn[data-paper]').forEach(b => {
@@ -349,6 +434,15 @@ document.querySelectorAll('.btn[data-mode]').forEach(b => {
     document.querySelectorAll('.btn[data-mode]').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
     pageMode = b.dataset.mode;
+    render();
+  });
+});
+document.querySelectorAll('.btn[data-side]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.btn[data-side]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    side = b.dataset.side;
+    syncPaperUI();
     render();
   });
 });

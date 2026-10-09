@@ -2,9 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>大富翁卡牌打印版 · A4 · v6</title>
+<title>大富翁卡牌打印版 · v6</title>
 <style>
-  @page { size: A4 portrait; margin: 0; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body { background: #1c1c1e; font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif; }
@@ -17,14 +16,15 @@
   .btn:hover { border-color: #6a6a72; }
   .btn.on { background: #0F6E56; border-color: #1D9E75; color: #E1F5EE; }
   .btn.print { background: #D94F6E; border-color: #E8738C; color: #fff; }
+  .btn.off { opacity: .38; pointer-events: none; }
   .sep { width: 1px; height: 18px; background: #4a4a52; }
   .specs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; color: #9a9aa2; }
   .specs b { color: #e8e8e8; font-weight: 500; }
 
   .wrap { padding: 24px 0 60px; }
-  .page-tag { width: 210mm; margin: 0 auto 6px; font-size: 11.5px; color: #7a7a82; letter-spacing: .3px; }
+  .page-tag { margin: 0 auto 6px; font-size: 11.5px; color: #7a7a82; letter-spacing: .3px; }
   .sheet {
-    width: 210mm; height: 297mm; background: #fff; margin: 0 auto 22px;
+    background: #fff; margin: 0 auto 22px;
     padding: var(--my) var(--mx);
     display: flex; flex-wrap: wrap; align-content: flex-start;
     gap: var(--gy) var(--gx);
@@ -81,13 +81,17 @@
     .sheet { margin: 0; box-shadow: none; overflow: hidden; }
   }
 </style>
+<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
 </head>
 <body>
 
 <div class="chrome">
-  <h1>大富翁卡牌打印版 · A4 · 数据版本 v6（邪恶版·世界之旅）</h1>
-  <p>选好版式和分页方式后点「打印」；打印设置里纸张选 A4、边距选「无」、缩放 100%（不要选「适应页面」），并勾选「背景图形」。</p>
+  <h1 id="pageTitle">大富翁卡牌打印版 · 数据版本 v6（邪恶版·世界之旅）</h1>
+  <p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。</p>
   <div class="row">
+    <button class="btn on" data-paper="a4">A4 纸</button>
+    <button class="btn" data-paper="photo6">6 寸相片纸 · 4 张/页</button>
+    <span class="sep"></span>
     <button class="btn on" data-layout="standard">标准 · 9 张/页</button>
     <button class="btn" data-layout="compact">紧凑 · 12 张/页</button>
     <button class="btn" data-layout="mini">迷你 · 16 张/页</button>
@@ -147,18 +151,32 @@ const CARDS = [
   { c: 'fate', t: '迪拜黑市「决斗拍卖」，中间人（右手玩家的下家）掷骰定谁先喊价', cond: '他人代摇（≥9 你先 / ≤8 他先）', win: '半价拍得他的地（他收全款）', lose: '他半价拍得你的地（你收全款）' }
 ];
 
+const PAPERS = {
+  a4:     { w: 210, h: 297, css: 'A4 portrait',      name: 'A4',
+            tip: '打印设置：纸张选 A4、边距「无」、缩放 100%（不要选「适应页面」），勾选「背景图形」。' },
+  photo6: { w: 102, h: 152, css: '102mm 152mm',      name: '6 寸相片纸',
+            tip: '打印设置：纸张选 6 寸 / 4R（102×152mm）、无边距（或边距「无」）、缩放 100%，勾选「背景图形」。相片纸本身较厚，可不过塑直接裁，或单张过塑后再裁。' }
+};
+
 const LAYOUTS = {
-  standard: { label: '标准', per: 9,  cols: 3, cw: 63, ch: 88, gx: 4, gy: 4, mx: 6.5, my: 12,
+  standard: { paper: 'a4', label: '标准', per: 9,  cols: 3, cw: 63, ch: 88, gx: 4, gy: 4, mx: 6.5, my: 12,
               tfs: 36, evfs: 11, effs: 10.5, nfs: 8, wms: 48 },
-  compact:  { label: '紧凑', per: 12, cols: 3, cw: 60, ch: 64, gx: 4, gy: 4, mx: 11, my: 14,
+  compact:  { paper: 'a4', label: '紧凑', per: 12, cols: 3, cw: 60, ch: 64, gx: 4, gy: 4, mx: 11, my: 14,
               tfs: 26, evfs: 9.5, effs: 9, nfs: 7.5, wms: 34 },
-  mini:     { label: '迷你', per: 16, cols: 4, cw: 46, ch: 65, gx: 3, gy: 3, mx: 8.5, my: 13.5,
-              tfs: 20, evfs: 8.5, effs: 8, nfs: 7, wms: 30 }
+  mini:     { paper: 'a4', label: '迷你', per: 16, cols: 4, cw: 46, ch: 65, gx: 3, gy: 3, mx: 8.5, my: 13.5,
+              tfs: 20, evfs: 8.5, effs: 8, nfs: 7, wms: 30 },
+  photo4:   { paper: 'photo6', label: '6寸四格', per: 4, cols: 2, cw: 47, ch: 72, gx: 3, gy: 3, mx: 2, my: 2,
+              tfs: 22, evfs: 9, effs: 8.5, nfs: 7, wms: 30 }
 };
 
 const DECK_NAME = { chance: '机会', fate: '命运' };
-let current = 'standard';
+let currentPaper = 'a4';
+let currentLayout = 'standard';
 let pageMode = 'flow';
+
+function activeLayout() {
+  return currentPaper === 'photo6' ? LAYOUTS.photo4 : LAYOUTS[currentLayout];
+}
 
 function splitOnce(t) {
   const i = t.indexOf('：');
@@ -189,7 +207,8 @@ function deckList(kind) {
 }
 
 function render() {
-  const L = LAYOUTS[current];
+  const L = activeLayout();
+  const P = PAPERS[currentPaper];
   const pages = [];
   if (pageMode === 'split') {
     ['chance', 'fate'].forEach(kind => {
@@ -206,12 +225,15 @@ function render() {
   pages.forEach((pageItems, pi) => {
     const tag = document.createElement('div');
     tag.className = 'page-tag';
+    tag.style.width = P.w + 'mm';
     const kinds = [...new Set(pageItems.map(x => DECK_NAME[x.card.c]))].join(' + ');
     tag.textContent = '第 ' + (pi + 1) + ' 页 / 共 ' + pages.length + ' 页 · ' + kinds + '牌';
     wrap.appendChild(tag);
 
     const sheet = document.createElement('div');
     sheet.className = 'sheet';
+    sheet.style.width = P.w + 'mm';
+    sheet.style.height = P.h + 'mm';
     sheet.style.setProperty('--cw', L.cw + 'mm');
     sheet.style.setProperty('--ch', L.ch + 'mm');
     sheet.style.setProperty('--gx', L.gx + 'mm');
@@ -251,21 +273,40 @@ function autoFit() {
 }
 
 function updateSpecs(pageCount) {
-  const L = LAYOUTS[current];
+  const L = activeLayout();
+  const P = PAPERS[currentPaper];
   const rows = L.per / L.cols;
   const modeText = pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）';
   document.getElementById('specs').innerHTML =
+    '<span>纸张 <b>' + P.name + '（' + P.w + ' × ' + P.h + ' mm）</b></span>' +
     '<span>卡片尺寸 <b>' + L.cw + ' × ' + L.ch + ' mm</b></span>' +
     '<span>版式 <b>' + L.cols + ' 列 × ' + rows + ' 行 = ' + L.per + ' 张/页</b></span>' +
     '<span>分页 <b>' + modeText + '</b></span>' +
-    '<span>共 <b>' + CARDS.length + ' 张 → ' + pageCount + ' 页 A4</b></span>';
+    '<span>共 <b>' + CARDS.length + ' 张 → ' + pageCount + ' 页</b></span>';
 }
 
+function syncPaperUI() {
+  const isPhoto = currentPaper === 'photo6';
+  document.getElementById('pageStyle').textContent =
+    '@page { size: ' + PAPERS[currentPaper].css + '; margin: 0; }';
+  document.getElementById('tip').textContent = PAPERS[currentPaper].tip;
+  document.querySelectorAll('.btn[data-layout]').forEach(b => b.classList.toggle('off', isPhoto));
+}
+
+document.querySelectorAll('.btn[data-paper]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.btn[data-paper]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    currentPaper = b.dataset.paper;
+    syncPaperUI();
+    render();
+  });
+});
 document.querySelectorAll('.btn[data-layout]').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('.btn[data-layout]').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
-    current = b.dataset.layout;
+    currentLayout = b.dataset.layout;
     render();
   });
 });
@@ -279,6 +320,7 @@ document.querySelectorAll('.btn[data-mode]').forEach(b => {
 });
 document.getElementById('doPrint').addEventListener('click', () => window.print());
 
+syncPaperUI();
 render();
 </script>
 </body>

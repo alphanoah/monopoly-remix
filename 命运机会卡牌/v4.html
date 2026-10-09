@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x547d;&#x8fd0;&#x724c; &amp; &#x673a;&#x4f1a;&#x724c; &centerdot; v4</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="命运牌--机会牌--v4">命运牌 &amp; 机会牌 · v4</h1>
+<ul>
+<li><strong>版本</strong>：v4（2026-10-09）</li>
+<li><strong>基于</strong>：v3</li>
+<li><strong>规模</strong>：机会牌 20 张 + 命运牌 20 张，共 40 张</li>
+<li><strong>金钱单位</strong>：游戏内「钱」，与初始资金 19580 配套</li>
+<li><strong>设计目标</strong>
+<ul>
+<li>机会牌：<strong>奖励率 70%</strong>（14 奖励 + 6 惩罚），翻开即生效 —— 与 v1-v3 一致</li>
+<li>命运牌：<strong>20 张全部为条件判定牌</strong>（原 5 奖励 + 5 惩罚删除），每张（近似）零期望，奖励率仍精确 <strong>50%</strong></li>
+<li>每张牌<strong>事件与判定方式强关联</strong>：故事里就交代了「为什么要摇骰、为什么要这么押」</li>
+<li>效果不全是钱：停止回合、进监狱、不收租、前进/后退、房屋升降级、玩家间转移、强制拍卖、强制占有、奖罚混合</li>
+</ul>
+</li>
+</ul>
+<h2 id="v4-相对-v3-的变更">v4 相对 v3 的变更</h2>
+<ul>
+<li>命运牌 <strong>11-20 重做</strong>：原来的 5 张直接奖励 + 5 张直接惩罚全部删除，替换为 10 张新的条件判定牌</li>
+<li>新效果类型：<strong>非金钱惩罚</strong>（原地停止+不收租）、<strong>玩家间现金转移</strong>（抢最有钱的人 / 镖客对决）、<strong>房屋 ±1 级</strong>（外星人撞楼）、<strong>前进/后退</strong>（时空隧道）、<strong>骰点计税</strong>（点数×100）、<strong>奖罚同时</strong>（污点证人）、<strong>强制占有</strong>（殖民舰队）、<strong>强制拍卖</strong>（黑市拍卖）</li>
+<li>判定机制允许复用（单双/大小/比点数），但<strong>点名规则与效果组合一牌一景</strong></li>
+</ul>
+<hr>
+<h2 id="通用判定规则">通用判定规则</h2>
+<ul>
+<li>十六面骰 1-16，等概率；<strong>移动骰</strong>摇到 16 可再摇一次</li>
+<li><strong>判定骰与移动骰分开摇</strong>，用同一颗十六面骰；判定时摇到 16 <strong>不触发</strong>「再摇一次」</li>
+<li><strong>零期望原则</strong>：每张条件牌（近似）满足「赢的概率 × 赢的金额 = 输的概率 × 输的金额」，命运牌整体期望 ≈ 0，奖励率 ≈ <strong>50%</strong></li>
+<li><strong>点名规则</strong>：
+<ul>
+<li>「最有钱的玩家」= 现金最多者；并列时取<strong>顺时针方向最近</strong>的</li>
+<li>「最近的玩家」= 棋盘上<strong>顺时针</strong>离你最近的</li>
+<li>「左手 / 右手玩家」= 按座位紧邻的玩家</li>
+</ul>
+</li>
+<li><strong>房屋规则衔接</strong>：房屋 -1 级时，1 级 → 空地（地基仍在，可从 1 级重新升）；名下无房时按牌面金额结算</li>
+<li><code>N</code> = 存活玩家人数（含自己）</li>
+<li><strong>平局重来</strong>：比点数、石头剪刀布出现平局时重来一次</li>
+<li><strong>等效金额换算</strong>（非金钱惩罚的估值用）：进监狱 1 回合 ≈ 1000，原地停止 1 回合 ≈ 1000（不收租另计），回出生点 ≈ 2000</li>
+<li>「回出生点（没有奖励）」= 直接送回出生点，<strong>不触发</strong>路过出生点的 +2000</li>
+</ul>
+<hr>
+<h2 id="机会牌20-张--14-奖励--6-惩罚--70">机会牌（20 张 ｜ 14 奖励 + 6 惩罚 = 70%）</h2>
+<p>与 v1-v3 完全一致，翻开即生效。</p>
+<h3 id="奖励1-14">奖励（1-14）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>你买的国足赢了世界杯</td>
+<td>+3000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>你与马来西亚农民一起种植油棕</td>
+<td>+2000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>你在马里亚纳海沟钓到了深海克苏鲁</td>
+<td>+1000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>你的航班延误了，获得赔偿</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>5</td>
+<td>你在家里的厕所挖到了古董</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>6</td>
+<td>你在珠穆朗玛峰成功救下了一个富豪</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>7</td>
+<td>今天你生日，每个玩家给你发红包</td>
+<td>+200 × N</td>
+</tr>
+<tr>
+<td>8</td>
+<td>你在埃及找到了一支野生的工程队</td>
+<td>下一回合到达的地块免费升级一次</td>
+</tr>
+<tr>
+<td>9</td>
+<td>你在中国乘坐磁悬浮列车</td>
+<td>+1 骰子次数</td>
+</tr>
+<tr>
+<td>10</td>
+<td>你假冒 FBI 查房</td>
+<td>向所有玩家收取过路费（所有玩家触发一次当前格子的过路费，钱给你）</td>
+</tr>
+<tr>
+<td>11</td>
+<td>你在迪拜淘到一辆二手超跑，转手卖出</td>
+<td>+2500</td>
+</tr>
+<tr>
+<td>12</td>
+<td>你在挪威钓到三文鱼王，被海鲜商高价收购</td>
+<td>+1500</td>
+</tr>
+<tr>
+<td>13</td>
+<td>你在泰国成为人妖秀头牌，全场观众给你打赏</td>
+<td>+300 × N</td>
+</tr>
+<tr>
+<td>14</td>
+<td>你成为首位平民太空旅客，NASA 发放补贴</td>
+<td>+2000，并 +1 骰子次数</td>
+</tr>
+</tbody>
+</table>
+<h3 id="惩罚15-20">惩罚（15-20）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>你在缅甸遭遇诈骗</td>
+<td>强制拍卖该处房子</td>
+</tr>
+<tr>
+<td>16</td>
+<td>你在日本遭遇地震</td>
+<td>-500</td>
+</tr>
+<tr>
+<td>17</td>
+<td>你在古巴遭受袭击</td>
+<td>-500</td>
+</tr>
+<tr>
+<td>18</td>
+<td>你在南非买了大象</td>
+<td>-1000</td>
+</tr>
+<tr>
+<td>19</td>
+<td>你在冰岛种植橡胶树</td>
+<td>-2000</td>
+</tr>
+<tr>
+<td>20</td>
+<td>你前往加拿大的海上遇到了飓风</td>
+<td>倒退 3 格，并取消下一次掷骰机会</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="命运牌20-张--全部为条件判定牌期望奖励率--50">命运牌（20 张 ｜ 全部为条件判定牌，期望奖励率 ≈ 50%）</h2>
+<h3 id="一条件判定牌1-10-与-v3-一致全部零期望">一、条件判定牌（1-10）｜ 与 v3 一致，全部零期望</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件（故事自带判定缘由）</th>
+<th>判定方式</th>
+<th>命中率</th>
+<th>赢</th>
+<th>输</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>你在美国跟牛仔决斗，规则是背对背各走十六步才许回头开枪——你押他会在<strong>前八步</strong>还是<strong>后八步</strong>回头</td>
+<td><strong>押大小</strong>：前八步 = 小（1-8）/ 后八步 = 大（9-16）</td>
+<td>50%</td>
+<td>押中你抢先开枪：+3000</td>
+<td>押错你被打中：送进监狱 3 回合（≈ -3000）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>你在摩纳哥赌场玩轮盘，身上钱只够押最后一注：<strong>单还是双</strong></td>
+<td><strong>押单双</strong>：奇数 = 单 / 偶数 = 双</td>
+<td>50%</td>
+<td>+2000</td>
+<td>-2000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>你在迪拜看骆驼赛，你和左手边的玩家各买了一头骆驼，<strong>两头骆驼同时冲刺，跑得快的那头赢</strong></td>
+<td><strong>比点数</strong>：你和左手玩家各摇一颗判定骰（= 两头骆驼的冲刺距离），大者胜，平局是并列冠军、重赛</td>
+<td>50%</td>
+<td>你的骆驼夺冠：+1500</td>
+<td>他的骆驼夺冠：-1500</td>
+</tr>
+<tr>
+<td>4</td>
+<td>你在西班牙过奔牛节，跳进赛道和公牛一起狂奔——<strong>你能跑出多少步，就看你这回合的移动骰</strong>，跑出 9 步以上才能甩开牛群</td>
+<td><strong>用本次移动骰点数判定</strong>：≥ 9 甩开牛群</td>
+<td>50%</td>
+<td>安全甩开，还捡到观众掉的钱包：+500</td>
+<td>跑得不够快被牛顶伤：-500</td>
+</tr>
+<tr>
+<td>5</td>
+<td>你在泰国夜市碰上当地最流行的猜骰子摊：摊主把骰子<strong>攥在一只拳头里</strong>让你猜在哪只手</td>
+<td><strong>猜左右手</strong>：摊主（由左手玩家扮演）握骰，你猜左或右</td>
+<td>50%</td>
+<td>+1000</td>
+<td>-1000</td>
+</tr>
+<tr>
+<td>6</td>
+<td>你在阿根廷酒馆和当地人起争执，他提议按南美人的老规矩<strong>一局手势定胜负</strong>，输的付酒钱</td>
+<td><strong>石头剪刀布</strong>：与左手玩家（扮演当地人）一局定胜负，平局算酒洒了重来</td>
+<td>50%</td>
+<td>+1500</td>
+<td>-1500</td>
+</tr>
+<tr>
+<td>7</td>
+<td>你在冰岛跟着向导走到火山口边缘，向导说今天火山<strong>活跃度指数 1-16 级</strong>，1-7 级可以继续走到边缘拍照卖钱，8 级以上必须立刻撤离、团费不退</td>
+<td><strong>押区间</strong>：摇判定骰 = 活跃度指数，1-7 为赢</td>
+<td>43.75%</td>
+<td>火山口大片卖给杂志：+900</td>
+<td>被迫撤离 + 没收定金：-700</td>
+</tr>
+<tr>
+<td>8</td>
+<td>你在埃及盗掘金字塔，石门上有一圈 <strong>16 格太阳历转盘</strong>，传说拉美西斯二世的幸运数字是 14、15、16，拨到这三格石门才开，拨错会触发流沙陷阱</td>
+<td><strong>赌爆点</strong>：摇到 14 / 15 / 16</td>
+<td>18.75%</td>
+<td>石门开启，搬空墓室：+2600</td>
+<td>流沙灌进装备包：-600</td>
+</tr>
+<tr>
+<td>9</td>
+<td>你在尼泊尔随夏尔巴搜救队进山找失踪登山者，队长摊开地图：<strong>16 条搜索路线，只有 1 号线下方是暗裂缝</strong>，抽到就得下坠救援，其余路线都能找到人领酬金</td>
+<td><strong>押「不摇到 1」</strong>：摇到 2-16 都算赢</td>
+<td>93.75%</td>
+<td>找到登山者，拿到酬金：+200</td>
+<td>抽中 1 号线坠落：-3000</td>
+</tr>
+<tr>
+<td>10</td>
+<td>你在里约桑巴大赛即兴上台跳了一段，全场喝彩。下台前主持人起哄：**敢不敢竞猜评委会给你打几分？**评分制 3-14 分，误差在 2 分以内算你猜中</td>
+<td><strong>猜数字</strong>：从 3-14 中猜一个数（= 你猜的分数），摇判定骰 = 评委实际打分，误差 ≤ 2 算赢</td>
+<td>31.25%</td>
+<td>猜中拿走竞猜大奖：+2200</td>
+<td>差太多，交竞猜罚金：-1000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>零期望校验表（1-10）</strong></p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>赢面 × 赢额</th>
+<th>输面 × 输额</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.5 × 3000 = 1500</td>
+<td>0.5 × 3000 = 1500</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.5 × 2000 = 1000</td>
+<td>0.5 × 2000 = 1000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0.5 × 1500 = 750</td>
+<td>0.5 × 1500 = 750</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0.5 × 500 = 250</td>
+<td>0.5 × 500 = 250</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.5 × 1000 = 500</td>
+<td>0.5 × 1000 = 500</td>
+</tr>
+<tr>
+<td>6</td>
+<td>0.5 × 1500 = 750</td>
+<td>0.5 × 1500 = 750</td>
+</tr>
+<tr>
+<td>7</td>
+<td>7/16 × 900 = 393.75</td>
+<td>9/16 × 700 = 393.75</td>
+</tr>
+<tr>
+<td>8</td>
+<td>3/16 × 2600 = 487.5</td>
+<td>13/16 × 600 = 487.5</td>
+</tr>
+<tr>
+<td>9</td>
+<td>15/16 × 200 = 187.5</td>
+<td>1/16 × 3000 = 187.5</td>
+</tr>
+<tr>
+<td>10</td>
+<td>5/16 × 2200 = 687.5</td>
+<td>11/16 × 1000 = 687.5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="二条件判定牌11-20-v4-新增非金钱转移奖罚混合">二、条件判定牌（11-20）｜ v4 新增：非金钱、转移、奖罚混合</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件（故事自带判定缘由）</th>
+<th>判定方式</th>
+<th>命中率</th>
+<th>赢</th>
+<th>输</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11</td>
+<td>你被外星人绑架去做体检。飞船上的测醉仪是颗十六面骰：<strong>单数 = 清醒，双数 = 喝醉</strong></td>
+<td><strong>押单双</strong></td>
+<td>50%</td>
+<td>清醒的外星人礼貌送你回家，还赔了精神损失费：+800</td>
+<td>喝醉的外星人把你冻在半空一整回合，忘了帮你收租：<strong>原地停止 1 回合 + 本回合不收租</strong>（≈ -800）</td>
+</tr>
+<tr>
+<td>12</td>
+<td>蒙面大盗（你）潜入旅馆行窃，专挑<strong>钱包最鼓的人</strong>下手——你和最有钱的玩家在小巷里扭打，各显身手</td>
+<td><strong>比点数</strong>：你和最有钱的玩家各摇一颗，大者胜，平局重来</td>
+<td>50%</td>
+<td>摸走他 1500（他 -1500，你 +1500）</td>
+<td>被反手按住，赔他 1500</td>
+</tr>
+<tr>
+<td>13</td>
+<td>你去抢银行。金库大门是 1-16 的密码转盘，守卫今天设的是**小户门（1-8）还是大户门（9-16）**全看运气</td>
+<td><strong>押大小</strong></td>
+<td>50%</td>
+<td>密码押中，搬空金库：+3000</td>
+<td>警报响起，被送进监狱 3 回合（≈ -3000）</td>
+</tr>
+<tr>
+<td>14</td>
+<td>外星人喝醉了开飞船，朝<strong>你领地上等级最高的那栋房</strong>栽过来——飞船稳定仪 1-16 级，<strong>9 级以上才能拉起机头</strong></td>
+<td><strong>押区间 9-16</strong></td>
+<td>50%</td>
+<td>飞船擦着楼顶拉起，外星人赔钱帮你加盖：那栋房 <strong>+1 级</strong></td>
+<td>飞船撞烂楼顶：那栋房 <strong>-1 级</strong>（1 级 → 空地；名下无房则你 +1000 / 外星人跑了你自认倒霉 -1000）</td>
+</tr>
+<tr>
+<td>15</td>
+<td>税务局搞<strong>路段单双号抽查</strong>：你现在站的格子是单号就退税、双号就补税，<strong>税额 = 判定骰点数 × 100</strong></td>
+<td><strong>所在格奇偶 + 骰点计税</strong>：单号格 = 退税，双号格 = 补税</td>
+<td>50%</td>
+<td>退税：+点数 × 100（均值 +850）</td>
+<td>补税：-点数 × 100（均值 -850）</td>
+</tr>
+<tr>
+<td>16</td>
+<td>殖民舰队降临，要在你和<strong>左手玩家</strong>的领地上选一处建主基地。舰队主炮充能转盘 <strong>1-8 打你的旗、9-16 打他的旗</strong>，旗子没被打掉的领地归胜者</td>
+<td><strong>押大小</strong>（= 他人代摇）</td>
+<td>50%</td>
+<td>你的旗升起：<strong>免费占有</strong>他购地款最低的一块地（连房带地归你）</td>
+<td>他的旗升起：你购地款最低的一块地归他</td>
+</tr>
+<tr>
+<td>17</td>
+<td>你掉进百慕大时空隧道，隧道的极性由<strong>奇偶决定</strong>：单数 = 顺流，双数 = 逆流</td>
+<td><strong>押单双</strong></td>
+<td>50%</td>
+<td>顺流被推着走：<strong>前进 4 格</strong>（经过出生点照常领 +2000）</td>
+<td>逆流被拽回去：<strong>后退 4 格</strong></td>
+</tr>
+<tr>
+<td>18</td>
+<td>荒野镖客对决：你和<strong>棋盘上顺时针离你最近的玩家</strong>狭路相逢，各自拔枪——枪法就是各摇一颗骰</td>
+<td><strong>比点数</strong>：各摇一颗，大者胜，平局重来</td>
+<td>50%</td>
+<td>你赢下对决：拿走他<strong>现金的一半</strong>（向下取整十）</td>
+<td>他赢下对决：拿走你<strong>现金的一半</strong></td>
+</tr>
+<tr>
+<td>19</td>
+<td>你举报黑帮成为<strong>污点证人</strong>：警方发 2000 补贴并把你保护性羁押，<strong>法官心情骰单双决定关多久</strong>——反正牢是要坐的，钱也是要拿的</td>
+<td><strong>押单双</strong>（奖罚同时）</td>
+<td>50%</td>
+<td>法官心情好：关 1 回合，净 <strong>+1000</strong>（2000 - 1000）</td>
+<td>法官心情差：关 3 回合，净 <strong>-1000</strong>（2000 - 3000）</td>
+</tr>
+<tr>
+<td>20</td>
+<td>黑市地下拍卖：你和<strong>右手玩家</strong>各押一块自己<strong>购地款最低的地</strong>上桌，拍卖师（由右手玩家的下家担任）掷骰定先后手——<strong>≥9 你先拍，≤8 他先拍</strong></td>
+<td><strong>他人代摇</strong>（≥9 / ≤8）</td>
+<td>50%</td>
+<td>你先拍：以<strong>起拍价（半价）强制拍得</strong>他的那块地，他收全款</td>
+<td>他先拍：他半价拍得你的那块地，你收全款</td>
+</tr>
+</tbody>
+</table>
+<p><strong>零期望校验表（11-20）</strong></p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>赢面 × 赢额</th>
+<th>输面 × 输额</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11</td>
+<td>0.5 × 800 = 400</td>
+<td>0.5 × 800 = 400</td>
+</tr>
+<tr>
+<td>12</td>
+<td>0.5 × 1500 = 750</td>
+<td>0.5 × 1500 = 750</td>
+</tr>
+<tr>
+<td>13</td>
+<td>0.5 × 3000 = 1500</td>
+<td>0.5 × 3000 = 1500</td>
+</tr>
+<tr>
+<td>14</td>
+<td>0.5 × 升1级 ≈ 0.5 × 降1级（近似对称）</td>
+<td></td>
+</tr>
+<tr>
+<td>15</td>
+<td>0.5 × 8.5 × 100 = 425</td>
+<td>0.5 × 8.5 × 100 = 425</td>
+</tr>
+<tr>
+<td>16</td>
+<td>玩家间转移，对你期望为 0（半价得地 ≈ 全款卖地，视局势）</td>
+<td></td>
+</tr>
+<tr>
+<td>17</td>
+<td>前进 4 格 ≈ 后退 4 格（近似对称）</td>
+<td></td>
+</tr>
+<tr>
+<td>18</td>
+<td>玩家间转移，双方各 50%，期望为 0</td>
+<td></td>
+</tr>
+<tr>
+<td>19</td>
+<td>0.5 × 1000 = 500</td>
+<td>0.5 × 1000 = 500</td>
+</tr>
+<tr>
+<td>20</td>
+<td>玩家间转移，对你期望为 0（半价拍得 ≡ 全款售出，两者市场价值相等）</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>11-20 号的新意主要在<strong>效果层</strong>：非金钱惩罚（11）、玩家间现金转移（12、18）、房屋升降级（14）、前进后退（17）、骰点计税（15）、奖罚同时（19）、强制占有（16）、强制拍卖（20）。16、18、20 号是玩家间转移，对你期望为零，但对穷玩家 / 富玩家的实际影响不对等——带点「劫富济贫」的味道。</p>
+</blockquote>
+<hr>
+<h2 id="期望值说明">期望值说明</h2>
+<ul>
+<li>20 张条件判定牌全部（近似）零期望</li>
+<li>命运牌整体期望 ≈ 0，奖励率 =（20 × 50%）÷ 20 = <strong>50%</strong></li>
+<li>v3 的 5 张直接奖励 + 5 张直接惩罚已删除，命运牌翻开<strong>必然触发一次判定</strong></li>
+</ul>
+<hr>
+<h2 id="变更记录">变更记录</h2>
+<ul>
+<li><strong>v1（2026-10-09）</strong>：初版定稿。确立机会 70% / 命运 50%；命运牌由「翻开即定生死」改为以 10 张摇骰子博弈牌为主体。</li>
+<li><strong>v2（2026-10-09）</strong>：命运牌条件判定从 2 种（押大小/押单双）扩展到 <strong>10 种、一牌一种</strong>；引入「零期望」设计精确保持 50% 奖励率；明确「一张牌最多判一次」。</li>
+<li><strong>v3（2026-10-09）</strong>：10 张条件判定牌的<strong>事件全部重写，与判定方式强绑定</strong>——骰子点数被解释成故事中的实体，判定缘由写在牌面故事里。</li>
+<li><strong>v4（2026-10-09）</strong>：命运牌<strong>另外 10 张也改为条件判定</strong>（原 5 奖励 + 5 惩罚删除），20 张全部为条件判定牌。新增效果类型：原地停止+不收租、抢最有钱玩家、抢银行、外星人撞楼（房屋 ±1 级，撞自己名下最高等级房）、骰点×100 计税、殖民舰队强制占有、时空隧道前进/后退、镖客对决（抢最近玩家<strong>现金一半</strong>）、污点证人（奖罚同时：+2000 且坐牢）、黑市强制拍卖。判定机制允许复用（用户确认）；「清空」改为「清一半」（8 人局确认）。</li>
+</ul>
+
+            
+            
+        </body>
+        </html>

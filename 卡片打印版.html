@@ -63,6 +63,11 @@
   }
   .ev { font-size: var(--evfs); font-weight: 700; line-height: 1.42; }
   .ef { font-size: var(--effs); font-weight: 500; line-height: 1.42; }
+  .sub { display: flex; flex-direction: column; align-items: center; gap: .7mm; margin-top: .8mm; }
+  .cond { font-size: calc(var(--effs) - 0.5px); font-weight: 500; line-height: 1.35; opacity: .88; }
+  .cond::before { content: "◆ "; font-size: .8em; }
+  .out { font-size: var(--effs); font-weight: 600; line-height: 1.38; }
+  .out.lose { font-weight: 500; opacity: .9; }
   .num { position: absolute; left: 2.2mm; bottom: 1mm; font-size: var(--nfs); letter-spacing: .5px; font-weight: 500; }
   .card.chance .num { color: rgba(40,18,28,.8); }
   .card.fate .num { color: rgba(35,30,25,.75); }
@@ -99,43 +104,43 @@ const CARDS = [
   { c: 'chance', t: '你买的国足赢了世界杯：+3000' },
   { c: 'chance', t: '你与马来西亚农民一起种植油棕：+2000' },
   { c: 'chance', t: '你在马里亚纳海沟钓到了深海克苏鲁：+1000' },
-  { c: 'chance', t: '你的航班延误了，获得赔偿+500' },
+  { c: 'chance', t: '你的航班延误了，获得赔偿：+500' },
   { c: 'chance', t: '你在家里的厕所挖到了古董：+500' },
   { c: 'chance', t: '你在珠穆朗玛峰成功救下了一个富豪：+500' },
   { c: 'chance', t: '今天你生日，每个玩家给你发红包：+200*N' },
   { c: 'chance', t: '你在埃及找到了一支野生的工程队：下一回合到达的地块免费升级一次' },
-  { c: 'chance', t: '你在中国乘坐磁悬浮列车：+1骰子次数' },
+  { c: 'chance', t: '你在中国乘坐磁悬浮列车：+1 骰子次数' },
   { c: 'chance', t: '你假冒FBI查房：向所有玩家收取过路费（所有玩家触发一次当前格子的过路费，钱给你）' },
-  { c: 'chance', t: '你在缅甸遭遇诈骗：摇一次骰子，强制拍卖该处房子' },
-  { c: 'chance', t: '你前往加拿大的海上遇到了飓风：+1骰子次数，向后移动' },
-  { c: 'chance', t: '你在日本遭遇地震：-500' },
-  { c: 'chance', t: '你在古巴遭受袭击：-500' },
-  { c: 'chance', t: '你在南非买了大象：-1000' },
-  { c: 'chance', t: '你在冰岛种植橡胶树：-2000' },
   { c: 'chance', t: '你在迪拜淘到一辆二手超跑，转手卖出：+2500' },
   { c: 'chance', t: '你在挪威钓到三文鱼王，被海鲜商高价收购：+1500' },
   { c: 'chance', t: '你在泰国成为人妖秀头牌，全场观众给你打赏：+300*N' },
   { c: 'chance', t: '你成为首位平民太空旅客，NASA 发放补贴：+2000，并 +1 骰子次数' },
+  { c: 'chance', t: '你在缅甸遭遇诈骗：强制拍卖该处房子' },
+  { c: 'chance', t: '你在日本遭遇地震：-500' },
+  { c: 'chance', t: '你在古巴遭受袭击：-500' },
+  { c: 'chance', t: '你在南非买了大象：-1000' },
+  { c: 'chance', t: '你在冰岛种植橡胶树：-2000' },
+  { c: 'chance', t: '你前往加拿大的海上遇到了飓风：倒退 3 格，并取消下一次掷骰机会' },
+  { c: 'fate', t: '你在美国跟牛仔决斗', cond: '押大小（1-8 小 / 9-16 大）', win: '+3000', lose: '送进监狱 3 回合' },
+  { c: 'fate', t: '你在摩纳哥赌场玩轮盘', cond: '押单双', win: '+2000', lose: '-2000' },
+  { c: 'fate', t: '你在加纳投资金矿', cond: '押大小', win: '+2000', lose: '-2000' },
+  { c: 'fate', t: '你在埃及盗掘金字塔', cond: '押大小', win: '+2500', lose: '回出生点（没有奖励）' },
+  { c: 'fate', t: '你在巴西参加桑巴大赛', cond: '押单双', win: '+1500', lose: '-1500' },
+  { c: 'fate', t: '你在冰岛探火山口', cond: '押大小', win: '+1500', lose: '被烫伤 -1500' },
+  { c: 'fate', t: '你在迪拜押骆驼赛', cond: '押单双', win: '+1500', lose: '-1000' },
+  { c: 'fate', t: '你在尼泊尔参与雪崩搜救', cond: '押单双', win: '+1000', lose: '-1000' },
+  { c: 'fate', t: '你在阿根廷比探戈', cond: '押大小', win: '+1000', lose: '-500' },
+  { c: 'fate', t: '你在西班牙过奔牛节', cond: '押单双', win: '安全通过（无变化）', lose: '被牛顶伤 -1000' },
+  { c: 'fate', t: '你乘船通过巴拿马运河：+1 骰子次数' },
+  { c: 'fate', t: '你在英国给旅行者当翻译：+500' },
+  { c: 'fate', t: '你在俄罗斯捡到了钻石：+1000' },
+  { c: 'fate', t: '你在墨西哥走私显卡：+2000' },
+  { c: 'fate', t: '你受邀至拉斯维加斯表演魔术：+500' },
   { c: 'fate', t: '你存在瑞士的加密货币被黑客盗取了：-3000' },
   { c: 'fate', t: '你在南极看企鹅的时候弄丢了手机：-2000' },
   { c: 'fate', t: '你在新加坡吸烟：-1000' },
-  { c: 'fate', t: '你去墨尔本挖翡翠：-500' },
-  { c: 'fate', t: '你去巴西观看世界杯：-500' },
-  { c: 'fate', t: '你请所有人去韩国吃烤肉：-200*N' },
   { c: 'fate', t: '你在叙利亚被导弹锁定了：下一回合到达的地块降级一次' },
-  { c: 'fate', t: '你在美国跟牛仔决斗：摇一次骰子猜大小，输了把你送进监狱3回合，赢了+3000' },
-  { c: 'fate', t: '你在印度用左手吃饭，因吃坏肚子重新出生了：回到出生点（没有奖励）' },
-  { c: 'fate', t: '你在澳大利亚被外星人绑架了：跳过下一个回合' },
-  { c: 'fate', t: '你乘船通过巴拿马运河：+1骰子次数' },
-  { c: 'fate', t: '你在澳门玩的很开心，给每个玩家发红包：-200*N' },
-  { c: 'fate', t: '你在英国给旅行者当翻译：+500' },
-  { c: 'fate', t: '你受邀至拉斯维加斯表演魔术：+500' },
-  { c: 'fate', t: '你在俄罗斯捡到了钻石：+1000' },
-  { c: 'fate', t: '你在墨西哥走私显卡：+2000' },
-  { c: 'fate', t: '你在摩洛哥被导游宰客，全程都在交智商税：-2500' },
-  { c: 'fate', t: '你在菲律宾潜水被水母蜇伤，住院治疗：-1000' },
-  { c: 'fate', t: '你在美国被警察误认为通缉犯：送进监狱 2 回合' },
-  { c: 'fate', t: '你在智利阿塔卡马沙漠迷路，GPS 失灵：取消下一次掷骰机会' }
+  { c: 'fate', t: '你在澳门玩的很开心，给每个玩家发红包：-200*N' }
 ];
 
 const LAYOUTS = {
@@ -155,15 +160,22 @@ function splitOnce(t) {
   return i < 0 ? [t, ''] : [t.slice(0, i), t.slice(i + 1)];
 }
 function cardNode(card, idxInDeck) {
-  const [ev, ef] = splitOnce(card.t);
+  let inner;
+  if (card.cond) {
+    inner = '<div class="ev">' + card.t + '</div>' +
+      '<div class="sub"><div class="cond">摇骰 · ' + card.cond + '</div>' +
+      '<div class="out win">赢：' + card.win + '</div>' +
+      '<div class="out lose">输：' + card.lose + '</div></div>';
+  } else {
+    const [ev, ef] = splitOnce(card.t);
+    inner = '<div class="ev">' + ev + '</div>' + (ef ? '<div class="ef">' + ef + '</div>' : '');
+  }
   const el = document.createElement('div');
   el.className = 'card ' + card.c;
   el.innerHTML =
     '<div class="wm">' + (card.c === 'chance' ? '？' : '！') + '</div>' +
     '<div class="title">' + DECK_NAME[card.c] + '</div>' +
-    '<div class="txt"><div class="ev">' + ev + '</div>' +
-    (ef ? '<div class="ef">' + ef + '</div>' : '') +
-    '</div>' +
+    '<div class="txt">' + inner + '</div>' +
     '<div class="num">' + (idxInDeck + 1) + '-20</div>';
   return el;
 }
@@ -224,16 +236,13 @@ function render() {
 
 function autoFit() {
   document.querySelectorAll('.txt').forEach(txt => {
-    const evEl = txt.querySelector('.ev');
-    const efEl = txt.querySelector('.ef');
-    let evSize = parseFloat(getComputedStyle(evEl).fontSize) || 10;
-    let efSize = efEl ? parseFloat(getComputedStyle(efEl).fontSize) : 0;
-    let guard = 0;
-    while (txt.scrollHeight > txt.clientHeight + 1 && evSize > 5.5 && guard < 40) {
-      evSize -= 0.4; guard++;
-      if (efEl) efSize = Math.max(5.5, efSize - 0.35);
-      evEl.style.fontSize = evSize + 'px';
-      if (efEl) efEl.style.fontSize = efSize + 'px';
+    const nodes = [...txt.querySelectorAll('.ev, .ef, .cond, .out')];
+    if (!nodes.length) return;
+    const base = nodes.map(n => parseFloat(getComputedStyle(n).fontSize) || 10);
+    let k = 0;
+    while (txt.scrollHeight > txt.clientHeight + 1 && k < 60) {
+      k++;
+      nodes.forEach((n, i) => { n.style.fontSize = Math.max(5.2, base[i] - k * 0.3) + 'px'; });
     }
   });
 }

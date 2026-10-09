@@ -20,6 +20,23 @@
   .sep { width: 1px; height: 18px; background: #4a4a52; }
   .specs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; color: #9a9aa2; }
   .specs b { color: #e8e8e8; font-weight: 500; }
+  .btn.edit { background: #3E4A78; border-color: #5A6AA0; color: #E4E9F5; }
+
+  /* 卡牌编辑弹窗 */
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; display: none; }
+  .modal-mask.open { display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .modal { background: #232327; border: .5px solid #4a4a52; border-radius: 12px; width: 780px; max-width: 100%;
+           max-height: 92vh; display: flex; flex-direction: column; color: #e8e8e8; }
+  .modal h2 { font-size: 14px; font-weight: 600; margin: 0; padding: 14px 18px; border-bottom: 1px solid #3a3a40; }
+  .modal .help { font-size: 12px; color: #9a9aa2; line-height: 1.7; padding: 10px 18px; border-bottom: 1px solid #3a3a40; }
+  .modal .help code { background: #2e2e34; border-radius: 4px; padding: 1px 5px; color: #d9c58a; font-size: 11.5px; }
+  .modal textarea { flex: 1; min-height: 320px; margin: 12px 18px; background: #1c1c1e; color: #dcdce2;
+                    border: .5px solid #4a4a52; border-radius: 8px; padding: 12px; font-family: inherit;
+                    font-size: 12.5px; line-height: 1.8; resize: vertical; white-space: pre; }
+  .modal textarea:focus { outline: none; border-color: #6a6a72; }
+  .modal .err { margin: 0 18px 8px; font-size: 12px; color: #E8738C; line-height: 1.6; white-space: pre-wrap; max-height: 90px; overflow: auto; }
+  .modal .ops { display: flex; gap: 8px; padding: 0 18px 16px; flex-wrap: wrap; }
+  .modal .ops .grow { flex: 1; }
 
   .wrap { padding: 24px 0 60px; }
   .page-tag { margin: 0 auto 6px; font-size: 11.5px; color: #7a7a82; letter-spacing: .3px; }
@@ -98,6 +115,7 @@
     .wrap { padding: 0; }
     .page-tag { display: none; }
     .sheet { margin: 0; box-shadow: none; overflow: hidden; }
+    .modal-mask { display: none !important; }
   }
 </style>
 <style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
@@ -116,6 +134,9 @@
     <span class="sep"></span>
     <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
     <button class="btn" data-mode="split">按花色分页</button>
+    <span class="sep"></span>
+    <button class="btn edit" id="doEdit">编辑卡牌</button>
+    <button class="btn" id="doReset">重置为内置 v6</button>
     <button class="btn print" id="doPrint">打印</button>
   </div>
   <div class="specs" id="specs"></div>
@@ -123,10 +144,31 @@
 
 <div class="wrap" id="wrap"></div>
 
+<div class="modal-mask" id="editMask">
+  <div class="modal">
+    <h2>编辑卡牌内容</h2>
+    <div class="help">
+      一行一张卡，字段用 <code>|</code> 分隔；<code>#机会</code> / <code>#命运</code> 开头分段。<br>
+      机会牌：<code>事件 | 效果 | 奖或罚</code>（第三列可省略，默认按效果开头是否有 <code>-</code> 自动判断）<br>
+      命运牌：<code>事件 | 判定方式 | 赢的结果 | 输的结果</code>（四列都要有）<br>
+      编号自动按行序生成；没写的段落自动用内置 v6；清空全部再「应用」= 恢复内置。改完会自动记住（同一浏览器）。
+    </div>
+    <textarea id="editArea" spellcheck="false"></textarea>
+    <div class="err" id="editErr"></div>
+    <div class="ops">
+      <button class="btn" id="editCopy">复制全部</button>
+      <button class="btn" id="editBuiltin">填入内置 v6</button>
+      <span class="grow"></span>
+      <button class="btn" id="editCancel">取消</button>
+      <button class="btn on" id="editApply">应用并更新卡片</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== 卡牌数据 v6（邪恶版·世界之旅）=====
 // 机会牌：s = 'smile'（奖励，1-14）/ 'frown'（惩罚，15-20）
-const CARDS = [
+const BUILTIN_CARDS = [
   { c: 'chance', s: 'smile', t: '你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金：+2000，被举报者（最有钱的玩家）-2000' },
   { c: 'chance', s: 'smile', t: '你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」：向最有钱的玩家罚款 2000，钱归你' },
   { c: 'chance', s: 'smile', t: '你在澳门赌场出千被荷官发现——但荷官是你发小：+3000，左手玩家替你平事被没收 1000' },
@@ -191,6 +233,27 @@ let currentPaper = 'a4';
 let currentLayout = 'standard';
 let pageMode = 'flow';
 
+// ===== 自定义卡组：localStorage 记忆，没给的花色回落内置 =====
+const STORE_KEY = 'richer_custom_cards_v1';
+function loadCustom() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if (s && (Array.isArray(s.chance) || Array.isArray(s.fate))) return s;
+  } catch (e) {}
+  return null;
+}
+let custom = loadCustom();
+let CARDS = [];
+function builtinBy(kind) { return BUILTIN_CARDS.filter(c => c.c === kind); }
+function applyDecks() {
+  CARDS = custom
+    ? [].concat(custom.chance || builtinBy('chance'), custom.fate || builtinBy('fate'))
+    : BUILTIN_CARDS.slice();
+  const h = document.getElementById('pageTitle');
+  h.textContent = '大富翁卡牌打印版 · 横版 · ' + (custom ? '数据版本：自定义（内置 v6 备用）' : '数据版本 v6（邪恶版·世界之旅）');
+}
+applyDecks();
+
 function activeLayout() {
   return currentPaper === 'photo6' ? LAYOUTS.photo4 : LAYOUTS[currentLayout];
 }
@@ -208,35 +271,41 @@ function faceSVG(kind) {
     '</svg>';
 }
 
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 function splitOnce(t) {
   const i = t.indexOf('：');
   return i < 0 ? [t, ''] : [t.slice(0, i), t.slice(i + 1)];
 }
-function cardNode(card, idxInDeck) {
+function cardNode(card, idxInDeck, deckSize) {
   let inner;
   if (card.cond) {
-    inner = '<div class="ev">' + card.t + '</div>' +
+    inner = '<div class="ev">' + esc(card.t) + '</div>' +
       '<div class="sub">' +
-      '<div class="cond">摇骰 · ' + card.cond + '</div>' +
-      '<div class="line"><span class="out win">' + faceSVG('smile') + '</span><span class="out win">赢：' + card.win + '</span></div>' +
-      '<div class="line"><span class="out lose">' + faceSVG('frown') + '</span><span class="out lose">输：' + card.lose + '</span></div>' +
+      '<div class="cond">摇骰 · ' + esc(card.cond) + '</div>' +
+      '<div class="line"><span class="out win">' + faceSVG('smile') + '</span><span class="out win">赢：' + esc(card.win) + '</span></div>' +
+      '<div class="line"><span class="out lose">' + faceSVG('frown') + '</span><span class="out lose">输：' + esc(card.lose) + '</span></div>' +
       '</div>';
   } else {
-    const [ev, ef] = splitOnce(card.t);
-    inner = '<div class="ev">' + ev + '</div>' +
-      (ef ? '<div class="line"><span class="ef">' + faceSVG(card.s || 'smile') + '</span><span class="ef">' + ef + '</span></div>' : '');
+    let ev, ef;
+    if (card.ev !== undefined) { ev = card.ev; ef = card.ef || ''; }
+    else { [ev, ef] = splitOnce(card.t); }
+    inner = '<div class="ev">' + esc(ev) + '</div>' +
+      (ef ? '<div class="line"><span class="ef">' + faceSVG(card.s || 'smile') + '</span><span class="ef">' + esc(ef) + '</span></div>' : '');
   }
   const el = document.createElement('div');
   el.className = 'card ' + card.c;
   el.innerHTML =
     '<div class="wm">' + (card.c === 'chance' ? '？' : '！') + '</div>' +
-    '<div class="num">' + (idxInDeck + 1) + '-20</div>' +
+    '<div class="num">' + (idxInDeck + 1) + '-' + (deckSize || 20) + '</div>' +
     '<div class="title">' + DECK_NAME[card.c] + '</div>' +
     '<div class="txt">' + inner + '</div>';
   return el;
 }
 function deckList(kind) {
-  return CARDS.filter(c => c.c === kind).map((c, i) => ({ card: c, i }));
+  const list = CARDS.filter(c => c.c === kind);
+  return list.map((c, i) => ({ card: c, i, n: list.length }));
 }
 
 function render() {
@@ -279,7 +348,7 @@ function render() {
     sheet.style.setProperty('--nfs', L.nfs + 'px');
     sheet.style.setProperty('--wms', L.wms + 'mm');
 
-    pageItems.forEach(x => sheet.appendChild(cardNode(x.card, x.i)));
+    pageItems.forEach(x => sheet.appendChild(cardNode(x.card, x.i, x.n)));
     for (let k = pageItems.length; k < L.per; k++) {
       const b = document.createElement('div');
       b.className = 'blank';
@@ -353,6 +422,118 @@ document.querySelectorAll('.btn[data-mode]').forEach(b => {
   });
 });
 document.getElementById('doPrint').addEventListener('click', () => window.print());
+
+// ===== 卡牌编辑器：文本模版 序列化 / 解析 =====
+// 直接牌：事件 | 效果 [| 奖/罚]；条件牌：事件 | 判定 | 赢 | 输
+function serializeDeck(cards) {
+  const lines = [];
+  cards.forEach(c => {
+    if (c.cond) {
+      lines.push([c.t, c.cond, c.win, c.lose].join(' | '));
+    } else {
+      let ev, ef;
+      if (c.ev !== undefined) { ev = c.ev; ef = c.ef || ''; }
+      else { [ev, ef] = splitOnce(c.t); }
+      lines.push(ev + ' | ' + ef + (c.s === 'frown' ? ' | 罚' : ''));
+    }
+  });
+  return lines;
+}
+function serializeCurrent() {
+  const out = [];
+  const ch = CARDS.filter(c => c.c === 'chance');
+  if (ch.length) out.push('#机会', ...serializeDeck(ch));
+  const fa = CARDS.filter(c => c.c === 'fate');
+  if (fa.length) out.push('#命运', ...serializeDeck(fa));
+  return out.join('\n');
+}
+function serializeBuiltin() {
+  const out = [];
+  const ch = builtinBy('chance');
+  if (ch.length) out.push('#机会', ...serializeDeck(ch));
+  const fa = builtinBy('fate');
+  if (fa.length) out.push('#命运', ...serializeDeck(fa));
+  return out.join('\n');
+}
+function faceOf(mark) {
+  return /罚|哭/.test(mark) ? 'frown' : 'smile';
+}
+function parseTemplate(text) {
+  const errors = [];
+  const result = {};
+  let section = null;
+  const lines = text.split('\n');
+  lines.forEach((raw, k) => {
+    const line = raw.trim();
+    if (!line) return;
+    if (line.charAt(0) === '#') {
+      const m = line.match(/^#\s*(机会|命运)/);
+      if (!m) { errors.push('第 ' + (k + 1) + ' 行：无法识别的段落「' + line + '」，应为 #机会 或 #命运'); return; }
+      section = m[1] === '机会' ? 'chance' : 'fate';
+      result[section] = result[section] || [];
+      return;
+    }
+    if (!section) { errors.push('第 ' + (k + 1) + ' 行：请先写 #机会 或 #命运 段落开头'); return; }
+    const f = line.split('|').map(s => s.trim());
+    if (f.length === 4) {
+      if (!f[0] || !f[1] || !f[2] || !f[3]) { errors.push('第 ' + (k + 1) + ' 行：条件牌四列都不能为空'); return; }
+      result[section].push({ c: section, t: f[0], cond: f[1], win: f[2], lose: f[3] });
+    } else if (f.length === 2 || f.length === 3) {
+      if (!f[0]) { errors.push('第 ' + (k + 1) + ' 行：事件不能为空'); return; }
+      const s = f.length === 3
+        ? faceOf(f[2])
+        : (/^[-−－]/.test(f[1] || '') ? 'frown' : 'smile');
+      result[section].push({ c: section, ev: f[0], ef: f[1] || '', s });
+    } else {
+      errors.push('第 ' + (k + 1) + ' 行：字段数应为 2、3（直接牌）或 4（条件牌），当前有 ' + f.length + ' 列');
+    }
+  });
+  return { errors, chance: result.chance, fate: result.fate };
+}
+
+const editMask = document.getElementById('editMask');
+const editArea = document.getElementById('editArea');
+const editErr = document.getElementById('editErr');
+function openEditor() {
+  editArea.value = serializeCurrent();
+  editErr.textContent = '';
+  editMask.classList.add('open');
+}
+document.getElementById('doEdit').addEventListener('click', openEditor);
+document.getElementById('editCancel').addEventListener('click', () => editMask.classList.remove('open'));
+editMask.addEventListener('click', e => { if (e.target === editMask) editMask.classList.remove('open'); });
+document.getElementById('editBuiltin').addEventListener('click', () => {
+  editArea.value = serializeBuiltin();
+  editErr.textContent = '';
+});
+document.getElementById('editCopy').addEventListener('click', () => {
+  editArea.select();
+  if (navigator.clipboard) navigator.clipboard.writeText(editArea.value);
+  else document.execCommand('copy');
+  document.getElementById('editCopy').textContent = '已复制';
+  setTimeout(() => { document.getElementById('editCopy').textContent = '复制全部'; }, 1200);
+});
+document.getElementById('editApply').addEventListener('click', () => {
+  const res = parseTemplate(editArea.value);
+  if (res.errors.length) { editErr.textContent = res.errors.join('\n'); return; }
+  editErr.textContent = '';
+  if (!res.chance && !res.fate) {
+    custom = null;
+    localStorage.removeItem(STORE_KEY);
+  } else {
+    custom = { chance: res.chance, fate: res.fate };
+    localStorage.setItem(STORE_KEY, JSON.stringify(custom));
+  }
+  applyDecks();
+  render();
+  editMask.classList.remove('open');
+});
+document.getElementById('doReset').addEventListener('click', () => {
+  custom = null;
+  localStorage.removeItem(STORE_KEY);
+  applyDecks();
+  render();
+});
 
 syncPaperUI();
 render();

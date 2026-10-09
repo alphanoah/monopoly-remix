@@ -108,8 +108,8 @@
   <h1 id="pageTitle">大富翁卡牌打印版 · 横版 · 数据版本 v6（邪恶版·世界之旅）</h1>
   <p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。</p>
   <div class="row">
-    <button class="btn on" data-paper="a4">A4 纸</button>
-    <button class="btn" data-paper="photo6">6 寸相片纸 · 4 张/页</button>
+    <button class="btn" data-paper="a4">A4 纸</button>
+    <button class="btn on" data-paper="photo6">6 寸相片纸 · 4 张/页</button>
     <span class="sep"></span>
     <button class="btn on" data-layout="standard">标准 · 8 张/页</button>
     <button class="btn" data-layout="compact">紧凑 · 10 张/页</button>
@@ -187,7 +187,7 @@ const LAYOUTS = {
 };
 
 const DECK_NAME = { chance: '机会', fate: '命运' };
-let currentPaper = 'a4';
+let currentPaper = 'photo6';
 let currentLayout = 'standard';
 let pageMode = 'flow';
 

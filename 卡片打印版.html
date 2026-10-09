@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>大富翁卡牌打印版 · A4</title>
+<title>大富翁卡牌打印版 · A4 · v6</title>
 <style>
   @page { size: A4 portrait; margin: 0; }
   * { box-sizing: border-box; }
@@ -17,7 +17,7 @@
   .btn:hover { border-color: #6a6a72; }
   .btn.on { background: #0F6E56; border-color: #1D9E75; color: #E1F5EE; }
   .btn.print { background: #D94F6E; border-color: #E8738C; color: #fff; }
-  label.chk { font-size: 12.5px; color: #b9b9c0; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .sep { width: 1px; height: 18px; background: #4a4a52; }
   .specs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; color: #9a9aa2; }
   .specs b { color: #e8e8e8; font-weight: 500; }
 
@@ -85,13 +85,15 @@
 <body>
 
 <div class="chrome">
-  <h1>大富翁卡牌打印版 · A4</h1>
-  <p>选好版式后点「打印」；打印设置里纸张选 A4、边距选「无」、缩放 100%（不要选「适应页面」），并勾选「背景图形」。黑白打印机也能用，只是颜色会变灰。</p>
+  <h1>大富翁卡牌打印版 · A4 · 数据版本 v6（邪恶版·世界之旅）</h1>
+  <p>选好版式和分页方式后点「打印」；打印设置里纸张选 A4、边距选「无」、缩放 100%（不要选「适应页面」），并勾选「背景图形」。</p>
   <div class="row">
     <button class="btn on" data-layout="standard">标准 · 9 张/页</button>
     <button class="btn" data-layout="compact">紧凑 · 12 张/页</button>
     <button class="btn" data-layout="mini">迷你 · 16 张/页</button>
-    <label class="chk"><input type="checkbox" id="groupDeck" checked> 按花色分页（机会在前，命运在后）</label>
+    <span class="sep"></span>
+    <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
+    <button class="btn" data-mode="split">按花色分页</button>
     <button class="btn print" id="doPrint">打印</button>
   </div>
   <div class="specs" id="specs"></div>
@@ -101,46 +103,48 @@
 
 <script>
 const CARDS = [
-  { c: 'chance', t: '你买的国足赢了世界杯：+3000' },
-  { c: 'chance', t: '你与马来西亚农民一起种植油棕：+2000' },
-  { c: 'chance', t: '你在马里亚纳海沟钓到了深海克苏鲁：+1000' },
-  { c: 'chance', t: '你的航班延误了，获得赔偿：+500' },
-  { c: 'chance', t: '你在家里的厕所挖到了古董：+500' },
-  { c: 'chance', t: '你在珠穆朗玛峰成功救下了一个富豪：+500' },
-  { c: 'chance', t: '今天你生日，每个玩家给你发红包：+200*N' },
-  { c: 'chance', t: '你在埃及找到了一支野生的工程队：下一回合到达的地块免费升级一次' },
-  { c: 'chance', t: '你在中国乘坐磁悬浮列车：+1 骰子次数' },
-  { c: 'chance', t: '你假冒FBI查房：向所有玩家收取过路费（所有玩家触发一次当前格子的过路费，钱给你）' },
-  { c: 'chance', t: '你在迪拜淘到一辆二手超跑，转手卖出：+2500' },
-  { c: 'chance', t: '你在挪威钓到三文鱼王，被海鲜商高价收购：+1500' },
-  { c: 'chance', t: '你在泰国成为人妖秀头牌，全场观众给你打赏：+300*N' },
-  { c: 'chance', t: '你成为首位平民太空旅客，NASA 发放补贴：+2000，并 +1 骰子次数' },
-  { c: 'chance', t: '你在缅甸遭遇诈骗：强制拍卖该处房子' },
-  { c: 'chance', t: '你在日本遭遇地震：-500' },
-  { c: 'chance', t: '你在古巴遭受袭击：-500' },
-  { c: 'chance', t: '你在南非买了大象：-1000' },
-  { c: 'chance', t: '你在冰岛种植橡胶树：-2000' },
-  { c: 'chance', t: '你前往加拿大的海上遇到了飓风：倒退 3 格，并取消下一次掷骰机会' },
-  { c: 'fate', t: '你在美国跟牛仔决斗', cond: '押大小（1-8 小 / 9-16 大）', win: '+3000', lose: '送进监狱 3 回合' },
-  { c: 'fate', t: '你在摩纳哥赌场玩轮盘', cond: '押单双', win: '+2000', lose: '-2000' },
-  { c: 'fate', t: '你在加纳投资金矿', cond: '押大小', win: '+2000', lose: '-2000' },
-  { c: 'fate', t: '你在埃及盗掘金字塔', cond: '押大小', win: '+2500', lose: '回出生点（没有奖励）' },
-  { c: 'fate', t: '你在巴西参加桑巴大赛', cond: '押单双', win: '+1500', lose: '-1500' },
-  { c: 'fate', t: '你在冰岛探火山口', cond: '押大小', win: '+1500', lose: '被烫伤 -1500' },
-  { c: 'fate', t: '你在迪拜押骆驼赛', cond: '押单双', win: '+1500', lose: '-1000' },
-  { c: 'fate', t: '你在尼泊尔参与雪崩搜救', cond: '押单双', win: '+1000', lose: '-1000' },
-  { c: 'fate', t: '你在阿根廷比探戈', cond: '押大小', win: '+1000', lose: '-500' },
-  { c: 'fate', t: '你在西班牙过奔牛节', cond: '押单双', win: '安全通过（无变化）', lose: '被牛顶伤 -1000' },
-  { c: 'fate', t: '你乘船通过巴拿马运河：+1 骰子次数' },
-  { c: 'fate', t: '你在英国给旅行者当翻译：+500' },
-  { c: 'fate', t: '你在俄罗斯捡到了钻石：+1000' },
-  { c: 'fate', t: '你在墨西哥走私显卡：+2000' },
-  { c: 'fate', t: '你受邀至拉斯维加斯表演魔术：+500' },
-  { c: 'fate', t: '你存在瑞士的加密货币被黑客盗取了：-3000' },
-  { c: 'fate', t: '你在南极看企鹅的时候弄丢了手机：-2000' },
-  { c: 'fate', t: '你在新加坡吸烟：-1000' },
-  { c: 'fate', t: '你在叙利亚被导弹锁定了：下一回合到达的地块降级一次' },
-  { c: 'fate', t: '你在澳门玩的很开心，给每个玩家发红包：-200*N' }
+  // ===== 机会牌 v6（邪恶版·世界之旅）1-20 =====
+  { c: 'chance', t: '你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金：+2000，被举报者（最有钱的玩家）-2000' },
+  { c: 'chance', t: '你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」：向最有钱的玩家罚款 2000，钱归你' },
+  { c: 'chance', t: '你在澳门赌场出千被荷官发现——但荷官是你发小：+3000，左手玩家替你平事被没收 1000' },
+  { c: 'chance', t: '你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团：+1000，右手玩家取消下次掷骰' },
+  { c: 'chance', t: '你在米兰倒卖限量球鞋，黄牛圈为你封神：+1500' },
+  { c: 'chance', t: '你买通了马赛的裁判，你押的队「赢了」世界杯：+2500' },
+  { c: 'chance', t: '你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱：+500，他退到经济舱跳过下回合' },
+  { c: 'chance', t: '你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药：他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价' },
+  { c: 'chance', t: '你在里约把「防抢劫符」卖给富豪，当晚贫民窟枪一响他就信了：+1000' },
+  { c: 'chance', t: '你在伦敦给你最贵的房产投了灾险，然后隔壁「不小心」着火了：那块房 -1 级，你领赔偿 +1500' },
+  { c: 'chance', t: '你在莫斯科开「监狱代购」，垄断了西伯利亚铁窗外的外卖：所有监狱里的玩家每人付你 300' },
+  { c: 'chance', t: '你在广州仿冒名牌包卖给欧洲旅游团：+800 ×（在场有房的玩家人数）' },
+  { c: 'chance', t: '你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了：每个玩家付你 200（收智商税）' },
+  { c: 'chance', t: '你在拉斯维加斯贿赂了骰子之神：+1 骰子次数，下次移动骰摇到 8-16 可任选正走或倒走' },
+  { c: 'chance', t: '你在拉斯维加斯出千被真正的赌场抓了现行：强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）' },
+  { c: 'chance', t: '你在平壤造的假美元被人用回你自己的黑市摊位：-1500' },
+  { c: 'chance', t: '你在开罗买的「图坦卡蒙纯金」圣甲虫是镀金的：-500' },
+  { c: 'chance', t: '你在那不勒斯教唆小孩把家里房契拿去换球星卡，黑手党家长找上门：-1000，下回合到达他人地块过路费翻倍' },
+  { c: 'chance', t: '你在哥伦比亚的诈骗集团被一锅端，你是唯一没跑掉的：-2500' },
+  { c: 'chance', t: '你在首尔被全网人肉，黑历史挂上热搜：所有玩家每人拿走 200（-200×N）' },
+  // ===== 命运牌 v6（邪恶版·世界之旅）1-20，全部为条件判定牌 =====
+  { c: 'fate', t: '你在德州跟亡命牛仔玩「灵魂赌局」，背对背各走十六步才回头开枪', cond: '押大小（前八步/后八步）', win: '抢先开枪：+3000', lose: '送进监狱 3 回合' },
+  { c: 'fate', t: '你在澳门地下钱庄押上最后一注，庄家冷笑：单还是双', cond: '押单双', win: '+3000', lose: '-2000，被掰断手指取消下次掷骰' },
+  { c: 'fate', t: '你和左手玩家在西西里各自雇了杀手互杀', cond: '比点数（各摇一颗，平局重来）', win: '分到他 2000 遗产（他 -2000）', lose: '进医院 -2000' },
+  { c: 'fate', t: '亡命狂奔：马德里宪兵队放狗追你，跑出 9 步以上才能翻墙', cond: '用本次移动骰点数 ≥ 9', win: '+500', lose: '-500' },
+  { c: 'fate', t: '你在河内老街碰上巫祝，她把诅咒骰攥在拳头里让你猜哪只手', cond: '猜左右手', win: '+1000', lose: '下回合过路费收入减半' },
+  { c: 'fate', t: '你在那不勒斯和黑手党谈判破裂，一局手势定生死', cond: '石头剪刀布（vs 左手玩家，平局重来）', win: '+1500', lose: '-1500' },
+  { c: 'fate', t: '你潜入西西里黑手党金库，警戒等级 1-16 级，1-7 级可摸进宝库', cond: '押区间（摇到 1-7）', win: '偷出藏品 +900', lose: '触发警报 -700' },
+  { c: 'fate', t: '你在蒙特卡洛把全部身家压上轮盘，14/15/16 三格「连本带利」', cond: '赌爆点（摇到 14/15/16）', win: '+2600', lose: '-600' },
+  { c: 'fate', t: '你在巴布亚新几内亚跟部落跳完祭祀舞，族长掷命运骨，掷出 1 的人是今晚主菜', cond: '押「不摇到 1」', win: '+200', lose: '凑赎身钱 -3000' },
+  { c: 'fate', t: '你在巴黎红磨坊即兴演出，老板娘逼你竞猜好感分（3-14 分）', cond: '猜数字（误差 ≤ 2）', win: '+2200', lose: '-1000' },
+  { c: 'fate', t: '你在缅甸对军阀撒了个弥天大谎，测谎仪十六面骰单数=通过', cond: '押单双', win: '+800', lose: '下回合禁止交易与谈判' },
+  { c: 'fate', t: '你潜入苏黎世首富的卧室行窃，惊醒了他——床上床下各显身手', cond: '比点数（vs 最有钱玩家，平局重来）', win: '卷走 1500（他 -1500）', lose: '私了赔 1500' },
+  { c: 'fate', t: '你去抢瑞士银行，金库大门是 1-16 密码转盘', cond: '押大小', win: '+3000', lose: '坐牢 3 回合' },
+  { c: 'fate', t: '台风「醉汉」朝你名下等级最高的那栋楼拐来，风力 9 级以上它才拐得走', cond: '押区间（摇到 9-16）', win: '那栋房 +1 级', lose: '那栋房 -1 级（1 级→空地）' },
+  { c: 'fate', t: '伦敦税务局搞路段单双号抽查，税额 = 判定骰点数 × 100', cond: '所在格奇偶 + 骰点计税', win: '退税 +点数×100', lose: '补税 -点数×100' },
+  { c: 'fate', t: '东西两大财团要建总部，董事会转盘 1-8 买你的地、9-16 买他的地', cond: '押大小', win: '吞左手玩家购地款最低的一块地', lose: '你的那块归他' },
+  { c: 'fate', t: '你掉进百慕大三角，奇偶决定把你扔向未来还是过去', cond: '押单双', win: '前进 4 格', lose: '后退 4 格' },
+  { c: 'fate', t: '索马里海岸，通缉令同时锁定你和最近的玩家，赏金归活下来的', cond: '比点数（各摇一颗，平局重来）', win: '拿走他现金的一半', lose: '他拿走你现金的一半' },
+  { c: 'fate', t: '你向国际刑警告发了同船的蛇头——赏金必拿，牢也必坐', cond: '押单双（奖罚同时）', win: '关 1 回合，净 +1000', lose: '关 3 回合，净 -1000' },
+  { c: 'fate', t: '迪拜黑市「决斗拍卖」，中间人（右手玩家的下家）掷骰定谁先喊价', cond: '他人代摇（≥9 你先 / ≤8 他先）', win: '半价拍得他的地（他收全款）', lose: '他半价拍得你的地（你收全款）' }
 ];
 
 const LAYOUTS = {
@@ -154,6 +158,7 @@ const LAYOUTS = {
 
 const DECK_NAME = { chance: '机会', fate: '命运' };
 let current = 'standard';
+let pageMode = 'flow';
 
 function splitOnce(t) {
   const i = t.indexOf('：');
@@ -185,17 +190,15 @@ function deckList(kind) {
 
 function render() {
   const L = LAYOUTS[current];
-  const group = document.getElementById('groupDeck').checked;
   const pages = [];
-  if (group) {
+  if (pageMode === 'split') {
     ['chance', 'fate'].forEach(kind => {
       const list = deckList(kind);
       for (let i = 0; i < list.length; i += L.per) pages.push(list.slice(i, i + L.per));
     });
   } else {
-    for (let i = 0; i < CARDS.length; i += L.per) {
-      pages.push(CARDS.slice(i, i + L.per).map(c => ({ card: c, i: CARDS.filter(x => x.c === c.c).indexOf(c) })));
-    }
+    const flow = deckList('chance').concat(deckList('fate'));
+    for (let i = 0; i < flow.length; i += L.per) pages.push(flow.slice(i, i + L.per));
   }
 
   const wrap = document.getElementById('wrap');
@@ -250,11 +253,11 @@ function autoFit() {
 function updateSpecs(pageCount) {
   const L = LAYOUTS[current];
   const rows = L.per / L.cols;
+  const modeText = pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）';
   document.getElementById('specs').innerHTML =
     '<span>卡片尺寸 <b>' + L.cw + ' × ' + L.ch + ' mm</b></span>' +
     '<span>版式 <b>' + L.cols + ' 列 × ' + rows + ' 行 = ' + L.per + ' 张/页</b></span>' +
-    '<span>卡间距 <b>' + L.gx + ' mm</b></span>' +
-    '<span>页边距 <b>左右 ' + L.mx + ' / 上下 ' + L.my + ' mm</b></span>' +
+    '<span>分页 <b>' + modeText + '</b></span>' +
     '<span>共 <b>' + CARDS.length + ' 张 → ' + pageCount + ' 页 A4</b></span>';
 }
 
@@ -266,7 +269,14 @@ document.querySelectorAll('.btn[data-layout]').forEach(b => {
     render();
   });
 });
-document.getElementById('groupDeck').addEventListener('change', render);
+document.querySelectorAll('.btn[data-mode]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.btn[data-mode]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    pageMode = b.dataset.mode;
+    render();
+  });
+});
 document.getElementById('doPrint').addEventListener('click', () => window.print());
 
 render();

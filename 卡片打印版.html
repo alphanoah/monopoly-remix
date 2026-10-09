@@ -46,12 +46,12 @@
   .card.fate { background: #D9BA8E; color: #2C3E6B; }
 
   /* 大号浅色底纹：作为背景顶到最右边缘，文字直接覆盖其上 */
-  /* translateX(0.3em) 抵消全角符号自带的右侧留白，让字形真正贴到右边缘并微微出血 */
+  /* 不用 transform（打印分页时 transform 会导致错位并逃出 overflow 裁剪），
+     改用 inset 定位 + 负 margin 抵消全角符号自带的右侧留白，让字形贴右边缘微出血 */
   .wm {
-    position: absolute; top: 50%; right: -3mm;
-    height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    transform: translateY(-50%) translateX(0.3em);
+    position: absolute; top: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: flex-end;
+    margin-right: -0.26em;
     font-size: var(--wms); line-height: 1; font-weight: 700;
     pointer-events: none; z-index: 0;
   }

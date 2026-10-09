@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x9879;&#x76ee;&#x957f;&#x671f;&#x8bb0;&#x5fc6; &centerdot; richer&#xff08;&#x5927;&#x5bcc;&#x7fc1;&#xff09;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="项目长期记忆--richer大富翁">项目长期记忆 · richer（大富翁）</h1>
+<h2 id="git-约定用户要求2026-10-09">Git 约定（用户要求，2026-10-09）</h2>
+<ul>
+<li><strong>每次目录有改动，都要提交一次 git。</strong> 完成任何文件改动后立即 <code>git add -A &amp;&amp; git commit</code>，不要攒着。</li>
+<li>提交信息用中文，格式 <code>类型: 描述</code>（如 <code>feat:</code> / <code>fix:</code> / <code>docs:</code> / <code>chore:</code>）。</li>
+<li>仓库根：<code>/Users/alpha/Theo/richer</code>，分支 <code>main</code>；<code>user.name=alphanoah</code>。</li>
+<li><code>.gitignore</code> 已排除：所有图片（jpg/png/…）、Office 临时锁文件 <code>~$*</code>、<code>.DS_Store</code>、<code>.workbuddy/memory/</code>。</li>
+</ul>
+<h2 id="卡牌版本管理约定2026-10-09">卡牌版本管理约定（2026-10-09）</h2>
+<ul>
+<li><strong>卡牌内容单独成版本目录 <code>命运机会卡牌/</code></strong>，每版一个 md：<code>v1.md</code>、<code>v2.md</code>…，历史版本不覆盖、不删除。</li>
+<li>当前最新版本写进 <code>大富翁玩法.md</code> 的「## 卡牌」小节里指路。</li>
+<li>每次内容调整 = 新建一个版本文件，并在文件底部「变更记录」写清改了什么。</li>
+<li>内容没定稿前不动 <code>卡片打印版.html</code>；定稿后再同步打印页。</li>
+</ul>
+<h2 id="目录结构">目录结构</h2>
+<ul>
+<li><code>原版/</code>：原版实体卡资料（命运牌.jpg、机会牌.jpg、地图、说明书、<a href="http://xn--jhq6yh3kjuw2umda1004c.html">命运牌与机会牌.md</a>）</li>
+<li><code>命运机会卡牌/</code>：自制卡牌的版本文件（<a href="http://v1.html">v1.md</a> = 当前最新）</li>
+<li>根目录：<code>大富翁玩法.docx</code> + <code>大富翁玩法.md</code>（只放规则，卡牌指向版本目录）</li>
+<li><code>卡片打印版.html</code>：A4 打印排版页（40 张卡，三档版式：9/12/16 张每页）</li>
+<li><code>卡牌差异对照.md</code>：原版实体卡 vs 自制新版卡的差异分析</li>
+<li><code>卡牌对比_改版vs原版.md</code>：用户自己整理的对比文档</li>
+</ul>
+<h2 id="卡牌当前设定v1">卡牌当前设定（v1）</h2>
+<ul>
+<li>机会牌 20 张 = 14 奖励 + 6 惩罚（70% 奖励），翻开即生效</li>
+<li>命运牌 20 张 = 10 张摇骰子博弈（押大小 1-8/9-16 或押单双，输赢各半）+ 5 奖励 + 5 惩罚（期望 50%）</li>
+<li>判定骰与移动骰分开摇，判定摇到 16 不触发「再摇一次」</li>
+<li><code>N</code> = 存活玩家人数（含自己）</li>
+</ul>
+<h2 id="卡牌设计要点">卡牌设计要点</h2>
+<ul>
+<li>卡面仿原版实体卡：大标题「机会/命运」居中顶部、事件与加减分各一行居中、编号 <code>n-20</code> 左下角、右侧大号「？/！」底纹。</li>
+<li>配色：机会 = 粉紫底白字 <code>#B06F88</code>；命运 = 米黄底藏蓝字 <code>#D9BA8E</code>。</li>
+<li>打印：A4、边距无、缩放 100%、勾选背景图形；建议过塑后再裁切，边缘留 1.5~2mm。</li>
+</ul>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x5361;&#x724c;&#x5bf9;&#x6bd4;&#xff1a;&#x6539;&#x7248;&#x300a;&#x5927;&#x5bcc;&#x7fc1;&#x73a9;&#x6cd5;&#x300b;  vs  &#x539f;&#x7248;&#x300a;&#x547d;&#x8fd0;&#x724c; &amp; &#x673a;&#x4f1a;&#x724c;&#x300b;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="卡牌对比改版大富翁玩法--vs--原版命运牌--机会牌">卡牌对比：改版《大富翁玩法》  vs  原版《命运牌 &amp; 机会牌》</h1>
+<blockquote>
+<p>对比对象：</p>
+<ul>
+<li>改版：<code>大富翁玩法.md</code>（自制「机会牌」20 张 +「命运牌」20 张）</li>
+<li>原版：<code>原版/命运牌与机会牌.md</code>（实体卡提取，命运 20 张 + 机会 20 张）</li>
+</ul>
+<p>均为 20 + 20 = 40 张，数量一致；下文按「概览 → 跨堆搬迁 → 同主题逐张对照 → 机制差异 → 数值风格 → 结论」展开。</p>
+</blockquote>
+<hr>
+<h2 id="一总体概览">一、总体概览</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>原版</th>
+<th>改版</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>展示顺序</td>
+<td>先<strong>命运</strong>后<strong>机会</strong></td>
+<td>先<strong>机会</strong>后<strong>命运</strong></td>
+</tr>
+<tr>
+<td>张数</td>
+<td>20 + 20</td>
+<td>20 + 20</td>
+</tr>
+<tr>
+<td>货币单位</td>
+<td>「分」</td>
+<td>资金（元），初始资金 19580</td>
+</tr>
+<tr>
+<td>题材来源</td>
+<td>全球旅游 / 人文（迪士尼、诺贝尔、威尼斯、女王采访…）</td>
+<td>网络热梗 / 荒诞（克苏鲁、人妖秀、走私显卡、加密货币被盗、太空旅客…）</td>
+</tr>
+<tr>
+<td>金额量级</td>
+<td>以 300 / 500 / 1000 为主，区间 ±200~3000</td>
+<td>以 500 / 1000 / 2000 为主，出现 1500、2500 及变量 <code>*N</code></td>
+</tr>
+<tr>
+<td>正负倾向</td>
+<td>两堆都<strong>正负混杂</strong></td>
+<td><strong>机会≈纯好运，命运≈纯厄运</strong>（见第五节）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="二跨堆搬家情况同一个梗换了一堆">二、跨堆「搬家」情况（同一个梗换了一堆）</h2>
+<p>改版并非 1:1 改写，而是把原版不少题材<strong>在「命运 / 机会」之间对调</strong>，这是最显著的差异。</p>
+<table>
+<thead>
+<tr>
+<th>题材</th>
+<th>原版所在</th>
+<th>改版所在</th>
+<th>变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>马来西亚·油棕</td>
+<td>命运 1-20</td>
+<td>机会 #2</td>
+<td>命运 → 机会</td>
+</tr>
+<tr>
+<td>巴西·世界杯</td>
+<td>机会 4-20</td>
+<td>命运 #5</td>
+<td>机会 → 命运</td>
+</tr>
+<tr>
+<td>拉斯维加斯·魔术</td>
+<td>机会 13-20</td>
+<td>命运 #14</td>
+<td>机会 → 命运</td>
+</tr>
+<tr>
+<td>珠峰</td>
+<td>命运 15-20</td>
+<td>机会 #6</td>
+<td>命运 → 机会</td>
+</tr>
+<tr>
+<td>埃及</td>
+<td>命运 2-20</td>
+<td>机会 #8</td>
+<td>命运 → 机会</td>
+</tr>
+<tr>
+<td>航班延误</td>
+<td>命运 12-20</td>
+<td>机会 #4</td>
+<td>命运 → 机会</td>
+</tr>
+<tr>
+<td>菲律宾</td>
+<td>机会 19-20</td>
+<td>命运 #18</td>
+<td>机会 → 命运</td>
+</tr>
+<tr>
+<td>智利</td>
+<td>机会 18-20</td>
+<td>命运 #20</td>
+<td>机会 → 命运</td>
+</tr>
+<tr>
+<td>摩洛哥</td>
+<td>机会 20-20</td>
+<td>命运 #17</td>
+<td>机会 → 命运</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>可以看到：改版有意让<strong>机会牌只出好事、命运牌只出坏事</strong>，因此凡是&quot;坏事&quot;（菲律宾、智利迷路、摩洛哥被宰）几乎都从机会挪进了命运。</p>
+</blockquote>
+<hr>
+<h2 id="三同主题逐张对照可对应上的牌">三、同主题逐张对照（可对应上的牌）</h2>
+<table>
+<thead>
+<tr>
+<th>主题 / 国家</th>
+<th>改版位置</th>
+<th>改版效果</th>
+<th>原版位置</th>
+<th>原版效果</th>
+<th>关键差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>马来西亚·油棕</td>
+<td>机会 #2</td>
+<td>+2000</td>
+<td>命运 1-20</td>
+<td>再翻下一张机会</td>
+<td>归属对调，效果重写</td>
+</tr>
+<tr>
+<td>韩国·烤肉</td>
+<td>命运 #6</td>
+<td>−200×N</td>
+<td>命运 4-20</td>
+<td>−200</td>
+<td>归属同，改为<strong>按人数计费</strong></td>
+</tr>
+<tr>
+<td>印度·左手禁忌</td>
+<td>命运 #9</td>
+<td>回出生点</td>
+<td>命运 18-20</td>
+<td>退回起点</td>
+<td>机制几乎相同，地点越南→印度</td>
+</tr>
+<tr>
+<td>珠峰</td>
+<td>机会 #6</td>
+<td>救富豪 +500</td>
+<td>命运 15-20</td>
+<td>登顶 +500</td>
+<td>金额同，归属对调</td>
+</tr>
+<tr>
+<td>巴西·世界杯</td>
+<td>命运 #5</td>
+<td>−500</td>
+<td>机会 4-20</td>
+<td>−200</td>
+<td>归属对调，金额变</td>
+</tr>
+<tr>
+<td>拉斯维加斯·魔术</td>
+<td>命运 #14</td>
+<td>+500</td>
+<td>机会 13-20</td>
+<td>+2000</td>
+<td>归属对调，金额变</td>
+</tr>
+<tr>
+<td>日本·地震</td>
+<td>机会 #13</td>
+<td>−500</td>
+<td>机会 11-20</td>
+<td>−1000</td>
+<td>归属同，金额变</td>
+</tr>
+<tr>
+<td>航班·延误</td>
+<td>机会 #4</td>
+<td>+500</td>
+<td>命运 12-20</td>
+<td>暂停一次</td>
+<td>归属对调，效果由&quot;罚&quot;变&quot;奖&quot;</td>
+</tr>
+<tr>
+<td>泰国</td>
+<td>机会 #19</td>
+<td>人妖秀 +300×N</td>
+<td>机会 12-20</td>
+<td>泰拳 +1000</td>
+<td>归属同，题材与计费方式变</td>
+</tr>
+<tr>
+<td>埃及</td>
+<td>机会 #8</td>
+<td>下回合免费升级</td>
+<td>命运 2-20</td>
+<td>+2000</td>
+<td>归属对调，引入&quot;升级&quot;机制</td>
+</tr>
+<tr>
+<td>菲律宾</td>
+<td>命运 #18</td>
+<td>水母蜇伤 −1000</td>
+<td>机会 19-20</td>
+<td>误乘航班回起点</td>
+<td>归属对调，题材变</td>
+</tr>
+<tr>
+<td>智利</td>
+<td>命运 #20</td>
+<td>沙漠迷路·取消下次掷骰</td>
+<td>机会 18-20</td>
+<td>博物馆 +300</td>
+<td>归属对调，题材变</td>
+</tr>
+<tr>
+<td>摩洛哥</td>
+<td>命运 #17</td>
+<td>导游宰客 −2500</td>
+<td>机会 20-20</td>
+<td>陶瓷碗 −500</td>
+<td>归属对调，金额放大</td>
+</tr>
+<tr>
+<td>瑞士</td>
+<td>命运 #1</td>
+<td>加密货币被盗 −3000</td>
+<td>机会 6-20</td>
+<td>滑雪 −1000</td>
+<td>同国不同事</td>
+</tr>
+<tr>
+<td>俄罗斯</td>
+<td>命运 #15</td>
+<td>钻石 +1000</td>
+<td>机会 1-20</td>
+<td>矿石 +2500</td>
+<td>同国不同事</td>
+</tr>
+<tr>
+<td>墨西哥</td>
+<td>命运 #16</td>
+<td>走私显卡 +2000</td>
+<td>命运 17-20</td>
+<td>玛雅古文明 +500</td>
+<td>归属同，题材变</td>
+</tr>
+</tbody>
+</table>
+<p><strong>只能对应到&quot;国家&quot;、题材完全换新的</strong>：中国、美国（改版 3 张）、古巴、南非、冰岛、迪拜、挪威、叙利亚、巴拿马、澳门、英国、南极 —— 原版中这些国家多为旅游景点叙述，改版换成了更强的剧情梗。</p>
+<hr>
+<h2 id="四机制层面对比最能体现设计差异">四、机制层面对比（最能体现设计差异）</h2>
+<h3 id="原版独有改版丢弃的机制">原版独有、改版<strong>丢弃</strong>的机制</h3>
+<ul>
+<li><strong>按房产数量征税</strong>：命运 13-20 地税 / 机会 14-20 房产税（每幢房 250、每旅馆 1000）——改版无。</li>
+<li><strong>连锁翻牌</strong>：命运 1-20、机会 7-20「可再翻下一张机会牌」——改版无。</li>
+<li><strong>前进</strong>：命运 5-20「前进二步」——改版只有&quot;向后移动&quot;，没有纯粹前进。</li>
+<li><strong>指定地点移动 / 经过「由此去」再得 2000</strong>：命运 14-20（尼斯）、机会 2-20（意大利）——改版无。</li>
+<li><strong>按比例 / 全部失去现金</strong>：机会 5-20「失去现金 1/10」、机会 15-20「花光现金」——改版无。</li>
+</ul>
+<h3 id="改版独有原版没有的机制">改版独有、原版<strong>没有</strong>的机制</h3>
+<ul>
+<li><strong>+1 骰子次数</strong>：机会 #9、#12、#20，命运 #11 —— 与&quot;摇到 16 再摇一次&quot;规则联动。</li>
+<li><strong>地块升级 / 降级</strong>：机会 #8（下回合免费升级）、命运 #7（下回合降级）——与原版没有的&quot;房屋等级&quot;系统联动。</li>
+<li><strong>向所有玩家收取过路费</strong>：机会 #10（假冒 FBI 查房）。</li>
+<li><strong>强制拍卖自己房子</strong>：机会 #11（缅甸诈骗）。</li>
+<li><strong>送进监狱 N 回合</strong>：命运 #8（决斗输）、命运 #19（被误认通缉）——与改版&quot;监狱规则&quot;联动。</li>
+<li><strong>猜大小决斗</strong>：命运 #8（随机胜负）。</li>
+<li><strong>跳过回合 / 取消下次掷骰</strong>：命运 #10、#20。</li>
+<li><strong>按玩家人数计费</strong>：红包 / 群付 <code>±200×N</code>、<code>+300×N</code>（机会 #7、#19，命运 #6、#12），N 为活跃玩家数——原版一律是固定金额。</li>
+</ul>
+<h3 id="两版都有的机制可视为继承">两版都有的机制（可视为继承）</h3>
+<ul>
+<li>金额增减、向前/向后移动、退回起点、暂停/跳过一回合同一轮。</li>
+</ul>
+<hr>
+<h2 id="五数值与风格对比">五、数值与风格对比</h2>
+<p><strong>正负分布（粗统计）</strong></p>
+<table>
+<thead>
+<tr>
+<th>牌堆</th>
+<th>原版</th>
+<th>改版</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机会牌</td>
+<td>正 ≈8，负 ≈10，中立/条件 ≈2（正负混杂）</td>
+<td>正 ≈14，负 ≈5（<strong>几乎纯好运</strong>）</td>
+</tr>
+<tr>
+<td>命运牌</td>
+<td>正 ≈10，负 ≈8，中立/条件 ≈2（正负混杂）</td>
+<td>正 ≈5，负 ≈14（<strong>几乎纯厄运</strong>）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>题材与语气</strong></p>
+<ul>
+<li>原版：写实、温和的&quot;环球旅行&quot;——迪士尼门票、慕尼黑硕士、威尼斯船租、采访女王，货币单位「分」。</li>
+<li>改版：荒诞、网感、强剧情——克苏鲁、人妖秀头牌、走私显卡、瑞士加密货币被盗、太空旅客、国足夺冠；金额普遍放大，并出现 <code>×N</code> 这类随人数的变量。</li>
+</ul>
+<hr>
+<h2 id="六结论">六、结论</h2>
+<p>改版<strong>保留了原版「环球地名 + 金额奖惩」的骨架</strong>，但做了三件明显的改造：</p>
+<ol>
+<li><strong>正负分堆</strong>：把原版&quot;命运/机会都正负混杂&quot;改成&quot;机会只出好事、命运只出坏事&quot;，让两堆牌有明确的心理预期。</li>
+<li><strong>接入新玩法机制</strong>：新增骰子次数、房屋升降、监狱回合、强制拍卖、群伤群益等，使卡牌与改版独有的骰子/监狱/拍卖规则形成联动。</li>
+<li><strong>题材与量级升级</strong>：写实旅游梗 → 荒诞网感梗，金额放大并引入人数变量。</li>
+</ol>
+<p><strong>主要代价</strong>：丢弃了原版一些经典机制——按房产数量缴税、连锁翻牌、前进二步、按比例/全部失去现金、指定地点移动与&quot;经过由此去&quot;奖励。若希望保留原版味道，可考虑把这几个机制重新植入改版牌池。</p>
+<blockquote>
+<p>注：以上&quot;同主题对照&quot;按内容语义匹配，个别牌为跨国家/题材的推测对应，如需严格一一对应请以实体卡为准。</p>
+</blockquote>
+
+            
+            
+        </body>
+        </html>

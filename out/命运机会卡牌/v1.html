@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x547d;&#x8fd0;&#x724c; &amp; &#x673a;&#x4f1a;&#x724c; &centerdot; v1</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="命运牌--机会牌--v1">命运牌 &amp; 机会牌 · v1</h1>
+<ul>
+<li><strong>版本</strong>：v1（2026-10-09）</li>
+<li><strong>规模</strong>：机会牌 20 张 + 命运牌 20 张，共 40 张</li>
+<li><strong>金钱单位</strong>：游戏内「钱」，与初始资金 19580 配套</li>
+<li><strong>设计目标</strong>
+<ul>
+<li>机会牌：<strong>奖励率 70%</strong>（14 奖励 + 6 惩罚），翻开即生效</li>
+<li>命运牌：<strong>奖励率 50%</strong>（10 张摇骰子博弈 + 5 奖励 + 5 惩罚），博弈牌输赢各半</li>
+<li>命运牌以「条件判定」为主，不翻开就定生死</li>
+</ul>
+</li>
+</ul>
+<h2 id="通用判定规则">通用判定规则</h2>
+<ul>
+<li>十六面骰 1-16，等概率；移动时摇到 16 可再摇一次</li>
+<li><strong>判定骰与移动骰分开摇</strong>，用同一颗十六面骰；判定时摇到 16 <strong>不触发</strong>「再摇一次」</li>
+<li>押大小：1-8 小 / 9-16 大；押单双：奇数为单 / 偶数为双 —— 各 50%</li>
+<li><code>N</code> = 存活玩家人数（含自己）</li>
+<li>「回出生点（没有奖励）」= 直接送回出生点，<strong>不触发</strong>路过出生点的 +2000</li>
+</ul>
+<hr>
+<h2 id="机会牌20-张--14-奖励--6-惩罚--70">机会牌（20 张 ｜ 14 奖励 + 6 惩罚 = 70%）</h2>
+<h3 id="奖励1-14">奖励（1-14）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>你买的国足赢了世界杯</td>
+<td>+3000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>你与马来西亚农民一起种植油棕</td>
+<td>+2000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>你在马里亚纳海沟钓到了深海克苏鲁</td>
+<td>+1000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>你的航班延误了，获得赔偿</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>5</td>
+<td>你在家里的厕所挖到了古董</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>6</td>
+<td>你在珠穆朗玛峰成功救下了一个富豪</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>7</td>
+<td>今天你生日，每个玩家给你发红包</td>
+<td>+200 × N</td>
+</tr>
+<tr>
+<td>8</td>
+<td>你在埃及找到了一支野生的工程队</td>
+<td>下一回合到达的地块免费升级一次</td>
+</tr>
+<tr>
+<td>9</td>
+<td>你在中国乘坐磁悬浮列车</td>
+<td>+1 骰子次数</td>
+</tr>
+<tr>
+<td>10</td>
+<td>你假冒 FBI 查房</td>
+<td>向所有玩家收取过路费（所有玩家触发一次当前格子的过路费，钱给你）</td>
+</tr>
+<tr>
+<td>11</td>
+<td>你在迪拜淘到一辆二手超跑，转手卖出</td>
+<td>+2500</td>
+</tr>
+<tr>
+<td>12</td>
+<td>你在挪威钓到三文鱼王，被海鲜商高价收购</td>
+<td>+1500</td>
+</tr>
+<tr>
+<td>13</td>
+<td>你在泰国成为人妖秀头牌，全场观众给你打赏</td>
+<td>+300 × N</td>
+</tr>
+<tr>
+<td>14</td>
+<td>你成为首位平民太空旅客，NASA 发放补贴</td>
+<td>+2000，并 +1 骰子次数</td>
+</tr>
+</tbody>
+</table>
+<h3 id="惩罚15-20">惩罚（15-20）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>你在缅甸遭遇诈骗</td>
+<td>强制拍卖该处房子</td>
+</tr>
+<tr>
+<td>16</td>
+<td>你在日本遭遇地震</td>
+<td>-500</td>
+</tr>
+<tr>
+<td>17</td>
+<td>你在古巴遭受袭击</td>
+<td>-500</td>
+</tr>
+<tr>
+<td>18</td>
+<td>你在南非买了大象</td>
+<td>-1000</td>
+</tr>
+<tr>
+<td>19</td>
+<td>你在冰岛种植橡胶树</td>
+<td>-2000</td>
+</tr>
+<tr>
+<td>20</td>
+<td>你前往加拿大的海上遇到了飓风</td>
+<td>倒退 3 格，并取消下一次掷骰机会</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="命运牌20-张--10-博弈--5-奖励--5-惩罚--期望-50">命运牌（20 张 ｜ 10 博弈 + 5 奖励 + 5 惩罚 = 期望 50%）</h2>
+<blockquote>
+<p>期望值 =（10 × 50% + 5）÷ 20 = <strong>50%</strong>，正好一半。</p>
+</blockquote>
+<h3 id="摇骰子博弈1-10">摇骰子博弈（1-10）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>判定</th>
+<th>赢</th>
+<th>输</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>你在美国跟牛仔决斗</td>
+<td>押大小（1-8 小 / 9-16 大）</td>
+<td>+3000</td>
+<td>送进监狱 3 回合</td>
+</tr>
+<tr>
+<td>2</td>
+<td>你在摩纳哥赌场玩轮盘</td>
+<td>押单双</td>
+<td>+2000</td>
+<td>-2000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>你在加纳投资金矿</td>
+<td>押大小</td>
+<td>+2000</td>
+<td>-2000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>你在埃及盗掘金字塔</td>
+<td>押大小</td>
+<td>+2500</td>
+<td>回出生点（没有奖励）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>你在巴西参加桑巴大赛</td>
+<td>押单双</td>
+<td>+1500</td>
+<td>-1500</td>
+</tr>
+<tr>
+<td>6</td>
+<td>你在冰岛探火山口</td>
+<td>押大小</td>
+<td>+1500</td>
+<td>被烫伤 -1500</td>
+</tr>
+<tr>
+<td>7</td>
+<td>你在迪拜押骆驼赛</td>
+<td>押单双</td>
+<td>+1500</td>
+<td>-1000</td>
+</tr>
+<tr>
+<td>8</td>
+<td>你在尼泊尔参与雪崩搜救</td>
+<td>押单双</td>
+<td>+1000</td>
+<td>-1000</td>
+</tr>
+<tr>
+<td>9</td>
+<td>你在阿根廷比探戈</td>
+<td>押大小</td>
+<td>+1000</td>
+<td>-500</td>
+</tr>
+<tr>
+<td>10</td>
+<td>你在西班牙过奔牛节</td>
+<td>押单双</td>
+<td>安全通过（无变化）</td>
+<td>被牛顶伤 -1000</td>
+</tr>
+</tbody>
+</table>
+<h3 id="直接奖励11-15">直接奖励（11-15）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11</td>
+<td>你乘船通过巴拿马运河</td>
+<td>+1 骰子次数</td>
+</tr>
+<tr>
+<td>12</td>
+<td>你在英国给旅行者当翻译</td>
+<td>+500</td>
+</tr>
+<tr>
+<td>13</td>
+<td>你在俄罗斯捡到了钻石</td>
+<td>+1000</td>
+</tr>
+<tr>
+<td>14</td>
+<td>你在墨西哥走私显卡</td>
+<td>+2000</td>
+</tr>
+<tr>
+<td>15</td>
+<td>你受邀至拉斯维加斯表演魔术</td>
+<td>+500</td>
+</tr>
+</tbody>
+</table>
+<h3 id="直接惩罚16-20">直接惩罚（16-20）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事件</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16</td>
+<td>你存在瑞士的加密货币被黑客盗取了</td>
+<td>-3000</td>
+</tr>
+<tr>
+<td>17</td>
+<td>你在南极看企鹅的时候弄丢了手机</td>
+<td>-2000</td>
+</tr>
+<tr>
+<td>18</td>
+<td>你在新加坡吸烟</td>
+<td>-1000</td>
+</tr>
+<tr>
+<td>19</td>
+<td>你在叙利亚被导弹锁定了</td>
+<td>下一回合到达的地块降级一次</td>
+</tr>
+<tr>
+<td>20</td>
+<td>你在澳门玩的很开心，给每个玩家发红包</td>
+<td>-200 × N</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="变更记录">变更记录</h2>
+<ul>
+<li><strong>v1（2026-10-09）</strong>：初版定稿。确立机会 70% / 命运 50% 奖励结构；命运牌由「翻开即定生死」改为以 10 张摇骰子博弈牌为主体。</li>
+</ul>
+
+            
+            
+        </body>
+        </html>

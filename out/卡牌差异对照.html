@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x539f;&#x7248;&#x5b9e;&#x4f53;&#x5361; vs &#x81ea;&#x5236;&#x65b0;&#x7248;&#x5361;&#xff1a;&#x5dee;&#x5f02;&#x5bf9;&#x7167;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="原版实体卡-vs-自制新版卡差异对照">原版实体卡 vs 自制新版卡：差异对照</h1>
+<p>对照对象：</p>
+<ul>
+<li><strong>原版实体卡</strong>：<code>命运牌.jpg</code> + <code>机会牌.jpg</code>（命运 20 张 + 机会 20 张）</li>
+<li><strong>自制新版卡</strong>：<code>大富翁玩法.md</code> 中的「机会牌 20 条 + 命运牌 20 条」（原 16+16，后各补 4 条）</li>
+</ul>
+<p>结论先说：<strong>两套牌不是同一个体系</strong>，自制版是在「环球旅游」这个共同主题上重新写的一套，主题和结构相似，但<strong>数值单位、效果类型、跟地图机制的耦合深度</strong>全面不同。</p>
+<h2 id="一体系级差异">一、体系级差异</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>原版实体卡</th>
+<th>自制新版卡</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>张数</td>
+<td>命运 20 + 机会 20</td>
+<td>命运 20 + 机会 20（后补 4+4 条）</td>
+</tr>
+<tr>
+<td>数值单位</td>
+<td>「分」（门票 / 罚款 / 奖金）</td>
+<td>「钱」，与初始资金 19580 配套</td>
+</tr>
+<tr>
+<td>数值区间</td>
+<td>200 ~ 3000 分，全是固定值</td>
+<td>±200 ~ ±3000，并出现 <code>-200*N</code>（按人数）</td>
+</tr>
+<tr>
+<td>效果类型</td>
+<td>只有 5 类：加分、扣分、前进/退回、暂停、再翻一张</td>
+<td>在原 5 类上<strong>新增机制类效果</strong>（见下）</td>
+</tr>
+<tr>
+<td>正负分布</td>
+<td>机会、命运都是正负混搭</td>
+<td>机会 70% 奖励（14/20）；命运 50% 奖励，其中一半是摇骰子博弈牌（输赢各半的中立牌）</td>
+</tr>
+<tr>
+<td>出生点联动</td>
+<td>写在卡面上（如「如经过由此去得 2000 分」「退回起点」）</td>
+<td>上升为底层规则（每次路过出生点 +2000），卡面回起点还特别注明「没有奖励」</td>
+</tr>
+<tr>
+<td>文案风格</td>
+<td>写实地标旅游（迪士尼、威尼斯、珠峰、马六甲）</td>
+<td>魔幻 + 网络梗（克苏鲁、外星人绑架、走私显卡、假冒 FBI、磁悬浮）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="二自制版新增的效果类型原版完全没有">二、自制版新增的效果类型（原版完全没有）</h2>
+<ol>
+<li><strong>骰子次数 +1</strong>（磁悬浮列车、巴拿马运河）</li>
+<li><strong>房屋免费升级一次 / 强制降级一次</strong>（埃及工程队、叙利亚导弹）</li>
+<li><strong>触发强制拍卖</strong>（缅甸诈骗）</li>
+<li><strong>向所有玩家收取过路费</strong>（假冒 FBI 查房）</li>
+<li><strong>送进监狱 / 跳过回合</strong>（美国牛仔决斗、澳大利亚外星人）</li>
+<li><strong>按玩家人数结算</strong>（生日红包 +200×N、发红包 -200×N）</li>
+<li><strong>后退移动</strong>（加拿大飓风：+1 骰子次数但向后移动）</li>
+</ol>
+<p>而<strong>原版只有纯金钱 + 位置移动</strong>，不碰房子、拍卖、监狱这些系统。</p>
+<h2 id="三原版有自制版删掉的">三、原版有、自制版删掉的</h2>
+<ul>
+<li><strong>再翻一张牌</strong>：原版命运 1-20「种植油棕」和机会「斯里兰卡」都能触发「再翻下一张机会牌」的连锁；自制版没有任何连锁牌。</li>
+<li><strong>按房屋/旅馆数量计税</strong>：原版「支付地税」「缴纳房产税」= 房屋每幢 250 分、旅馆每幢 1000 分；自制版没有这种按资产计税的牌。</li>
+<li><strong>小额固定花费</strong>：船租金、雪橇、学费、门票等固定扣分；自制新版已完全去掉这类小额扣分牌。</li>
+</ul>
+<h2 id="四主题撞车的条目同一地点事件处理不同">四、主题撞车的条目（同一地点/事件，处理不同）</h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>原版</th>
+<th>自制版</th>
+<th>变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>拉斯维加斯表演魔术</td>
+<td>机会 13-20：<strong>+2000 分</strong>（好事）</td>
+<td>命运 15：<strong>+500</strong>（放进了命运牌）</td>
+<td>数值变小 + 从机会挪到命运</td>
+</tr>
+<tr>
+<td>日本地震</td>
+<td>机会 11-20：<strong>-1000 分</strong></td>
+<td>机会 16：<strong>-500</strong></td>
+<td>数值减半</td>
+</tr>
+<tr>
+<td>俄罗斯</td>
+<td>机会 1-20：开采矿石 <strong>+2500 分</strong></td>
+<td>命运 13：捡到钻石 <strong>+1000</strong></td>
+<td>数值变小 + 挪到命运</td>
+</tr>
+<tr>
+<td>墨西哥</td>
+<td>命运 17-20：玛雅古文明（奖金 500）</td>
+<td>命运 14：走私显卡 <strong>+2000</strong></td>
+<td>完全改写</td>
+</tr>
+</tbody>
+</table>
+<p>原版的「请朋友吃韩国烤肉 -200 分」「到巴西看世界杯 -200 分」在新版中已删除，不再对应。</p>
+<h2 id="五概率平衡设计2026-10-09-调整后">五、概率平衡设计（2026-10-09 调整后）</h2>
+<ul>
+<li><strong>机会牌 20 张 = 14 奖励 + 6 惩罚（奖励率 70%）</strong>，翻开即生效，整体偏「机遇」。</li>
+<li><strong>命运牌 20 张 = 10 张摇骰子博弈 + 5 纯奖励 + 5 纯惩罚（期望奖励率 50%）</strong>。</li>
+<li>博弈牌不翻开就定生死：先押「大小（1-8 小 / 9-16 大）」或「单双」，再摇十六面骰判定，输赢各半；判定骰与移动骰分开摇，判定摇到 16 不触发「再摇一次」。</li>
+<li>期望值 = (10 × 50% + 5) ÷ 20 = 50%，正好一半。</li>
+</ul>
+<h2 id="六一句话总结">六、一句话总结</h2>
+<p>原版是「<strong>旅游版收钱/付钱的随机事件</strong>」；自制版是「<strong>旅游主题 + 大富翁机制联动 + 摇骰子博弈</strong>」——机会 70% 奖励、命运 50% 奖励（一半牌要押注判定），数值放大到跟初始资金 19580 匹配，风格也从写实改成魔幻梗。</p>
+
+            
+            
+        </body>
+        </html>

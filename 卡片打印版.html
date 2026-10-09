@@ -45,17 +45,18 @@
   .card.chance { background: #B06F88; color: #fff; }
   .card.fate { background: #D9BA8E; color: #2C3E6B; }
 
-  /* 大号浅色底纹：占右侧三分之一区域，纵向居中，尽量靠右 */
+  /* 大号浅色底纹：作为背景顶到最右边缘，文字直接覆盖其上 */
+  /* translateX(0.3em) 抵消全角符号自带的右侧留白，让字形真正贴到右边缘并微微出血 */
   .wm {
-    position: absolute; top: 50%; right: -0.5mm;
-    width: 33.3%; height: 100%;
+    position: absolute; top: 50%; right: -3mm;
+    height: 100%;
     display: flex; align-items: center; justify-content: center;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(0.3em);
     font-size: var(--wms); line-height: 1; font-weight: 700;
-    pointer-events: none;
+    pointer-events: none; z-index: 0;
   }
-  .card.chance .wm { color: #C79AAC; }
-  .card.fate .wm { color: #ECDCBE; }
+  .card.chance .wm { color: #CDA3B4; }
+  .card.fate .wm { color: #EEE0C4; }
 
   /* 编号：左上角 */
   .num { position: absolute; left: 2mm; top: 1.2mm; font-size: var(--nfs); letter-spacing: .5px; font-weight: 500; z-index: 2; }
@@ -69,10 +70,10 @@
     position: relative; z-index: 1;
   }
 
-  /* 正文区域：限左三分之二（右侧 1/3 让给底纹），带内边距，超长自动缩字号 */
+  /* 正文区域：整卡宽度（文字直接覆盖底纹），带内边距，超长自动缩字号 */
   .txt {
     flex: 1; min-height: 0; width: 100%;
-    padding: 0 calc(33.3% - 1mm) 0 1mm;
+    padding: 0 1mm;
     position: relative; z-index: 1;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 1.6mm; text-align: center; overflow: hidden;
@@ -178,11 +179,11 @@ const PAPERS = {
 
 const LAYOUTS = {
   standard: { paper: 'a4', label: '标准', per: 8,  cols: 2, cw: 88, ch: 57, gx: 6, gy: 6, mx: 14, my: 25.5,
-              tfs: 30, evfs: 14, effs: 12.5, nfs: 9, wms: 30 },
+              tfs: 30, evfs: 14, effs: 12.5, nfs: 9, wms: 44 },
   compact:  { paper: 'a4', label: '紧凑', per: 10, cols: 2, cw: 76, ch: 50, gx: 6, gy: 6, mx: 26, my: 11.5,
-              tfs: 24, evfs: 12, effs: 11, nfs: 8, wms: 26 },
+              tfs: 24, evfs: 12, effs: 11, nfs: 8, wms: 38 },
   photo4:   { paper: 'photo6', label: '6寸四格', per: 4, cols: 2, cw: 72, ch: 46, gx: 4, gy: 4, mx: 2, my: 3,
-              tfs: 22, evfs: 11.5, effs: 10.5, nfs: 8, wms: 24 }
+              tfs: 22, evfs: 11.5, effs: 10.5, nfs: 8, wms: 34 }
 };
 
 const DECK_NAME = { chance: '机会', fate: '命运' };

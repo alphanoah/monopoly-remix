@@ -38,39 +38,57 @@
     width: var(--cw); height: var(--ch);
     border-radius: 2.6mm;
     display: flex; flex-direction: column; align-items: center;
-    padding: 2mm 2.4mm 4.5mm;
+    padding: 2mm 3mm 2.5mm;
     position: relative; overflow: hidden;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .card.chance { background: #B06F88; color: #fff; }
   .card.fate { background: #D9BA8E; color: #2C3E6B; }
+
+  /* 大号浅色底纹：占右侧三分之一区域，纵向居中，尽量靠右 */
   .wm {
-    position: absolute; right: 0.8mm; top: 13%;
+    position: absolute; top: 50%; right: -0.5mm;
+    width: 33.3%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    transform: translateY(-50%);
     font-size: var(--wms); line-height: 1; font-weight: 700;
     pointer-events: none;
   }
   .card.chance .wm { color: #C79AAC; }
   .card.fate .wm { color: #ECDCBE; }
+
+  /* 编号：左上角 */
+  .num { position: absolute; left: 2mm; top: 1.2mm; font-size: var(--nfs); letter-spacing: .5px; font-weight: 500; z-index: 2; }
+  .card.chance .num { color: rgba(40,18,28,.8); }
+  .card.fate .num { color: rgba(35,30,25,.75); }
+
   .title {
     flex: none; font-size: var(--tfs); font-weight: 700; line-height: 1.15;
     letter-spacing: .28em; margin-right: -.28em;
-    margin-top: .5mm; margin-bottom: 2.5mm;
+    margin-top: .5mm; margin-bottom: 1.5mm;
+    position: relative; z-index: 1;
   }
+
+  /* 正文区域：限左三分之二（右侧 1/3 让给底纹），带内边距，超长自动缩字号 */
   .txt {
-    flex: 1; min-height: 0; position: relative;
+    flex: 1; min-height: 0; width: 100%;
+    padding: 0 calc(33.3% - 1mm) 0 1mm;
+    position: relative; z-index: 1;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2mm; text-align: center; overflow: hidden;
+    gap: 1.6mm; text-align: center; overflow: hidden;
   }
-  .ev { font-size: var(--evfs); font-weight: 700; line-height: 1.42; }
-  .ef { font-size: var(--effs); font-weight: 500; line-height: 1.42; }
-  .sub { display: flex; flex-direction: column; align-items: center; gap: .7mm; margin-top: .8mm; }
+  .ev { font-size: var(--evfs); font-weight: 700; line-height: 1.4; }
+  .ef { font-size: var(--effs); font-weight: 500; line-height: 1.4; }
+  .sub { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
   .cond { font-size: calc(var(--effs) - 0.5px); font-weight: 500; line-height: 1.35; opacity: .88; }
   .cond::before { content: "◆ "; font-size: .8em; }
+
+  /* 带小脸的行：图标与文字保持间距 */
+  .line { display: flex; align-items: center; justify-content: center; gap: 1.2mm; max-width: 100%; }
+  .line .face { width: 1.05em; height: 1.05em; flex: none; display: block; }
   .out { font-size: var(--effs); font-weight: 600; line-height: 1.38; }
   .out.lose { font-weight: 500; opacity: .9; }
-  .num { position: absolute; left: 2.2mm; bottom: 1mm; font-size: var(--nfs); letter-spacing: .5px; font-weight: 500; }
-  .card.chance .num { color: rgba(40,18,28,.8); }
-  .card.fate .num { color: rgba(35,30,25,.75); }
+
   .blank { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 4px, #f2f2f2 4px, #f2f2f2 8px); border: 1px dashed #ddd; border-radius: 2.6mm; width: var(--cw); height: var(--ch); display: flex; align-items: center; justify-content: center; color: #c4c4c4; font-size: var(--evfs); }
 
   @media print {
@@ -86,15 +104,14 @@
 <body>
 
 <div class="chrome">
-  <h1 id="pageTitle">大富翁卡牌打印版 · 数据版本 v6（邪恶版·世界之旅）</h1>
+  <h1 id="pageTitle">大富翁卡牌打印版 · 横版 · 数据版本 v6（邪恶版·世界之旅）</h1>
   <p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。</p>
   <div class="row">
     <button class="btn on" data-paper="a4">A4 纸</button>
     <button class="btn" data-paper="photo6">6 寸相片纸 · 4 张/页</button>
     <span class="sep"></span>
-    <button class="btn on" data-layout="standard">标准 · 9 张/页</button>
-    <button class="btn" data-layout="compact">紧凑 · 12 张/页</button>
-    <button class="btn" data-layout="mini">迷你 · 16 张/页</button>
+    <button class="btn on" data-layout="standard">标准 · 8 张/页</button>
+    <button class="btn" data-layout="compact">紧凑 · 10 张/页</button>
     <span class="sep"></span>
     <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
     <button class="btn" data-mode="split">按花色分页</button>
@@ -106,29 +123,30 @@
 <div class="wrap" id="wrap"></div>
 
 <script>
+// ===== 卡牌数据 v6（邪恶版·世界之旅）=====
+// 机会牌：s = 'smile'（奖励，1-14）/ 'frown'（惩罚，15-20）
 const CARDS = [
-  // ===== 机会牌 v6（邪恶版·世界之旅）1-20 =====
-  { c: 'chance', t: '你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金：+2000，被举报者（最有钱的玩家）-2000' },
-  { c: 'chance', t: '你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」：向最有钱的玩家罚款 2000，钱归你' },
-  { c: 'chance', t: '你在澳门赌场出千被荷官发现——但荷官是你发小：+3000，左手玩家替你平事被没收 1000' },
-  { c: 'chance', t: '你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团：+1000，右手玩家取消下次掷骰' },
-  { c: 'chance', t: '你在米兰倒卖限量球鞋，黄牛圈为你封神：+1500' },
-  { c: 'chance', t: '你买通了马赛的裁判，你押的队「赢了」世界杯：+2500' },
-  { c: 'chance', t: '你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱：+500，他退到经济舱跳过下回合' },
-  { c: 'chance', t: '你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药：他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价' },
-  { c: 'chance', t: '你在里约把「防抢劫符」卖给富豪，当晚贫民窟枪一响他就信了：+1000' },
-  { c: 'chance', t: '你在伦敦给你最贵的房产投了灾险，然后隔壁「不小心」着火了：那块房 -1 级，你领赔偿 +1500' },
-  { c: 'chance', t: '你在莫斯科开「监狱代购」，垄断了西伯利亚铁窗外的外卖：所有监狱里的玩家每人付你 300' },
-  { c: 'chance', t: '你在广州仿冒名牌包卖给欧洲旅游团：+800 ×（在场有房的玩家人数）' },
-  { c: 'chance', t: '你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了：每个玩家付你 200（收智商税）' },
-  { c: 'chance', t: '你在拉斯维加斯贿赂了骰子之神：+1 骰子次数，下次移动骰摇到 8-16 可任选正走或倒走' },
-  { c: 'chance', t: '你在拉斯维加斯出千被真正的赌场抓了现行：强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）' },
-  { c: 'chance', t: '你在平壤造的假美元被人用回你自己的黑市摊位：-1500' },
-  { c: 'chance', t: '你在开罗买的「图坦卡蒙纯金」圣甲虫是镀金的：-500' },
-  { c: 'chance', t: '你在那不勒斯教唆小孩把家里房契拿去换球星卡，黑手党家长找上门：-1000，下回合到达他人地块过路费翻倍' },
-  { c: 'chance', t: '你在哥伦比亚的诈骗集团被一锅端，你是唯一没跑掉的：-2500' },
-  { c: 'chance', t: '你在首尔被全网人肉，黑历史挂上热搜：所有玩家每人拿走 200（-200×N）' },
-  // ===== 命运牌 v6（邪恶版·世界之旅）1-20，全部为条件判定牌 =====
+  { c: 'chance', s: 'smile', t: '你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金：+2000，被举报者（最有钱的玩家）-2000' },
+  { c: 'chance', s: 'smile', t: '你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」：向最有钱的玩家罚款 2000，钱归你' },
+  { c: 'chance', s: 'smile', t: '你在澳门赌场出千被荷官发现——但荷官是你发小：+3000，左手玩家替你平事被没收 1000' },
+  { c: 'chance', s: 'smile', t: '你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团：+1000，右手玩家取消下次掷骰' },
+  { c: 'chance', s: 'smile', t: '你在米兰倒卖限量球鞋，黄牛圈为你封神：+1500' },
+  { c: 'chance', s: 'smile', t: '你买通了马赛的裁判，你押的队「赢了」世界杯：+2500' },
+  { c: 'chance', s: 'smile', t: '你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱：+500，他退到经济舱跳过下回合' },
+  { c: 'chance', s: 'smile', t: '你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药：他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价' },
+  { c: 'chance', s: 'smile', t: '你在里约把「防抢劫符」卖给富豪，当晚贫民窟枪一响他就信了：+1000' },
+  { c: 'chance', s: 'smile', t: '你在伦敦给你最贵的房产投了灾险，然后隔壁「不小心」着火了：那块房 -1 级，你领赔偿 +1500' },
+  { c: 'chance', s: 'smile', t: '你在莫斯科开「监狱代购」，垄断了西伯利亚铁窗外的外卖：所有监狱里的玩家每人付你 300' },
+  { c: 'chance', s: 'smile', t: '你在广州仿冒名牌包卖给欧洲旅游团：+800 ×（在场有房的玩家人数）' },
+  { c: 'chance', s: 'smile', t: '你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了：每个玩家付你 200（收智商税）' },
+  { c: 'chance', s: 'smile', t: '你在拉斯维加斯贿赂了骰子之神：+1 骰子次数，下次移动骰摇到 8-16 可任选正走或倒走' },
+  { c: 'chance', s: 'frown', t: '你在拉斯维加斯出千被真正的赌场抓了现行：强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）' },
+  { c: 'chance', s: 'frown', t: '你在平壤造的假美元被人用回你自己的黑市摊位：-1500' },
+  { c: 'chance', s: 'frown', t: '你在开罗买的「图坦卡蒙纯金」圣甲虫是镀金的：-500' },
+  { c: 'chance', s: 'frown', t: '你在那不勒斯教唆小孩把家里房契拿去换球星卡，黑手党家长找上门：-1000，下回合到达他人地块过路费翻倍' },
+  { c: 'chance', s: 'frown', t: '你在哥伦比亚的诈骗集团被一锅端，你是唯一没跑掉的：-2500' },
+  { c: 'chance', s: 'frown', t: '你在首尔被全网人肉，黑历史挂上热搜：所有玩家每人拿走 200（-200×N）' },
+  // 命运牌 1-20：全部条件判定牌（赢 = 笑脸，输 = 哭脸）
   { c: 'fate', t: '你在德州跟亡命牛仔玩「灵魂赌局」，背对背各走十六步才回头开枪', cond: '押大小（前八步/后八步）', win: '抢先开枪：+3000', lose: '送进监狱 3 回合' },
   { c: 'fate', t: '你在澳门地下钱庄押上最后一注，庄家冷笑：单还是双', cond: '押单双', win: '+3000', lose: '-2000，被掰断手指取消下次掷骰' },
   { c: 'fate', t: '你和左手玩家在西西里各自雇了杀手互杀', cond: '比点数（各摇一颗，平局重来）', win: '分到他 2000 遗产（他 -2000）', lose: '进医院 -2000' },
@@ -152,21 +170,19 @@ const CARDS = [
 ];
 
 const PAPERS = {
-  a4:     { w: 210, h: 297, css: 'A4 portrait',      name: 'A4',
+  a4:     { w: 210, h: 297, css: 'A4 portrait',  name: 'A4',
             tip: '打印设置：纸张选 A4、边距「无」、缩放 100%（不要选「适应页面」），勾选「背景图形」。' },
-  photo6: { w: 102, h: 152, css: '102mm 152mm',      name: '6 寸相片纸',
-            tip: '打印设置：纸张选 6 寸 / 4R（102×152mm）、无边距（或边距「无」）、缩放 100%，勾选「背景图形」。相片纸本身较厚，可不过塑直接裁，或单张过塑后再裁。' }
+  photo6: { w: 152, h: 102, css: '152mm 102mm',  name: '6 寸相片纸（横放）',
+            tip: '打印设置：6 寸纸横放（152×102mm），无边距（或边距「无」）、缩放 100%，勾选「背景图形」。相片纸本身较厚，可不过塑直接裁，或单张过塑后再裁。' }
 };
 
 const LAYOUTS = {
-  standard: { paper: 'a4', label: '标准', per: 9,  cols: 3, cw: 63, ch: 88, gx: 4, gy: 4, mx: 6.5, my: 12,
-              tfs: 36, evfs: 13, effs: 12, nfs: 8, wms: 48 },
-  compact:  { paper: 'a4', label: '紧凑', per: 12, cols: 3, cw: 60, ch: 64, gx: 4, gy: 4, mx: 11, my: 14,
-              tfs: 26, evfs: 11, effs: 10.5, nfs: 7.5, wms: 34 },
-  mini:     { paper: 'a4', label: '迷你', per: 16, cols: 4, cw: 46, ch: 65, gx: 3, gy: 3, mx: 8.5, my: 13.5,
-              tfs: 20, evfs: 10, effs: 9.5, nfs: 7, wms: 30 },
-  photo4:   { paper: 'photo6', label: '6寸四格', per: 4, cols: 2, cw: 47, ch: 72, gx: 3, gy: 3, mx: 2, my: 2,
-              tfs: 22, evfs: 10.5, effs: 10, nfs: 7, wms: 30 }
+  standard: { paper: 'a4', label: '标准', per: 8,  cols: 2, cw: 88, ch: 57, gx: 6, gy: 6, mx: 14, my: 25.5,
+              tfs: 30, evfs: 14, effs: 12.5, nfs: 9, wms: 30 },
+  compact:  { paper: 'a4', label: '紧凑', per: 10, cols: 2, cw: 76, ch: 50, gx: 6, gy: 6, mx: 26, my: 11.5,
+              tfs: 24, evfs: 12, effs: 11, nfs: 8, wms: 26 },
+  photo4:   { paper: 'photo6', label: '6寸四格', per: 4, cols: 2, cw: 72, ch: 46, gx: 4, gy: 4, mx: 2, my: 3,
+              tfs: 22, evfs: 11.5, effs: 10.5, nfs: 8, wms: 24 }
 };
 
 const DECK_NAME = { chance: '机会', fate: '命运' };
@@ -178,6 +194,19 @@ function activeLayout() {
   return currentPaper === 'photo6' ? LAYOUTS.photo4 : LAYOUTS[currentLayout];
 }
 
+// 线条小脸：currentColor 跟随卡面文字色
+function faceSVG(kind) {
+  const mouth = kind === 'smile'
+    ? 'M6.5 12.2 Q10 15.6 13.5 12.2'
+    : 'M6.5 14.2 Q10 10.8 13.5 14.2';
+  return '<svg class="face" viewBox="0 0 20 20">' +
+    '<circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/>' +
+    '<circle cx="7" cy="8" r="1.4" fill="currentColor"/>' +
+    '<circle cx="13" cy="8" r="1.4" fill="currentColor"/>' +
+    '<path d="' + mouth + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
 function splitOnce(t) {
   const i = t.indexOf('：');
   return i < 0 ? [t, ''] : [t.slice(0, i), t.slice(i + 1)];
@@ -186,20 +215,23 @@ function cardNode(card, idxInDeck) {
   let inner;
   if (card.cond) {
     inner = '<div class="ev">' + card.t + '</div>' +
-      '<div class="sub"><div class="cond">摇骰 · ' + card.cond + '</div>' +
-      '<div class="out win">赢：' + card.win + '</div>' +
-      '<div class="out lose">输：' + card.lose + '</div></div>';
+      '<div class="sub">' +
+      '<div class="cond">摇骰 · ' + card.cond + '</div>' +
+      '<div class="line"><span class="out win">' + faceSVG('smile') + '</span><span class="out win">赢：' + card.win + '</span></div>' +
+      '<div class="line"><span class="out lose">' + faceSVG('frown') + '</span><span class="out lose">输：' + card.lose + '</span></div>' +
+      '</div>';
   } else {
     const [ev, ef] = splitOnce(card.t);
-    inner = '<div class="ev">' + ev + '</div>' + (ef ? '<div class="ef">' + ef + '</div>' : '');
+    inner = '<div class="ev">' + ev + '</div>' +
+      (ef ? '<div class="line"><span class="ef">' + faceSVG(card.s || 'smile') + '</span><span class="ef">' + ef + '</span></div>' : '');
   }
   const el = document.createElement('div');
   el.className = 'card ' + card.c;
   el.innerHTML =
     '<div class="wm">' + (card.c === 'chance' ? '？' : '！') + '</div>' +
+    '<div class="num">' + (idxInDeck + 1) + '-20</div>' +
     '<div class="title">' + DECK_NAME[card.c] + '</div>' +
-    '<div class="txt">' + inner + '</div>' +
-    '<div class="num">' + (idxInDeck + 1) + '-20</div>';
+    '<div class="txt">' + inner + '</div>';
   return el;
 }
 function deckList(kind) {
@@ -259,13 +291,14 @@ function render() {
   updateSpecs(pages.length);
 }
 
+// 内容超出正文区（纵向或横向）就整体缩字号，保证不贴边、不溢出
 function autoFit() {
   document.querySelectorAll('.txt').forEach(txt => {
     const nodes = [...txt.querySelectorAll('.ev, .ef, .cond, .out')];
     if (!nodes.length) return;
     const base = nodes.map(n => parseFloat(getComputedStyle(n).fontSize) || 10);
     let k = 0;
-    while (txt.scrollHeight > txt.clientHeight + 1 && k < 60) {
+    while ((txt.scrollHeight > txt.clientHeight + 1 || txt.scrollWidth > txt.clientWidth + 1) && k < 60) {
       k++;
       nodes.forEach((n, i) => { n.style.fontSize = Math.max(5.2, base[i] - k * 0.3) + 'px'; });
     }

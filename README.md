@@ -142,7 +142,7 @@ richer/
 ├── index.html              首页：规则 + 卡牌浏览（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具（脚本回写兜底）
-├── map-svg.html            电子地图：64 格 SVG 棋盘，可拖动缩放（手写页，脚本不动）
+├── map-svg.html            电子地图：64 格 SVG 棋盘，可拖动缩放，图例可点击筛选（手写页，脚本不动）
 ├── cards.csv               卡牌数据真源
 ├── cards.json              由 cards.csv 生成，供打印页读取
 ├── update.command          macOS 双击运行 update.py

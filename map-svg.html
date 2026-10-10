@@ -7,48 +7,62 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #e8edf2;
-    padding: 12px;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    background: #fbfaf8;
+    color: #2c2c2a;
+    padding: 20px 16px 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
   h1 {
-    font-size: 20px;
-    margin-bottom: 8px;
-    color: #2c3e50;
+    font-size: 21px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #2c2c2a;
+    letter-spacing: .3px;
   }
+  .home {
+    font-size: 12.5px;
+    color: #6b6a66;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  .home:hover { color: #96597A; }
   .toolbar {
     display: flex;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     align-items: center;
   }
   .toolbar button {
     background: #fff;
-    border: 1px solid #bdc3c7;
-    border-radius: 6px;
-    padding: 6px 14px;
-    font-size: 14px;
+    border: 1px solid #ddd9d2;
+    border-radius: 8px;
+    padding: 6px 13px;
+    font-size: 13px;
+    font-family: inherit;
     cursor: pointer;
-    color: #2c3e50;
+    color: #2c2c2a;
     transition: all 0.15s;
   }
-  .toolbar button:hover { background: #ecf0f1; }
-  .toolbar button:active { transform: scale(0.95); }
+  .toolbar button:hover { border-color: #B06F88; color: #96597A; }
+  .toolbar button:active { background: #f4f2ee; }
   .toolbar .zoom-level {
     font-size: 13px;
-    color: #7f8c8d;
-    min-width: 50px;
+    color: #8a8880;
+    min-width: 52px;
     text-align: center;
   }
   .svg-container {
-    background: #fefefe;
+    background: #fff;
     padding: 8px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid #e8e5df;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     width: 100%;
     max-width: 1320px;
     overflow: hidden;
@@ -59,29 +73,44 @@
   .svg-container.grabbing { cursor: grabbing; }
   svg { display: block; width: 100%; height: auto; user-select: none; }
   .legend {
-    margin-top: 12px;
+    margin-top: 14px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
-    font-size: 12px;
+    font-size: 12.5px;
   }
-  .legend-item { display: flex; align-items: center; gap: 4px; }
-  .legend-color { width: 16px; height: 12px; border-radius: 2px; border: 1px solid #ccd5db; }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #e5e1da;
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: #6b6a66;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .legend-item:hover { border-color: #B06F88; color: #96597A; }
+  .legend-item.on { background: #B06F88; border-color: #B06F88; color: #fff; }
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex: none;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  }
   .hint {
-    font-size: 11px;
-    color: #95a5a6;
-    margin-top: 8px;
+    font-size: 12px;
+    color: #8a8880;
+    margin-top: 10px;
     text-align: center;
   }
-  .home {
-    font-size: 12px;
-    color: #7f8c8d;
-    text-decoration: none;
-    display: inline-block;
-    margin-bottom: 4px;
-  }
-  .home:hover { color: #2c3e50; }
+  .hint b { color: #2c2c2a; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -100,22 +129,30 @@
   </svg>
 </div>
 <div id="legend" class="legend"></div>
-<div class="hint">滚轮/双指缩放 · 拖拽平移 · 双击重置</div>
+<div class="hint" id="hint">滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组</div>
 
 <script>
-// ===== 颜色映射 =====
+// ===== 颜色映射（色相保留、饱和压低，跟首页的米白+粉紫调子对齐）=====
 const COLORS = {
-  "red": "#e74c3c",
-  "light-blue": "#5dade2",
-  "yellow-green": "#a3c44a",
-  "purple": "#8e44ad",
-  "pink": "#f1948a",
-  "dark-gray": "#566573",
-  "dark-blue": "#2c3e8a",
-  "light-green": "#7dcea0",
-  "khaki": "#c9b88a",
-  "hot-pink": "#ff66a3",
-  "green": "#239b56"
+  "red": "#d16b62",
+  "light-blue": "#7ba7c9",
+  "yellow-green": "#a3b862",
+  "purple": "#9b7fb5",
+  "pink": "#e3a6b0",
+  "dark-gray": "#6f7b85",
+  "dark-blue": "#5f6da3",
+  "light-green": "#8ec6a6",
+  "khaki": "#ccb487",
+  "hot-pink": "#e0709c",
+  "green": "#6aa877"
+};
+
+// 特殊格（非地产）的图例色，跟首页配色对应
+const SPECIAL_COLORS = {
+  "corner": "#b3afa6",
+  "chance": "#B06F88",
+  "destiny": "#D9BA8E",
+  "ocean": "#9BB6C4"
 };
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -247,6 +284,30 @@ function svgText(x, y, text, fontSize, opts = {}) {
   return t;
 }
 
+// ===== 图例筛选 =====
+const HINT_DEFAULT = "滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组";
+let currentFilter = "all";
+
+function setFilter(key, name) {
+  currentFilter = (key === currentFilter) ? "all" : key;   // 再点一次就取消
+  document.querySelectorAll(".legend-item").forEach(el => {
+    el.classList.toggle("on", el.dataset.filter === currentFilter);
+  });
+  const pair = currentFilter.split(":");
+  const kind = pair[0], val = pair[1];
+  let hits = 0;
+  document.querySelectorAll("g[data-tile]").forEach(g => {
+    const match = currentFilter === "all" ||
+      (kind === "color" ? g.getAttribute("data-color") === val : g.getAttribute("data-special") === val);
+    g.setAttribute("opacity", match ? "1" : "0.12");
+    if (match) hits++;
+  });
+  const hint = document.getElementById("hint");
+  hint.innerHTML = currentFilter === "all"
+    ? HINT_DEFAULT
+    : `只看 <b>${name}</b> · ${hits} 格 —— 再点一次取消筛选`;
+}
+
 // ===== 缩放平移状态 =====
 let zoom = 1;
 let panX = 0;
@@ -272,7 +333,7 @@ function renderMap(data) {
   // 背景
   vg.appendChild(svgEl("rect", {
     x: 0, y: 0, width: SVG_W, height: SVG_H,
-    fill: "#d4e6f1", rx: 4
+    fill: "#f4f2ee", rx: 4
   }));
 
   // 中心区域
@@ -282,90 +343,117 @@ function renderMap(data) {
   const ch = 15 * TILE_H + 14 * GAP;
 
   const centerGrad = svgEl("linearGradient", { id: "centerGrad", x1: "0%", y1: "0%", x2: "100%", y2: "100%" });
-  centerGrad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "#eaf2f8" }));
-  centerGrad.appendChild(svgEl("stop", { offset: "100%", "stop-color": "#d4e6f1" }));
+  centerGrad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "#fbfaf8" }));
+  centerGrad.appendChild(svgEl("stop", { offset: "100%", "stop-color": "#f4f2ee" }));
   svg.insertBefore(centerGrad, vg);
 
   vg.appendChild(svgEl("rect", {
     x: cx, y: cy, width: cw, height: ch,
-    fill: "url(#centerGrad)", stroke: "#aeb6bf", "stroke-width": 1, rx: 2
+    fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
   }));
 
   // 中心标题
-  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 - 8, "世界之旅", 24, { weight: "bold", color: "#2c3e50", letterSpacing: "4" }));
-  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 + 16, "WORLD TOUR", 12, { color: "#85929e", letterSpacing: "2" }));
+  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 - 8, "世界之旅", 24, { weight: "bold", color: "#2c2c2a", letterSpacing: "4" }));
+  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 + 16, "WORLD TOUR", 12, { color: "#8a8880", letterSpacing: "2" }));
 
   // 渲染格子
   data.tiles.forEach(t => {
     const x = GAP + t.col * (TILE_W + GAP);
     const y = GAP + t.row * (TILE_H + GAP);
     const g = svgEl("g", { transform: `translate(${x},${y})` });
+    // 打标记，图例筛选时按这两个属性匹配
+    g.setAttribute("data-tile", "1");
+    if (t.type) {
+      g.setAttribute("data-special", t.type);
+    } else {
+      g.setAttribute("data-color", t.color);
+    }
 
     if (t.type) {
-      let bg = "#fff", stroke = "#ccd5db", sw = 1;
-      if (t.type === "corner") { bg = "#d4e6f1"; stroke = "#2980b9"; sw = 2; }
-      else if (t.type === "chance") { bg = "#fffde7"; stroke = "#f1c40f"; sw = 1; }
-      else if (t.type === "destiny") { bg = "#f5eef8"; stroke = "#a569bd"; sw = 1; }
-      else if (t.type === "ocean") { bg = "#e8f6f3"; stroke = "#2ecc71"; sw = 1; }
+      let bg = "#fff", stroke = "#e5e1da", sw = 1;
+      if (t.type === "corner") { bg = "#f4f2ee"; stroke = "#b3afa6"; sw = 2; }
+      else if (t.type === "chance") { bg = "#faf3f6"; stroke = "#B06F88"; sw = 1; }
+      else if (t.type === "destiny") { bg = "#faf5ec"; stroke = "#D9BA8E"; sw = 1; }
+      else if (t.type === "ocean") { bg = "#eef3f6"; stroke = "#9BB6C4"; sw = 1; }
 
       g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
 
       if (t.type === "corner") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 6, t.name, 16, { weight: "bold", color: "#1a5276" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.nameEn, 9, { color: "#5499c7", letterSpacing: "0.5" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 6, t.name, 16, { weight: "bold", color: "#2c2c2a" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.nameEn, 9, { color: "#8a8880", letterSpacing: "0.5" }));
         if (t.sub) {
-          g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.sub, 8, { weight: "bold", color: "#d35400" }));
+          g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.sub, 8, { weight: "bold", color: "#96597A" }));
         }
       } else if (t.type === "chance") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "?", 28, { weight: "bold", color: "#e74c3c" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#b7950b" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#b7950b" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "?", 28, { weight: "bold", color: "#B06F88" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#96597A" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#96597A" }));
       } else if (t.type === "destiny") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "\u2726", 24, { weight: "bold", color: "#8e44ad" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#6c3483" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#6c3483" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "\u2726", 24, { weight: "bold", color: "#C79A5E" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#7A6338" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#7A6338" }));
       } else if (t.type === "ocean") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "~", 22, { color: "#2471a3" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 10, t.name, 11, { weight: "bold", color: "#1a5276" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#1a5276" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "~", 22, { color: "#7fa3b8" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 10, t.name, 11, { weight: "bold", color: "#4a6b7c" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#4a6b7c" }));
       }
     } else {
-      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: "#fff", stroke: "#ccd5db", "stroke-width": 1, rx: 2 }));
+      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: "#fff", stroke: "#e5e1da", "stroke-width": 1, rx: 2 }));
 
       const bandColor = COLORS[t.color] || "#ccc";
       g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: BAND_H, fill: bandColor, rx: 2 }));
-      g.appendChild(svgText(8, BAND_H + 8, "#" + t.id, 6, { color: "#d5dbdb" }));
+      g.appendChild(svgText(8, BAND_H + 8, "#" + t.id, 6, { color: "#c9c5bd" }));
 
       const cx2 = TILE_W / 2;
       let cy2 = BAND_H + 20;
-      g.appendChild(svgText(cx2, cy2, t.name, 13, { weight: "bold", color: "#1a252f" }));
+      g.appendChild(svgText(cx2, cy2, t.name, 13, { weight: "bold", color: "#2c2c2a" }));
       cy2 += 16;
-      g.appendChild(svgText(cx2, cy2, t.nameEn, 7, { color: "#b0b8bf", letterSpacing: "0.3" }));
+      g.appendChild(svgText(cx2, cy2, t.nameEn, 7, { color: "#b3afa6", letterSpacing: "0.3" }));
       cy2 += 14;
-      g.appendChild(svgText(cx2, cy2, "$" + t.price, 12, { weight: "bold", color: "#d35400" }));
+      g.appendChild(svgText(cx2, cy2, "$" + t.price, 12, { weight: "bold", color: "#96597A" }));
       cy2 += 14;
-      g.appendChild(svgText(cx2, cy2, t.capital, 8, { color: "#95a5a6" }));
+      g.appendChild(svgText(cx2, cy2, t.capital, 8, { color: "#8a8880" }));
     }
 
     vg.appendChild(g);
   });
 
-  // 渲染图例
+  // 渲染图例（可点击筛选：11 个颜色组 + 4 类特殊格）
   const legend = document.getElementById("legend");
-  data.colorGroups.forEach(g => {
-    const item = document.createElement("div");
-    item.className = "legend-item";
-    const color = document.createElement("div");
-    color.className = "legend-color";
-    color.style.background = COLORS[g.color] || "#ccc";
-    item.appendChild(color);
-    item.appendChild(document.createTextNode(`${g.name} (${g.count})`));
+  legend.innerHTML = "";
+  const chips = [{ key: "all", name: "全部", count: data.tiles.length, color: null }];
+  data.colorGroups.forEach(g => chips.push({
+    key: "color:" + g.color, name: g.name, count: g.count, color: COLORS[g.color] || "#ccc"
+  }));
+  [["corner", "角落"], ["chance", "机会"], ["destiny", "命运"], ["ocean", "海洋"]].forEach(pair => {
+    const n = data.tiles.filter(x => x.type === pair[0]).length;
+    if (n) chips.push({ key: "special:" + pair[0], name: pair[1], count: n, color: SPECIAL_COLORS[pair[0]] });
+  });
+  chips.forEach(c => {
+    const item = document.createElement("button");
+    item.className = "legend-item" + (c.key === "all" ? " on" : "");
+    item.dataset.filter = c.key;
+    if (c.color) {
+      const sw = document.createElement("span");
+      sw.className = "legend-color";
+      sw.style.background = c.color;
+      item.appendChild(sw);
+    }
+    item.appendChild(document.createTextNode(`${c.name} (${c.count})`));
+    item.addEventListener("click", () => setFilter(c.key, c.name));
     legend.appendChild(item);
   });
 
   // 初始化 viewport
   updateViewport();
   initPanZoom();
+
+  // 支持带 hash 打开直接落到某个筛选，如 map-svg.html#f=color:red
+  if (location.hash.startsWith("#f=")) {
+    const k = decodeURIComponent(location.hash.slice(3));
+    const chip = document.querySelector('.legend-item[data-filter="' + k + '"]');
+    if (chip) chip.click();
+  }
 }
 
 // ===== 缩放平移交互 =====

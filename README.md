@@ -27,6 +27,8 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 | `rate` | 命中率，只作备注，不参与渲染 |
 | `use` | `1` 采用、`0` 弃用。填 `0` 的牌不会出现在页面里 |
 
+每列怎么填、对应 JSON 什么字段、脚本会拦哪些错误，见 **[CSV字段说明.md](CSV字段说明.md)**。
+
 ### 编辑时注意
 
 - 用 Excel / Numbers 打开后**必须存成「CSV UTF-8（带 BOM）」**，否则中文会乱码。
@@ -85,6 +87,7 @@ python3 tools/csv2json.py
 ```
 index.html                 打印页（单文件，无外部依赖）
 cards.csv                  卡牌数据真源
+CSV字段说明.md              cards.csv 每列的填法与对应 JSON 字段
 cards.json                 由 cards.csv 生成，供页面读取
 tools/md2csv.py            一次性迁移脚本：把历史 md 表格转成 cards.csv
 tools/csv2json.py          cards.csv → cards.json + 回写内置兜底

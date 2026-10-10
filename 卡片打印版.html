@@ -326,10 +326,22 @@ function backNode(kind) {
   return el;
 }
 
+// 背面是否需要按花色分页：只要某一堆（最后一堆除外）的张数不能被每页张数整除，
+// 连着排就会在某一页中间切换花色 → 出现混色页 → 翻面镜像会把颜色印到另一个花色的卡上。
+// 能整除时（如 6 寸 4 张/页、A4 紧凑 10 张/页，20 张都是整除）连着排本来就是整页同色，无需锁定。
+function backNeedsSplit() {
+  const per = activeLayout().per;
+  const kinds = [...new Set(CARDS.map(c => c.c))];
+  return kinds.slice(0, -1).some(k => CARDS.filter(c => c.c === k).length % per !== 0);
+}
+function useSplit() {
+  return pageMode === 'split' || (side === 'back' && backNeedsSplit());
+}
+
 function render() {
   const L = activeLayout();
   const P = PAPERS[currentPaper];
-  const split = pageMode === 'split' || side === 'back'; // 背面强制按花色分页（整页同色，翻面不错格）
+  const split = useSplit();
   const pages = [];
   if (split) {
     ['chance', 'fate'].forEach(kind => {
@@ -399,9 +411,11 @@ function updateSpecs(pageCount) {
   const L = activeLayout();
   const P = PAPERS[currentPaper];
   const rows = L.per / L.cols;
-  const split = pageMode === 'split' || side === 'back';
+  const split = useSplit();
   const modeText = side === 'back'
-    ? '按花色分页（背面模式自动锁定，整页同色）'
+    ? (backNeedsSplit()
+        ? '按花色分页（本版式会出混色页，背面自动锁定）'
+        : '连着排（本版式每页刚好整除，天然整页同色）')
     : (pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）');
   document.getElementById('specs').innerHTML =
     '<span>纸张 <b>' + P.name + '（' + P.w + ' × ' + P.h + ' mm）</b></span>' +
@@ -416,11 +430,14 @@ function syncPaperUI() {
   document.getElementById('pageStyle').textContent =
     '@page { size: ' + PAPERS[currentPaper].css + '; margin: 0; }';
   document.getElementById('tip').textContent = side === 'back'
-    ? '背面模式：自动按花色分页（整页同色，翻面不错格）。流程 = 先印正面 → 翻面 → 印背面（页数与格子一一对齐）。' + PAPERS[currentPaper].tip
+    ? (backNeedsSplit()
+        ? '背面模式：本版式会出混色页，已自动锁定按花色分页（整页同色，翻面不错格）。'
+        : '背面模式：本版式每页张数刚好整除 20 张，连着排已是整页同色，任意翻法都不会错格。')
+      + '流程 = 先印正面 → 翻面 → 印背面（页数与格子一一对齐）。' + PAPERS[currentPaper].tip
     : PAPERS[currentPaper].tip;
   document.querySelectorAll('.btn[data-layout]').forEach(b => b.classList.toggle('off', isPhoto));
-  // 背面强制按花色分页，锁定分页按钮
-  document.querySelectorAll('.btn[data-mode]').forEach(b => b.classList.toggle('off', side === 'back'));
+  // 仅当本版式真的会出现混色页时才锁定分页按钮
+  document.querySelectorAll('.btn[data-mode]').forEach(b => b.classList.toggle('off', side === 'back' && backNeedsSplit()));
 }
 
 document.querySelectorAll('.btn[data-paper]').forEach(b => {

@@ -40,12 +40,32 @@ VERSION_LABELS = {
     'v6': 'v6 · 邪恶版 · 世界之旅',
 }
 KEEP = ['deck', 'face', 'event', 'effect', 'cond', 'win', 'lose', 'rate']
+# 金额字段：Excel / Numbers 存 CSV 时会把「+3000」当数值，正号被丢掉，这里补回来
+AMOUNT_FIELDS = ('effect', 'win', 'lose')
 
 
 # ---------- CSV 读取与校验 ----------
 def load_rows():
     with open(CSV_PATH, encoding='utf-8-sig', newline='') as f:
         return [r for r in csv.DictReader(f)]
+
+
+def fix_plus(rows):
+    """金额写成纯数字时补回正号（电子表格存 CSV 会丢掉 +）。
+
+    只处理「整个格子就是一个正整数」的情况，含文字的（如「+2000，被举报者…」）
+    电子表格会当文本保留，负数也不受影响。
+    """
+    n = 0
+    for r in rows:
+        for k in AMOUNT_FIELDS:
+            v = (r.get(k) or '').strip()
+            if re.fullmatch(r'\d+', v) and int(v) > 0:
+                r[k] = '+' + v
+                n += 1
+    if n:
+        print('  补回 %d 个金额的正号（电子表格存 CSV 会丢 +，脚本自动修复）' % n)
+    return rows
 
 
 def validate(rows):
@@ -335,7 +355,7 @@ def write_print_fallback(data):
 
 def main():
     print('读取 %s' % CSV_PATH)
-    rows = load_rows()
+    rows = fix_plus(load_rows())
     errs = validate(rows)
     if errs:
         print('\n校验未通过，未改动任何文件：')

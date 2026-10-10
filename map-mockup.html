@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手机上看地图 · 三种排版效果（预览草稿）</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+       background:#f2efe9;color:#2c2c2a;padding:18px 14px 40px;
+       display:flex;flex-direction:column;align-items:center}
+  h1{font-size:19px;font-weight:600;margin-bottom:5px;text-align:center}
+  .sub{font-size:12.5px;color:#8a8880;margin-bottom:18px;text-align:center;line-height:1.65;max-width:640px}
+  .row{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start;width:100%;max-width:1220px}
+  .card{background:#fff;border:1px solid #e5e1da;border-radius:14px;padding:12px;
+        box-shadow:0 2px 10px rgba(0,0,0,.05);width:374px;max-width:100%}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .tag{font-size:11px;background:#B06F88;color:#fff;border-radius:999px;padding:1.5px 9px;font-weight:500;white-space:nowrap}
+  .tag.grey{background:#b3afa6}
+  .meta{font-size:11.5px;color:#8a8880;margin:7px 0 9px;line-height:1.6}
+  .meta b{color:#96597A;font-weight:600}
+  .phone{width:100%;background:#fbfaf8;border:1px solid #e8e5df;border-radius:10px;padding:8px;overflow:hidden}
+  .phone svg{display:block;width:100%;height:auto}
+  .ruler{font-size:11px;color:#b0aca4;text-align:center;margin-top:6px}
+  .foot{font-size:12.5px;color:#6b6a66;margin-top:22px;max-width:780px;line-height:1.75;text-align:center}
+  .foot b{color:#2c2c2a}
+</style>
+</head>
+<body>
+<h1>手机上看地图 · 三种排版效果</h1>
+<div class="sub">下面每个手机框的宽度 = 真实手机宽度（约 360px，已按比例缩放显示）。<br>框里的字在手机上就是这么大 —— 可以直接判断哪种看得清。</div>
+<div class="row" id="row"></div>
+<div class="foot" id="foot"></div>
+
+<script>
+const COLORS={red:"#d16b62","light-blue":"#7ba7c9","yellow-green":"#a3b862",purple:"#9b7fb5",
+  pink:"#e3a6b0","dark-gray":"#6f7b85","dark-blue":"#5f6da3","light-green":"#8ec6a6",
+  khaki:"#ccb487","hot-pink":"#e0709c",green:"#6aa877"};
+const SPECIAL={corner:"#b3afa6",chance:"#B06F88",destiny:"#D9BA8E",ocean:"#9BB6C4"};
+// [名称, 价格, 颜色或类型, 首都/备注]
+const TILES=[
+["赤道",0,"corner","酬金 $2000"],
+["中国",4000,"red","北京"],
+["日本",1000,"red","东京"],
+["机会",0,"chance",""],
+["韩国",1000,"red","首尔"],
+["菲律宾",600,"light-blue","马尼拉"],
+["马来西亚",2600,"light-blue","吉隆坡"],
+["越南",2800,"light-blue","河内"],
+["泰国",1600,"light-blue","曼谷"],
+["印度",1400,"light-blue","新德里"],
+["太平洋",0,"ocean",""],
+["斯里兰卡",1400,"yellow-green","科伦坡"],
+["伊朗",2000,"yellow-green","德黑兰"],
+["伊拉克",1800,"yellow-green","巴格达"],
+["沙特阿拉伯",1800,"yellow-green","利雅得"],
+["叙利亚",3500,"yellow-green","大马士革"],
+["地中海",0,"corner",""],
+["土耳其",3500,"yellow-green","安卡拉"],
+["命运",0,"destiny",""],
+["黎巴嫩",600,"purple","贝鲁特"],
+["以色列",2000,"purple","耶路撒冷"],
+["俄罗斯",1000,"purple","莫斯科"],
+["波兰",1200,"purple","华沙"],
+["德国",2400,"purple","柏林"],
+["印度洋",0,"ocean",""],
+["奥地利",3000,"pink","维也纳"],
+["瑞士",3200,"pink","伯尔尼"],
+["法国",3000,"pink","巴黎"],
+["比利时",2200,"pink","布鲁塞尔"],
+["机会",0,"chance",""],
+["荷兰",2400,"dark-gray","阿姆斯特丹"],
+["英国",2200,"dark-gray","伦敦"],
+["北极",0,"corner",""],
+["芬兰",2600,"dark-gray","赫尔辛基"],
+["瑞典",2600,"dark-gray","斯德哥尔摩"],
+["丹麦",2800,"dark-gray","哥本哈根"],
+["希腊",1600,"dark-blue","雅典"],
+["意大利",1400,"dark-blue","罗马"],
+["命运",0,"destiny",""],
+["西班牙",1400,"dark-blue","马德里"],
+["葡萄牙",2000,"dark-blue","里斯本"],
+["埃及",1800,"light-green","开罗"],
+["摩洛哥",1800,"light-green","拉巴特"],
+["赞比亚",600,"light-green","卢萨卡"],
+["机会",0,"chance",""],
+["南非",600,"light-green","比勒陀利亚"],
+["加拿大",3500,"khaki","渥太华"],
+["美国",3500,"khaki","华盛顿"],
+["夏威夷",0,"corner",""],
+["墨西哥",1000,"khaki","墨西哥城"],
+["洪都拉斯",1200,"khaki","特古西加尔巴"],
+["尼加拉瓜",3000,"hot-pink","马那瓜"],
+["哥斯达黎加",1000,"hot-pink","圣何塞"],
+["命运",0,"destiny",""],
+["巴拿马",3200,"hot-pink","巴拿马城"],
+["古巴",3000,"hot-pink","哈瓦那"],
+["哥伦比亚",1800,"green","波哥大"],
+["玻利维亚",1200,"green","苏克雷·拉巴斯"],
+["巴西",2600,"green","巴西利亚"],
+["大西洋",0,"ocean",""],
+["阿根廷",1000,"green","布宜诺斯艾利斯"],
+["智利",3500,"green","圣地亚哥"],
+["澳大利亚",3200,"red","堪培拉"],
+["新西兰",3500,"red","惠灵顿"]
+];
+</script>
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function tx(x,y,s,fs,o){o=o||{};const t=el("text",{x:x,y:y,"font-size":fs,
+  "font-family":"-apple-system,PingFang SC,Microsoft YaHei,sans-serif",
+  "font-weight":o.w||400,fill:o.fill||"#333","text-anchor":"middle","dominant-baseline":"middle"});
+  t.textContent=s;return t;}
+function isSpecial(t){return t[2]==="corner"||t[2]==="chance"||t[2]==="destiny"||t[2]==="ocean";}
+
+function drawTile(g,t,x,y,w,h){
+  if(isSpecial(t)){
+    let bg="#fff",st="#e5e1da",sw=1;
+    if(t[2]==="corner"){bg="#f4f2ee";st="#b3afa6";sw=2;}
+    else if(t[2]==="chance"){bg="#faf3f6";st="#B06F88";}
+    else if(t[2]==="destiny"){bg="#faf5ec";st="#D9BA8E";}
+    else if(t[2]==="ocean"){bg="#eef3f6";st="#9BB6C4";}
+    g.appendChild(el("rect",{x:x,y:y,width:w,height:h,fill:bg,stroke:st,"stroke-width":sw,rx:2}));
+    const fs=Math.max(3,Math.min(w*0.26,h*0.26));
+    const hasSub=!!t[3];
+    g.appendChild(tx(x+w/2,y+h/2-(hasSub?h*0.16:0),t[0],fs,{w:600,fill:t[2]==="chance"?"#96597A":(t[2]==="destiny"?"#7A6338":(t[2]==="ocean"?"#4a6b7c":"#2c2c2a"))}));
+    if(hasSub) g.appendChild(tx(x+w/2,y+h/2+h*0.22,t[3],fs*0.62,{w:600,fill:"#96597A"}));
+  }else{
+    g.appendChild(el("rect",{x:x,y:y,width:w,height:h,fill:"#fff",stroke:"#e5e1da","stroke-width":1,rx:2}));
+    const bandH=Math.max(5,h*0.16);
+    g.appendChild(el("rect",{x:x,y:y,width:w,height:bandH,fill:COLORS[t[2]]||"#ccc",rx:2}));
+    const cx=x+w/2;
+    const nf=Math.max(3,Math.min(w*0.185,h*0.24));
+    let cy=y+bandH+nf*0.95;
+    g.appendChild(tx(cx,cy,t[0],nf,{w:700,fill:"#2c2c2a"}));
+    cy+=nf*0.98;
+    g.appendChild(tx(cx,cy,"$"+t[1],nf*0.94,{w:700,fill:"#96597A"}));
+    if(t[3]){cy+=nf*0.88;g.appendChild(tx(cx,cy,t[3],nf*0.60,{fill:"#8a8880"}));}
+  }
+}
+
+function ringPos(id,cols,rows){const L=cols-1;
+  if(id<=L) return {c:L-id,r:L};
+  if(id<=2*L) return {c:0,r:2*L-id};
+  if(id<=3*L) return {c:id-2*L,r:0};
+  return {c:L,r:id-3*L};}
+function snakePos(id,cols){const r=Math.floor(id/cols),p=id%cols;
+  return {c:(r%2===0)?p:cols-1-p,r:r};}
+
+function render(cfg){
+  const cols=cfg.cols,rows=cfg.rows,tw=cfg.tw,th=cfg.th,gap=1;
+  const W=cols*tw+(cols+1)*gap,H=rows*th+(rows+1)*gap;
+  const svg=el("svg",{viewBox:"0 0 "+W+" "+H,preserveAspectRatio:"xMidYMid meet"});
+  svg.appendChild(el("rect",{x:0,y:0,width:W,height:H,fill:"#f4f2ee",rx:4}));
+  if(cfg.center){
+    const cx=gap+tw,cy=gap+th,cw=(cols-2)*tw+(cols-3)*gap,ch=(rows-2)*th+(rows-3)*gap;
+    svg.appendChild(el("rect",{x:cx,y:cy,width:cw,height:ch,fill:"#fbfaf8",stroke:"#e8e5df","stroke-width":1,rx:2}));
+    svg.appendChild(tx(cx+cw/2,cy+ch/2-8,"世界之旅",24,{w:700,fill:"#2c2c2a"}));
+    svg.appendChild(tx(cx+cw/2,cy+ch/2+16,"WORLD TOUR",12,{fill:"#8a8880"}));
+  }
+  TILES.forEach(function(t,id){
+    const p=cfg.pos(id,cols,rows);
+    const x=gap+p.c*(tw+gap),y=gap+p.r*(th+gap);
+    const g=el("g",{});
+    drawTile(g,t,x,y,tw,th);
+    svg.appendChild(g);
+  });
+  return svg;
+}
+
+const CARDS=[
+ {tag:"现状",grey:true,title:"A · 现在的样子（空心环）",
+  meta:"板子 17 格并排，中间一整块是空的。缩到手机宽度后，<b>每格只有约 20px 宽</b>，国名/价格约 <b>3~4px</b> —— 基本看不清。",
+  cfg:{cols:17,rows:17,tw:76,th:100,pos:ringPos,center:true},ruler:"整板 17×17 · 中间 15×15 全空"},
+ {tag:"格子约 2×",title:"B · 铺满 8 列（中空消失）",
+  meta:"把 64 格按行进顺序蛇形铺满，中间的空白被格子填满 → <b>每格约 42px</b>，字号约 <b>8px</b>，手机上能读。代价：不再是「绕圈」的环，得像看表格一样顺着看。",
+  cfg:{cols:8,rows:8,tw:158,th:158,pos:function(id,c){return snakePos(id,c);}},ruler:"8 列 × 8 行铺满 · 无中空"},
+ {tag:"格子约 3×",title:"C · 铺满 6 列（最清楚）",
+  meta:"同上但只排 6 列 → <b>每格约 56px</b>，字号约 <b>11px</b>，最接近正常阅读大小。代价：板子变长，手机上要上下滑一点。",
+  cfg:{cols:6,rows:11,tw:212,th:130,pos:function(id,c){return snakePos(id,c);}},ruler:"6 列 × 11 行 · 最长但字最大"}
+];
+
+const row=document.getElementById("row");
+CARDS.forEach(function(c){
+  const card=document.createElement("div");card.className="card";
+  const h2=document.createElement("h2");
+  h2.appendChild(document.createTextNode(c.title));
+  const tg=document.createElement("span");tg.className="tag"+(c.grey?" grey":"");tg.textContent=c.tag;
+  h2.appendChild(tg);card.appendChild(h2);
+  const m=document.createElement("div");m.className="meta";m.innerHTML=c.meta;card.appendChild(m);
+  const ph=document.createElement("div");ph.className="phone";ph.appendChild(render(c.cfg));card.appendChild(ph);
+  const rl=document.createElement("div");rl.className="ruler";rl.textContent=c.ruler;card.appendChild(rl);
+  row.appendChild(card);
+});
+
+document.getElementById("foot").innerHTML=
+ "三种做法你更偏向哪种？<br><b>B / C（铺满）</b>是真的能解决手机看不清，但会丢掉「环游世界一圈」的棋盘观感；"+
+ "如果你更想保留环形棋盘的样子，我也可以做<b>「环形不变、手机上默认放大 + 拖动看」</b>的方案，只是那样一次看不全整块板。<br>定了方向我再改 map-svg.html 正式代码。";
+</script>
+</body>
+</html>

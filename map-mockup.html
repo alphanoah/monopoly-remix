@@ -177,8 +177,8 @@ const CARDS=[
   meta:"把 64 格按行进顺序蛇形铺满，中间的空白被格子填满 → <b>每格约 42px</b>，字号约 <b>8px</b>，手机上能读。代价：不再是「绕圈」的环，得像看表格一样顺着看。",
   cfg:{cols:8,rows:8,tw:158,th:158,pos:function(id,c){return snakePos(id,c);}},ruler:"8 列 × 8 行铺满 · 无中空"},
  {tag:"格子约 3×",title:"C · 铺满 6 列（最清楚）",
-  meta:"同上但只排 6 列 → <b>每格约 56px</b>，字号约 <b>11px</b>，最接近正常阅读大小。代价：板子变长，手机上要上下滑一点。",
-  cfg:{cols:6,rows:11,tw:212,th:130,pos:function(id,c){return snakePos(id,c);}},ruler:"6 列 × 11 行 · 最长但字最大"}
+  meta:"同上但只排 6 列、格子取正方 → <b>每格约 57px</b>，字号约 <b>10~11px</b>，接近正常阅读大小。代价：板子变长，手机上一屏差一点放不下，要稍微上下滑。",
+  cfg:{cols:6,rows:11,tw:212,th:212,pos:function(id,c){return snakePos(id,c);}},ruler:"6 列 × 11 行 · 字最大，板子最长"}
 ];
 
 const row=document.getElementById("row");

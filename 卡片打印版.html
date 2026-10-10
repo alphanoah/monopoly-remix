@@ -91,12 +91,8 @@
 
   .blank { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 4px, #f2f2f2 4px, #f2f2f2 8px); border: 1px dashed #ddd; border-radius: 2.6mm; width: var(--cw); height: var(--ch); display: flex; align-items: center; justify-content: center; color: #c4c4c4; font-size: var(--evfs); }
 
-  /* ===== 卡牌背面 ===== */
-  .card.back {
-    display: block;
-    padding: 3mm;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
+  /* ===== 卡牌背面：子元素全部绝对定位，故不参与 flex 排版 ===== */
+  .card.back { display: block; }
   .back-frame {
     position: absolute; inset: 3mm;
     border-radius: 1.6mm;
@@ -116,8 +112,6 @@
     font-size: calc(var(--cw) * 0.055); letter-spacing: .45em; text-indent: .45em;
     text-align: center; opacity: .7;
   }
-  .card.back.chance { color: #fff; }
-  .card.back.fate { color: #2C3E6B; }
   .back-stamp {
     position: absolute;
     top: calc(var(--ch) * 0.07);
@@ -127,7 +121,7 @@
     opacity: .85;
     pointer-events: none;
   }
-  .back-stamp circle, .back-stamp ellipse {
+  .back-stamp ellipse {
     fill: none; stroke: currentColor; stroke-width: 2;
     stroke-dasharray: 6 5; opacity: .88;
   }
@@ -236,11 +230,11 @@ const PAPERS = {
 };
 
 const LAYOUTS = {
-  standard: { paper: 'a4', label: '标准', per: 8,  cols: 2, cw: 88, ch: 57, gx: 6, gy: 6, mx: 14, my: 25.5,
+  standard: { per: 8,  cols: 2, cw: 88, ch: 57, gx: 6, gy: 6, mx: 14, my: 25.5,
               tfs: 30, evfs: 14, effs: 12.5, nfs: 9, wms: 44 },
-  compact:  { paper: 'a4', label: '紧凑', per: 10, cols: 2, cw: 76, ch: 50, gx: 6, gy: 6, mx: 26, my: 11.5,
+  compact:  { per: 10, cols: 2, cw: 76, ch: 50, gx: 6, gy: 6, mx: 26, my: 11.5,
               tfs: 24, evfs: 12, effs: 11, nfs: 8, wms: 38 },
-  photo4:   { paper: 'photo6', label: '6寸四格', per: 4, cols: 2, cw: 72, ch: 46, gx: 4, gy: 4, mx: 2, my: 3,
+  photo4:   { per: 4,  cols: 2, cw: 72, ch: 46, gx: 4, gy: 4, mx: 2, my: 3,
               tfs: 22, evfs: 11.5, effs: 10.5, nfs: 8, wms: 34 }
 };
 
@@ -271,7 +265,7 @@ function splitOnce(t) {
   const i = t.indexOf('：');
   return i < 0 ? [t, ''] : [t.slice(0, i), t.slice(i + 1)];
 }
-function cardNode(card, idxInDeck) {
+function cardNode(card, idxInDeck, total) {
   let inner;
   if (card.cond) {
     inner = '<div class="ev">' + card.t + '</div>' +
@@ -289,13 +283,14 @@ function cardNode(card, idxInDeck) {
   el.className = 'card ' + card.c;
   el.innerHTML =
     '<div class="wm">' + (card.c === 'chance' ? '?' : '!') + '</div>' +
-    '<div class="num">' + (idxInDeck + 1) + '-20</div>' +
+    '<div class="num">' + (idxInDeck + 1) + '-' + total + '</div>' +
     '<div class="title">' + DECK_NAME[card.c] + '</div>' +
     '<div class="txt">' + inner + '</div>';
   return el;
 }
 function deckList(kind) {
-  return CARDS.filter(c => c.c === kind).map((c, i) => ({ card: c, i }));
+  const list = CARDS.filter(c => c.c === kind);
+  return list.map((c, i) => ({ card: c, i, n: list.length }));
 }
 
 // ===== 卡牌背面：同色底 + 双线内框 + 「机?会/命!运」中央构图 + 斜章 + 邪恶版 =====
@@ -380,7 +375,7 @@ function render() {
     sheet.style.setProperty('--nfs', L.nfs + 'px');
     sheet.style.setProperty('--wms', L.wms + 'mm');
 
-    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.c) : cardNode(x.card, x.i)));
+    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.c) : cardNode(x.card, x.i, x.n)));
     for (let k = pageItems.length; k < L.per; k++) {
       const b = document.createElement('div');
       b.className = 'blank';
@@ -411,7 +406,6 @@ function updateSpecs(pageCount) {
   const L = activeLayout();
   const P = PAPERS[currentPaper];
   const rows = L.per / L.cols;
-  const split = useSplit();
   const modeText = side === 'back'
     ? (backNeedsSplit()
         ? '按花色分页（本版式会出混色页，背面自动锁定）'
@@ -440,40 +434,18 @@ function syncPaperUI() {
   document.querySelectorAll('.btn[data-mode]').forEach(b => b.classList.toggle('off', side === 'back' && backNeedsSplit()));
 }
 
-document.querySelectorAll('.btn[data-paper]').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.btn[data-paper]').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    currentPaper = b.dataset.paper;
-    syncPaperUI();
-    render();
-  });
-});
-document.querySelectorAll('.btn[data-layout]').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.btn[data-layout]').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    currentLayout = b.dataset.layout;
-    render();
-  });
-});
-document.querySelectorAll('.btn[data-mode]').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.btn[data-mode]').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    pageMode = b.dataset.mode;
-    render();
-  });
-});
-document.querySelectorAll('.btn[data-side]').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.btn[data-side]').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    side = b.dataset.side;
-    syncPaperUI();
-    render();
-  });
-});
+// 四组开关按钮共用一个互斥绑定（.off 的按钮带 pointer-events:none，点了也不会触发）
+function bindGroup(sel, apply) {
+  const btns = [...document.querySelectorAll(sel)];
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(x => x.classList.toggle('on', x === b));
+    apply(b);
+  }));
+}
+bindGroup('.btn[data-paper]', b => { currentPaper = b.dataset.paper; syncPaperUI(); render(); });
+bindGroup('.btn[data-layout]', b => { currentLayout = b.dataset.layout; syncPaperUI(); render(); });
+bindGroup('.btn[data-mode]', b => { pageMode = b.dataset.mode; render(); });
+bindGroup('.btn[data-side]', b => { side = b.dataset.side; syncPaperUI(); render(); });
 document.getElementById('doPrint').addEventListener('click', () => window.print());
 
 syncPaperUI();

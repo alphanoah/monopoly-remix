@@ -4,6 +4,8 @@
 
 - **在线地址**：开启 Pages 后为 `https://<用户名>.github.io/<仓库名>/`
 - **本地使用**：直接双击 `index.html`（此时用内置兜底数据，功能完整）
+- **规则**：见 [docs/rules.md](docs/rules.md)；完整地图格子数据见 [docs/map-tiles.md](docs/map-tiles.md)
+- **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
 
 ---
 
@@ -27,7 +29,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 | `rate` | 命中率，只作备注，不参与渲染 |
 | `use` | `1` 采用、`0` 弃用。填 `0` 的牌不会出现在页面里 |
 
-每列怎么填、对应 JSON 什么字段、脚本会拦哪些错误，见 **[CSV字段说明.md](CSV字段说明.md)**。
+每列怎么填、对应 JSON 什么字段、脚本会拦哪些错误，见 **[docs/csv-fields.md](docs/csv-fields.md)**。
 
 ### 编辑时注意
 
@@ -85,12 +87,24 @@ python3 tools/csv2json.py
 ## 目录
 
 ```
-index.html                 打印页（单文件，无外部依赖）
-cards.csv                  卡牌数据真源
-CSV字段说明.md              cards.csv 每列的填法与对应 JSON 字段
-cards.json                 由 cards.csv 生成，供页面读取
-tools/md2csv.py            一次性迁移脚本：把历史 md 表格转成 cards.csv
-tools/csv2json.py          cards.csv → cards.json + 回写内置兜底
-命运机会卡牌/v1..v6.md      历史版本存档（已由 cards.csv 接手，仅作留档）
-大富翁玩法.md               游戏规则
+richer/
+├── index.html              打印页（单文件，无外部依赖）
+├── cards.csv               卡牌数据真源
+├── cards.json              由 cards.csv 生成，供页面读取
+├── README.md
+├── LICENSE.md              CC BY-NC 4.0
+├── docs/
+│   ├── rules.md            游戏规则（含初版卡牌留档）
+│   ├── map-tiles.md        地图格子数据
+│   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
+│   ├── original-cards.md   原版实体卡文字转录
+│   ├── original-manual.md  原版说明书转录
+│   └── card-diff.md        新版 vs 原版差异对照
+├── cards/                  卡牌历史版本存档 v1–v6.md
+├── tools/
+│   ├── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
+│   └── csv2json.py         cards.csv → cards.json + 回写内置兜底
+└── .github/workflows/      cards.csv 变更时自动生成 cards.json
 ```
+
+`photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。

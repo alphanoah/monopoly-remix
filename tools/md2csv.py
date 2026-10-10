@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 一次性迁移脚本：把 命运机会卡牌/vN.md 里的表格抽成 cards.csv
+# 一次性迁移脚本：把 cards/vN.md 里的表格抽成 cards.csv
 # 用法：python3 tools/md2csv.py
 # 生成后请人工核对 cards.csv，确认无误再提交（之后就以 CSV 为准，不再回头改 md）
 import csv
@@ -7,7 +7,7 @@ import os
 import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC_DIR = os.path.join(ROOT, '命运机会卡牌')
+SRC_DIR = os.path.join(ROOT, 'cards')
 OUT = os.path.join(ROOT, 'cards.csv')
 
 VERSIONS = ['v4', 'v5', 'v6']

@@ -32,3 +32,6 @@ photos/
 # ===== Office 二进制：内容已有 md / csv 版，只留本地 =====
 *.docx
 *.xlsx
+
+# 导出的 PDF（打印用，生成物，不入库）
+*.pdf

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v7 修订对照表 · 大富翁改版</title>
+<style>
+  :root { --bg:#fbfaf8; --ink:#3a3733; --sub:#8a8880; --line:#ece7e0; --accent:#B06F88; --accent-d:#96597A; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:15px; line-height:1.7; padding:0 14px 60px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  a.home { display:inline-block; font-size:13px; color:var(--sub); text-decoration:none; margin:14px 0 6px; }
+  h1 { font-size:20px; margin:0 0 6px; letter-spacing:.5px; }
+  .lead { font-size:13px; color:var(--sub); margin:0 0 16px; }
+  h2 { font-size:17px; margin:26px 0 10px; padding-left:9px; border-left:3px solid var(--accent); }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:13.5px; margin-bottom:12px; }
+  .stat b { color:var(--accent-d); }
+  .idx { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px; }
+  .idx a { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; background:#fff;
+    border:1px solid var(--line); border-radius:999px; font-size:12.5px; color:var(--ink); text-decoration:none; }
+  .idx a .dot { width:7px; height:7px; border-radius:50%; }
+  .tools { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
+  .tools button { background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 12px;
+    font-size:13px; color:var(--ink); cursor:pointer; }
+  .tools button.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px 14px; margin:12px 0; }
+  .card h3 { font-size:15.5px; margin:0 0 10px; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .tag { font-size:11.5px; padding:1px 7px; border-radius:999px; border:1px solid; font-weight:500; }
+  .t-red { color:#c0392b; border-color:#f0c4bd; background:#fdf2f0; }
+  .t-yellow { color:#a06800; border-color:#eddcb0; background:#fdf8ea; }
+  .t-white { color:#7a7872; border-color:#e3e0da; background:#f7f6f4; }
+  .t-none { color:#8a8880; border-color:#ece7e0; background:#faf9f7; }
+  .lbl { font-size:11.5px; color:var(--sub); letter-spacing:1px; margin:10px 0 5px; }
+  .orig { background:#faf9f7; border-radius:8px; padding:8px 11px; font-size:14px; }
+  .orig div { padding:2px 0; }
+  .orig b { color:var(--sub); font-weight:500; margin-right:4px; }
+  .chg { border-left:3px solid var(--accent); padding:2px 0 2px 10px; margin:10px 0; }
+  .chg .fld { font-size:12px; color:var(--sub); display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+  .chg .old { color:#9b9791; font-size:13.5px; text-decoration:line-through; text-decoration-color:#d6d2cc; }
+  .chg .new { color:var(--ink); font-size:14.5px; margin-top:2px; }
+  .empty { color:#c0392b; font-style:italic; }
+  .note { background:#fdf8ea; border-left:3px solid #d9a441; border-radius:0 8px 8px 0;
+    padding:9px 11px; font-size:13.5px; margin-top:10px; }
+  .none { color:var(--sub); font-size:13.5px; }
+  table.wl { width:100%; border-collapse:collapse; font-size:13.5px; background:#fff; }
+  table.wl th, table.wl td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  table.wl th { background:#faf9f7; font-weight:500; color:var(--sub); }
+  .foot { font-size:12px; color:var(--sub); margin-top:26px; }
+  @media (max-width:520px) { body { font-size:14.5px; } .card { padding:11px 12px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="home" href="index.html">← 返回首页</a>
+<h1>v7 修订对照表</h1>
+<p class="lead">每张牌先列 v6 原文，下面列改动。<span style="color:#c0392b">红</span>=内容改，<span style="color:#a06800">黄</span>=描述改，<span style="color:#7a7872">白*</span>=标白但字改了。</p>
+
+<div class="stat">共 40 张：
+红 <b>10</b> 张 · 黄 <b>14</b> 张 · 红+黄 <b>7</b> 张 · 红+黄+白 <b>4</b> 张 · 红+白 <b>2</b> 张 · 黄+白 <b>1</b> 张 · 未改 <b>2</b> 张。</div>
+<div class="tools">
+<button id="b-all" class="on" data-f="all">全部 40 张</button>
+<button id="b-chg" data-f="chg">只看有改动的</button>
+<button id="b-note" data-f="note">只看有提示的</button>
+</div>
+<h2>索引</h2>
+<div class="idx">
+<span style="font-size:12px;color:#8a8880;align-self:center;margin-right:2px">机会</span>
+<a href="#c-chance-1"><span class="dot" style="background:#e74c3c"></span>1</a>
+<a href="#c-chance-2"><span class="dot" style="background:#e74c3c"></span>2</a>
+<a href="#c-chance-3"><span class="dot" style="background:#e74c3c"></span>3</a>
+<a href="#c-chance-4"><span class="dot" style="background:#e74c3c"></span>4</a>
+<a href="#c-chance-5"><span class="dot" style="background:#e0a800"></span>5</a>
+<a href="#c-chance-6"><span class="dot" style="background:#e0a800"></span>6</a>
+<a href="#c-chance-7"><span class="dot" style="background:#e74c3c"></span>7</a>
+<a href="#c-chance-8"><span class="dot" style="background:#e74c3c"></span>8</a>
+<a href="#c-chance-9"><span class="dot" style="background:#e0a800"></span>9</a>
+<a href="#c-chance-10"><span class="dot" style="background:#e0a800"></span>10</a>
+<a href="#c-chance-11"><span class="dot" style="background:#e0a800"></span>11</a>
+<a href="#c-chance-12"><span class="dot" style="background:#e74c3c"></span>12</a>
+<a href="#c-chance-13"><span class="dot" style="background:#e0a800"></span>13</a>
+<a href="#c-chance-14"><span class="dot" style="background:#e74c3c"></span>14</a>
+<a href="#c-chance-15"><span class="dot" style="background:#e74c3c"></span>15</a>
+<a href="#c-chance-16"><span class="dot" style="background:#e0a800"></span>16</a>
+<a href="#c-chance-17"><span class="dot" style="background:#e0a800"></span>17</a>
+<a href="#c-chance-18"><span class="dot" style="background:#e0a800"></span>18</a>
+<a href="#c-chance-19"><span class="dot" style="background:#e0a800"></span>19</a>
+<a href="#c-chance-20"><span class="dot" style="background:#e0a800"></span>20</a>
+</div>
+<div class="idx">
+<span style="font-size:12px;color:#8a8880;align-self:center;margin-right:2px">命运</span>
+<a href="#c-fate-1"><span class="dot" style="background:#e0a800"></span>1</a>
+<a href="#c-fate-2"><span class="dot" style="background:#e0a800"></span>2</a>
+<a href="#c-fate-3"><span class="dot" style="background:#e74c3c"></span>3</a>
+<a href="#c-fate-4"><span class="dot" style="background:#e74c3c"></span>4</a>
+<a href="#c-fate-5"><span class="dot" style="background:#e74c3c"></span>5</a>
+<a href="#c-fate-6"><span class="dot" style="background:#e0a800"></span>6</a>
+<a href="#c-fate-7"><span class="dot" style="background:#e74c3c"></span>7</a>
+<a href="#c-fate-8"><span class="dot" style="background:#c9c5be"></span>8</a>
+<a href="#c-fate-9"><span class="dot" style="background:#c9c5be"></span>9</a>
+<a href="#c-fate-10"><span class="dot" style="background:#e0a800"></span>10</a>
+<a href="#c-fate-11"><span class="dot" style="background:#e74c3c"></span>11</a>
+<a href="#c-fate-12"><span class="dot" style="background:#e74c3c"></span>12</a>
+<a href="#c-fate-13"><span class="dot" style="background:#e74c3c"></span>13</a>
+<a href="#c-fate-14"><span class="dot" style="background:#e74c3c"></span>14</a>
+<a href="#c-fate-15"><span class="dot" style="background:#e74c3c"></span>15</a>
+<a href="#c-fate-16"><span class="dot" style="background:#e74c3c"></span>16</a>
+<a href="#c-fate-17"><span class="dot" style="background:#e74c3c"></span>17</a>
+<a href="#c-fate-18"><span class="dot" style="background:#e74c3c"></span>18</a>
+<a href="#c-fate-19"><span class="dot" style="background:#e74c3c"></span>19</a>
+<a href="#c-fate-20"><span class="dot" style="background:#e74c3c"></span>20</a>
+</div>
+<h2>机会牌（20 张）</h2>
+<section class="card has-note has-chg" id="c-chance-1">
+<h3>机会 #1 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金</div>
+<div><b>效果</b>+2000，被举报者（最有钱的玩家）-2000</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金</div>
+<div class="new">你在瑞士举报有人洗钱，瑞银发洗钱举报奖金</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">+2000，被举报者（最有钱的玩家）-2000</div>
+<div class="new">现金最多的玩家被罚款-2000，你获得奖金+2000（如果你最有钱，则没有奖金）</div>
+</div>
+<div class="note"><b>提示</b>：「如果你最有钱」的兜底写「没有奖金」——按字面，最有钱的人被罚 2000 又拿不到奖金，净 -2000，奖励牌变纯惩罚牌。建议改成「顺延给第二有钱的玩家」（#2/#8 已是这个口径）。</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-2">
+<h3>机会 #2 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」</div>
+<div><b>效果</b>向最有钱的玩家罚款 2000，钱归你</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">向最有钱的玩家罚款 2000，钱归你</div>
+<div class="new">现金最多的玩家付给你1000（如果你现金最多，则顺延）</div>
+</div>
+<div class="note"><b>提示</b>：金额 2000 → 1000，兜底口径改为顺延，合理。</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-3">
+<h3>机会 #3 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在澳门赌场出千被荷官发现——但荷官是你发小</div>
+<div><b>效果</b>+3000，左手玩家替你平事被没收 1000</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>事件</div>
+<div class="old">你在澳门赌场出千被荷官发现——但荷官是你发小</div>
+<div class="new">你在戛纳游艇展用左手玩家的名片租下整层甲板开派对--香槟你喝，账单寄他</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">+3000，左手玩家替你平事被没收 1000</div>
+<div class="new">你收到份子钱+3000，左手玩家支付账单-1000</div>
+</div>
+<div class="note"><b>提示</b>：整张换掉了（原为澳门出千，现为戛纳游艇展）。新效果是你 +3000、左手玩家 -1000——旧版也是这个不对称结构，只是换了个故事，你确认保留即可。</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-4">
+<h3>机会 #4 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团</div>
+<div><b>效果</b>+1000，右手玩家取消下次掷骰</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团</div>
+<div class="new">你在撒哈拉把假罗盘卖给前方的旅行团</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">+1000，右手玩家取消下次掷骰</div>
+<div class="new">你+1000，前方最近棋子原地停留一回合（事件照常触发）</div>
+</div>
+<div class="note"><b>提示</b>：「右手玩家取消下次掷骰」改成「前方最近棋子原地停留一回合」，罚的对象从固定邻居变成场上位置，更有变数，可以。</div>
+</section>
+<section class="card has-chg" id="c-chance-5">
+<h3>机会 #5 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在米兰倒卖限量球鞋，黄牛圈为你封神</div>
+<div><b>效果</b>1500</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">1500</div>
+<div class="new">你收益+1500</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-6">
+<h3>机会 #6 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你买通了马赛的裁判，你押的队「赢了」世界杯</div>
+<div><b>效果</b>2500</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">2500</div>
+<div class="new">你收益+2500</div>
+</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-7">
+<h3>机会 #7 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱</div>
+<div><b>效果</b>+500，他退到经济舱：跳过下回合</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱</div>
+<div class="new">你在伊斯坦布尔机场偷了右手玩家的头等舱登机牌</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">+500，他退到经济舱：跳过下回合</div>
+<div class="new">你骰子+1，右手玩家原地停留一回合（事件照常触发）</div>
+</div>
+<div class="note"><b>提示</b>：「你骰子+1」含义待统一（见 #4/#14）。</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-8">
+<h3>机会 #8 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药</div>
+<div><b>效果</b>他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药</div>
+<div class="new">你在迪拜拍卖会前给对手的咖啡里下了泻药</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价</div>
+<div class="new">强制拍卖现金最多的玩家的一处地产（自己指定），且他自己不能参与竞价，若他名下无地产则无事发生（如果你现金最多，则顺延）</div>
+</div>
+<div class="note"><b>提示</b>：补了「若他名下无地产则无事发生」和「如果你现金最多则顺延」两个兜底，改得好。注意：强制拍卖「自己指定」——是你指定还是他指定？字面有歧义。</div>
+</section>
+<section class="card has-chg" id="c-chance-9">
+<h3>机会 #9 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在里约把「防抢劫符」卖给富豪，当晚贫民窟枪一响他就信了</div>
+<div><b>效果</b>1000</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">1000</div>
+<div class="new">你收益+1000</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-10">
+<h3>机会 #10 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在伦敦给你最贵的房产投了灾险，然后隔壁「不小心」着火了</div>
+<div><b>效果</b>那块房 -1 级，你领赔偿 +1500</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">那块房 -1 级，你领赔偿 +1500</div>
+<div class="new">你最贵的房子 -1 级，你领赔偿 +1500</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-11">
+<h3>机会 #11 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在莫斯科开「监狱代购」，垄断了西伯利亚铁窗外的外卖</div>
+<div><b>效果</b>所有监狱里的玩家每人付你 300</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">所有监狱里的玩家每人付你 300</div>
+<div class="new">所有监狱里的玩家每人付给你 300</div>
+</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-12">
+<h3>机会 #12 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在广州仿冒名牌包卖给欧洲旅游团</div>
+<div><b>效果</b>+800 ×（在场有房的玩家人数）</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">+800 ×（在场有房的玩家人数）</div>
+<div class="new">欧洲区域玩家每人付给你1000</div>
+</div>
+<div class="note"><b>提示</b>：「欧洲区域玩家」定义不明：是拥有欧洲地产的玩家，还是棋子站在欧洲格上的玩家？另外这张没有兜底（无人满足条件时怎么办）。</div>
+</section>
+<section class="card has-chg" id="c-chance-13">
+<h3>机会 #13 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了</div>
+<div><b>效果</b>每个玩家付你 200（收「智商税」）</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了</div>
+<div class="new">你在曼谷把大富翁说明书改成「路过出生点交 200」，全团居然信了</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">每个玩家付你 200（收「智商税」）</div>
+<div class="new">每个玩家付给你 200</div>
+</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-14">
+<h3>机会 #14 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>smile</div>
+<div><b>事件</b>你在拉斯维加斯贿赂了骰子之神</div>
+<div><b>效果</b>+1 骰子次数，且下次移动骰摇到 8-16 可任选正走或倒走</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">+1 骰子次数，且下次移动骰摇到 8-16 可任选正走或倒走</div>
+<div class="new">你骰子+1，且下次移动可任选正走或倒走</div>
+</div>
+<div class="note"><b>提示</b>：「骰子+1」含义待统一；且 v6 的「摇到 8-16 可任选正走或倒走」被简化成「下次移动可任选正走或倒走」——从有条件变成无条件，强了不少。</div>
+</section>
+<section class="card has-note has-chg" id="c-chance-15">
+<h3>机会 #15 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>frown</div>
+<div><b>事件</b>你在拉斯维加斯出千被真正的赌场抓了现行</div>
+<div><b>效果</b>强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>效果</div>
+<div class="old">强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）</div>
+<div class="new">强制拍卖一处你名下的房子（自己指定），拍卖所得上交赌场，若名下无房则送进监狱3回合</div>
+</div>
+<div class="note"><b>提示</b>：监狱 3 回合与 full-rules「入狱后下一回合自动出狱」冲突；若属特例请写明「不受自动出狱限制」。</div>
+</section>
+<section class="card has-chg" id="c-chance-16">
+<h3>机会 #16 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>frown</div>
+<div><b>事件</b>你在平壤造的假美元被人用回你自己的黑市摊位</div>
+<div><b>效果</b>-1500</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">-1500</div>
+<div class="new">你亏损了-1500</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-17">
+<h3>机会 #17 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>frown</div>
+<div><b>事件</b>你在开罗买的「图坦卡蒙纯金」圣甲虫是镀金的</div>
+<div><b>效果</b>-500</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">-500</div>
+<div class="new">你亏损了-500</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-18">
+<h3>机会 #18 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>frown</div>
+<div><b>事件</b>你在那不勒斯教唆小孩把家里房契拿去换球星卡，黑手党家长找上门</div>
+<div><b>效果</b>-1000，并且下一回合你到达的地块若属他人，过路费翻倍（顶风作案人尽皆知）</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">-1000，并且下一回合你到达的地块若属他人，过路费翻倍（顶风作案人尽皆知）</div>
+<div class="new">你赔款-1000，且下一回合你要付的过路费翻倍（顶风作案人尽皆知）</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-19">
+<h3>机会 #19 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>frown</div>
+<div><b>事件</b>你在哥伦比亚的诈骗集团被一锅端，你是唯一没跑掉的</div>
+<div><b>效果</b>-2500</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">-2500</div>
+<div class="new">你被诈骗了-2500</div>
+</div>
+</section>
+<section class="card has-chg" id="c-chance-20">
+<h3>机会 #20 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>表情</b>frown</div>
+<div><b>事件</b>你在首尔被全网人肉，黑历史挂上热搜</div>
+<div><b>效果</b>所有玩家可向你「索赔」一次：每人拿走 200（-200 × N）</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在首尔被全网人肉，黑历史挂上热搜</div>
+<div class="new">你在首尔被全网人肉，黑历史挂上热搜，所有玩家向你索赔</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>效果</div>
+<div class="old">所有玩家可向你「索赔」一次：每人拿走 200（-200 × N）</div>
+<div class="new">你付给每个人200</div>
+</div>
+</section>
+<h2>命运牌（20 张）</h2>
+<section class="card has-note has-chg" id="c-fate-1">
+<h3>命运 #1 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在德州跟亡命牛仔玩「灵魂赌局」：背对背各走十六步才回头开枪——你押他会在前八步还是后八步回头</div>
+<div><b>判据</b>押大小</div>
+<div><b>赢</b>抢先点名牛仔真名，他倒赔封口费：+3000</div>
+<div><b>输</b>灵魂被抵押：送进监狱 3 回合（≈ -3000）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>判据</div>
+<div class="old">押大小</div>
+<div class="new">猜大小</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>输</div>
+<div class="old">灵魂被抵押：送进监狱 3 回合（≈ -3000）</div>
+<div class="new">灵魂被抵押：送进监狱 3 回合</div>
+</div>
+<div class="note"><b>提示</b>：监狱 3 回合同上，与规则里的自动出狱不一致（#13 已改成 1 回合，这张还留 3 回合）。</div>
+</section>
+<section class="card has-chg" id="c-fate-2">
+<h3>命运 #2 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在澳门地下钱庄押上最后一注，庄家冷笑：单还是双</div>
+<div><b>判据</b>押单双</div>
+<div><b>赢</b>3000</div>
+<div><b>输</b>-2000，还被掰断手指：取消下次掷骰（合计 ≈ -3000）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>判据</div>
+<div class="old">押单双</div>
+<div class="new">猜单双</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>赢</div>
+<div class="old">3000</div>
+<div class="new">你赢了：+3000</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>输</div>
+<div class="old">-2000，还被掰断手指：取消下次掷骰（合计 ≈ -3000）</div>
+<div class="new">你输了：-2000，还要卖身还钱，原地停留一回合（事件照常触发）</div>
+</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-3">
+<h3>命运 #3 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你和左手玩家在西西里各自雇了杀手互杀——谁先得手，就看各自杀手的骰点</div>
+<div><b>判据</b>比点数：各摇一颗（= 杀手行动力），大者胜，平局双双失手重来</div>
+<div><b>赢</b>他「意外身亡」：你分到他 2000 遗产（他 -2000，你 +2000）</div>
+<div><b>输</b>你重伤治疗：-2000（医药费）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>判据</div>
+<div class="old">比点数：各摇一颗（= 杀手行动力），大者胜，平局双双失手重来</div>
+<div class="new">和左手玩家比点数：大者胜，平局重来</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">你重伤治疗：-2000（医药费）</div>
+<div class="new">你「意外身亡」：他分到你 2000 遗产（你 -2000，他 +2000）</div>
+</div>
+<div class="note"><b>提示</b>：输面改成「他分到你 2000 遗产」，双方对称（你 -2000 他 +2000），改得好。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-4">
+<h3>命运 #4 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>亡命狂奔：马德里宪兵队放狗追你——你跑出的步数 = 这回合的移动骰点数，9 步以上才能翻墙</div>
+<div><b>判据</b>用本次移动骰点数判定：≥ 9</div>
+<div><b>赢</b>翻墙甩脱，口袋里还装着刚偷的钱：+500</div>
+<div><b>输</b>被扑倒搜身：-500</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">亡命狂奔：马德里宪兵队放狗追你——你跑出的步数 = 这回合的移动骰点数，9 步以上才能翻墙</div>
+<div class="new">你再马德里偷钱，宪兵队放狗追你</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">用本次移动骰点数判定：≥ 9</div>
+<div class="new">狗追你的步数（骰子点数）小于你本回合移动步数</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">翻墙甩脱，口袋里还装着刚偷的钱：+500</div>
+<div class="new">翻墙甩脱，口袋里还装着刚偷的钱：+1000</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">被扑倒搜身：-500</div>
+<div class="new">被扑倒：送进监狱1回合</div>
+</div>
+<div class="note"><b>提示</b>：① event 有错别字「你**再**马德里」→「在」；② 判据变成「狗的骰点 &lt; 你的移动步数」，实际胜率 ≈ 46.9%，不是 0.5；③ 赢 +1000 / 输 监狱 1 回合，按等效 1000 基本持平。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-5">
+<h3>命运 #5 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在河内老街碰上巫祝：她把诅咒骰攥在拳头里让你猜在哪只手——猜错就中咒</div>
+<div><b>判据</b>猜左右手：巫祝（由左手玩家扮演）握骰</div>
+<div><b>赢</b>解咒 +1000</div>
+<div><b>输</b>中咒：下回合你所有过路费收入减半（≈ -1000）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>事件</div>
+<div class="old">你在河内老街碰上巫祝：她把诅咒骰攥在拳头里让你猜在哪只手——猜错就中咒</div>
+<div class="new">你在河内老街碰上巫祝：她把骰子攥在拳头里让你猜在哪只手</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">解咒 +1000</div>
+<div class="new">祝福：下回合你的过路费收入翻倍</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>输</div>
+<div class="old">中咒：下回合你所有过路费收入减半（≈ -1000）</div>
+<div class="new">诅咒：下回合你的过路费收入减半</div>
+</div>
+<div class="note"><b>提示</b>：赢面从「+1000」改成「下回合过路费收入翻倍」——收益高度依赖当时局势（无房则 =0），而输面固定减半，零期望被打破。建议确认是否接受。</div>
+</section>
+<section class="card has-chg" id="c-fate-6">
+<h3>命运 #6 <span class="tag t-yellow">黄</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定生死</div>
+<div><b>判据</b>石头剪刀布：与左手玩家一局定胜负，平局算都收手重来</div>
+<div><b>赢</b>1500</div>
+<div><b>输</b>-1500</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>事件</div>
+<div class="old">你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定生死</div>
+<div class="new">你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定话事权</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>判据</div>
+<div class="old">石头剪刀布：与左手玩家一局定胜负，平局算都收手重来</div>
+<div class="new">石头剪刀布：与左手玩家一局定胜负，平局重来</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>赢</div>
+<div class="old">1500</div>
+<div class="new">黑手党乖乖掏钱+1500</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>输</div>
+<div class="old">-1500</div>
+<div class="new">你乖乖掏钱-1500</div>
+</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-7">
+<h3>命运 #7 <span class="tag t-red">红</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你潜入西西里黑手党的金库，守卫报告警戒等级 1-16，1-7 级可以摸进宝库</div>
+<div><b>判据</b>押区间 1-7</div>
+<div><b>赢</b>偷出教父的藏品卖给收藏家：+900</div>
+<div><b>输</b>触发警报被探照灯燎到：-700</div>
+<div><b>胜率</b>43.75%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>事件</div>
+<div class="old">你潜入西西里黑手党的金库，守卫报告警戒等级 1-16，1-7 级可以摸进宝库</div>
+<div class="new">你潜入西西里黑手党的金库，守卫警戒等级 1-16</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">押区间 1-7</div>
+<div class="new">守卫警戒等级（骰子点数）小于6</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">偷出教父的藏品卖给收藏家：+900</div>
+<div class="new">偷出教父的藏品卖给收藏家：+1600</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">触发警报被探照灯燎到：-700</div>
+<div class="new">触发警报被探照灯燎到：-1000</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-none">格式</span>胜率</div>
+<div class="old">43.75%</div>
+<div class="new">0.375</div>
+</div>
+<div class="note"><b>提示</b>：判据改成「警戒等级 &lt; 6」后胜率 = 5/16 ≈ 0.3125，但 rate 列仍写 0.375；且 +1600/-1000 在 0.3125 胜率下期望 ≈ -187，偏负（零期望下输额应约 730）。</div>
+</section>
+<section class="card" id="c-fate-8">
+<h3>命运 #8 <span class="tag t-none">未改</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在蒙特卡洛把全部身家压上轮盘：十六格轮盘里 14、15、16 三格是「连本带利」，其余全吞</div>
+<div><b>判据</b>赌爆点：摇到 14 / 15 / 16</div>
+<div><b>赢</b>连本带利：+2600</div>
+<div><b>输</b>全被吞掉：-600</div>
+<div><b>胜率</b>18.75%</div>
+</div>
+<div class="lbl">改动</div><div class="none">无（v7 与 v6 一致）</div>
+</section>
+<section class="card" id="c-fate-9">
+<h3>命运 #9 <span class="tag t-none">未改</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在巴布亚新几内亚跟部落跳完祭祀舞，族长掷命运骨：只有掷出 1 的人会成为今晚的主菜</div>
+<div><b>判据</b>押「不摇到 1」</div>
+<div><b>赢</b>平安无事，还领了部落赏金：+200</div>
+<div><b>输</b>成为主菜，连夜凑赎身钱：-3000</div>
+<div><b>胜率</b>93.75%</div>
+</div>
+<div class="lbl">改动</div><div class="none">无（v7 与 v6 一致）</div>
+</section>
+<section class="card has-chg" id="c-fate-10">
+<h3>命运 #10 <span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在巴黎红磨坊即兴演出，老板娘逼你竞猜她给你打的「好感分」（3-14 分，差 2 以内她请你喝酒）</div>
+<div><b>判据</b>猜数字：从 3-14 猜一个数，摇判定骰 = 实际好感分，误差 ≤ 2 算赢</div>
+<div><b>赢</b>2200</div>
+<div><b>输</b>-1000（她相好的医药费归你出）</div>
+<div><b>胜率</b>31.25%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>赢</div>
+<div class="old">2200</div>
+<div class="new">老板娘很高兴，给了你一个大大的红包：+2200</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>输</div>
+<div class="old">-1000（她相好的医药费归你出）</div>
+<div class="new">老板娘很生气，她的相好揍了你一顿：-1000（医药费）</div>
+</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-11">
+<h3>命运 #11 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰：单数 = 通过，双数 = 识破</div>
+<div><b>判据</b>押单双</div>
+<div><b>赢</b>谎言生效，军阀信了还倒贴「诚意金」：+800</div>
+<div><b>输</b>被识破，被押去跪榴莲：下回合禁止交易与谈判（≈ -800）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>事件</div>
+<div class="old">你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰：单数 = 通过，双数 = 识破</div>
+<div class="new">你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>判据</div>
+<div class="old">押单双</div>
+<div class="new">单数 = 通过，双数 = 识破</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">被识破，被押去跪榴莲：下回合禁止交易与谈判（≈ -800）</div>
+<div class="new">被识破，被禁言：下回合禁止购买/升级/拍卖/机会/命运/使用道具</div>
+</div>
+<div class="note"><b>提示</b>：输面从「禁止交易与谈判（≈-800）」改成「禁言：下回合禁止购买/升级/拍卖/抽卡/用道具」，强度大幅提升，接近停摆一回合。与「加快节奏」目标冲突，建议确认。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-12">
+<h3>命运 #12 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你潜入苏黎世首富的卧室行窃，惊醒了他——床上床下各显身手</div>
+<div><b>判据</b>比点数：你和最有钱的玩家各摇一颗，平局重来</div>
+<div><b>赢</b>卷走 1500（他 -1500，你 +1500）</div>
+<div><b>输</b>被抓包，私了赔 1500</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">卷走 1500（他 -1500，你 +1500）</div>
+<div class="new">你赢了：卷走他3000扬长而去</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">被抓包，私了赔 1500</div>
+<div class="new">你输了：私了赔款3000</div>
+</div>
+<div class="note"><b>提示</b>：1500 → 3000，一判拉开 6000 差距，很猛，但符合「加快节奏」，你确认即可。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-13">
+<h3>命运 #13 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你去抢瑞士银行。金库大门是 1-16 密码转盘，守卫今天设的是小户门还是大户门全看运气</div>
+<div><b>判据</b>押大小</div>
+<div><b>赢</b>3000</div>
+<div><b>输</b>被押进瑞士监狱：坐牢 3 回合（≈ -3000）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>事件</div>
+<div class="old">你去抢瑞士银行。金库大门是 1-16 密码转盘，守卫今天设的是小户门还是大户门全看运气</div>
+<div class="new">你去抢瑞士银行。金库大门有4个，但只有一个是真的</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">押大小</div>
+<div class="new">猜四分一区间</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>赢</div>
+<div class="old">3000</div>
+<div class="new">偷到了+3000</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">被押进瑞士监狱：坐牢 3 回合（≈ -3000）</div>
+<div class="new">被押进瑞士监狱：送进监狱1 回合</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-none">格式</span>胜率</div>
+<div class="old">50%</div>
+<div class="new">0.25</div>
+</div>
+<div class="note"><b>提示</b>：判据从押大小改成猜四分之一（胜率 25%），监狱 3 回合改 1 回合，与新监狱规则对齐。胜率降到 25% 但赢面 +3000、输面 1 回合监狱 ≈ -1000，期望 ≈ 0，OK。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-14">
+<h3>命运 #14 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级以上它才拐得走</div>
+<div><b>判据</b>押区间 9-16</div>
+<div><b>赢</b>台风擦楼而过，保险公司赔钱帮你加盖：那栋房 +1 级</div>
+<div><b>输</b>撞烂楼顶：那栋房 -1 级（1 级 → 空地；名下无房则 ±1000）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>事件</div>
+<div class="old">台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级以上它才拐得走</div>
+<div class="new">台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级或以上会摧毁你的房子</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">押区间 9-16</div>
+<div class="new">押「小于9」，无房子则无事发生</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">台风擦楼而过，保险公司赔钱帮你加盖：那栋房 +1 级</div>
+<div class="new">台风擦楼而过，保险公司赔钱+1000</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>输</div>
+<div class="old">撞烂楼顶：那栋房 -1 级（1 级 → 空地；名下无房则 ±1000）</div>
+<div class="new">撞烂楼顶：那栋房 -1 级，但是保险跑路了</div>
+</div>
+<div class="note"><b>提示</b>：赢面从「房子 +1 级」改成「保险赔 +1000」——原设计是房产升级（加快节奏的关键资源），改成现金后强度弱了不少，且与「台风摧毁房子」的故事脱钩。建议确认。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-15">
+<h3>命运 #15 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>伦敦税务局搞路段单双号抽查：单号格退税、双号格补税，税额 = 判定骰点数 × 100</div>
+<div><b>判据</b>所在格奇偶 + 骰点计税</div>
+<div><b>赢</b>退税：+点数 × 100（均值 +850）</div>
+<div><b>输</b>补税：-点数 × 100（均值 -850）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>事件</div>
+<div class="old">伦敦税务局搞路段单双号抽查：单号格退税、双号格补税，税额 = 判定骰点数 × 100</div>
+<div class="new">北京实行单双号限行政策</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">所在格奇偶 + 骰点计税</div>
+<div class="new">全部玩家，下回合生效，骰子单数原地停留，双数正常行走</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">退税：+点数 × 100（均值 +850）</div>
+<div class="new">双数正常行走</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">补税：-点数 × 100（均值 -850）</div>
+<div class="new">单数原地停留（事件照常触发）</div>
+</div>
+<div class="note"><b>提示</b>：全场约一半玩家原地停一回合（8 人局 = 4 人停摆），与「加快节奏」直接冲突；且赢/输两行写的是规则说明而非奖惩，卡面会显示成「赢：双数正常行走 / 输：单数原地停留」。建议三思。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-16">
+<h3>命运 #16 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>东西两大财团要在你和左手玩家的地盘上建总部，董事会转盘 1-8 买你的地、9-16 买他的地——被买走的地归赢家</div>
+<div><b>判据</b>押大小</div>
+<div><b>赢</b>财团买走左手玩家购地款最低的一块地（归你）</div>
+<div><b>输</b>买走你的那块（归他）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>事件</div>
+<div class="old">东西两大财团要在你和左手玩家的地盘上建总部，董事会转盘 1-8 买你的地、9-16 买他的地——被买走的地归赢家</div>
+<div class="new">迪拜土豪看上了你最贵的房子，说不定你可以选择讨价还价</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">财团买走左手玩家购地款最低的一块地（归你）</div>
+<div class="new">大：土豪准备以两倍总价购买你的房子（变无主），你可以选择不卖</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">买走你的那块（归他）</div>
+<div class="new">小：土豪以正常总价收购了你的房子（变无主）</div>
+</div>
+<div class="note"><b>提示</b>：整张换掉。新版「大：两倍总价买你最贵的房子，你可以选择不卖」——可以不卖的话，这张牌赢面等于没效果，输面却是被动卖房，不对称。建议确认。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-17">
+<h3>命运 #17 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你掉进百慕大三角，奇偶决定把你扔向未来还是过去</div>
+<div><b>判据</b>押单双</div>
+<div><b>赢</b>被扔向未来：前进 4 格（经过出生点照常领 +2000）</div>
+<div><b>输</b>被扔向过去：后退 4 格</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">押单双</div>
+<div class="new">单双决定前进后退X格（X为骰子点数）</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">被扔向未来：前进 4 格（经过出生点照常领 +2000）</div>
+<div class="new">单数：前进X格</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">被扔向过去：后退 4 格</div>
+<div class="new">双数：后退X格</div>
+</div>
+<div class="note"><b>提示</b>：前进/后退固定 4 格改成「X = 骰点」（1-16），跨度变大，符合拉大步幅的方向；单数是前进、双数是后退，与「赢=前进」的直觉一致，OK。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-18">
+<h3>命运 #18 <span class="tag t-red">红</span><span class="tag t-yellow">黄</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>索马里海岸，赏金猎人放出的通缉令同时锁定了你和顺时针最近的玩家——赏金归活下来的那个</div>
+<div><b>判据</b>比点数：各摇一颗（= 出枪快慢），平局同归于尽重来</div>
+<div><b>赢</b>你活着领赏：拿走他现金的一半（向下取整十）</div>
+<div><b>输</b>他领赏：拿走你现金的一半</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-yellow">黄</span>判据</div>
+<div class="old">比点数：各摇一颗（= 出枪快慢），平局同归于尽重来</div>
+<div class="new">比点数：各摇一颗，大者胜，平局重来</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">你活着领赏：拿走他现金的一半（向下取整十）</div>
+<div class="new">你活下来了：拿走他现金的20%（向下取整十）</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">他领赏：拿走你现金的一半</div>
+<div class="new">他活下来了：拿走你现金的20%（向下取整十）</div>
+</div>
+<div class="note"><b>提示</b>：一半 → 20%，避免一击致命，改得好。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-19">
+<h3>命运 #19 <span class="tag t-red">红</span><span class="tag t-white">白*</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>你向国际刑警告发了同船的蛇头——赏金必拿，证人保护也必进，法官掷骰决定关你多久</div>
+<div><b>判据</b>押单双（奖罚同时）</div>
+<div><b>赢</b>法官心情好：关 1 回合，净 +1000（2000 - 1000）</div>
+<div><b>输</b>法官心情差：关 3 回合，净 -1000（2000 - 3000）</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>事件</div>
+<div class="old">你向国际刑警告发了同船的蛇头——赏金必拿，证人保护也必进，法官掷骰决定关你多久</div>
+<div class="new">美国总公司年会抽奖，但是你需要坐飞机过去</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">押单双（奖罚同时）</div>
+<div class="new">奖金 = 点数*200 - 1600</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>赢</div>
+<div class="old">法官心情好：关 1 回合，净 +1000（2000 - 1000）</div>
+<div class="new"><span class="empty">（空）</span></div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-white">白*</span>输</div>
+<div class="old">法官心情差：关 3 回合，净 -1000（2000 - 3000）</div>
+<div class="new"><span class="empty">（空）</span></div>
+</div>
+<div class="note"><b>提示</b>：赢/输两格被清空：CSV 校验过不了（命运牌三列必填），卡面也会是两个空行。而且「奖金 = 点数×200 − 1600」不是押注判定（没有输赢分支），期望 +100 不为零。建议改成押注型，例如「押点数 ≥9：中 → +点数×200−1600；不中 → −800」。</div>
+</section>
+<section class="card has-note has-chg" id="c-fate-20">
+<h3>命运 #20 <span class="tag t-red">红</span></h3>
+<div class="lbl">v6 原文</div><div class="orig">
+<div><b>事件</b>迪拜黑市「决斗拍卖」：你和右手玩家各押一块自己购地款最低的地上桌，中间人（由右手玩家的下家担任）掷骰定谁先喊价——≥9 你先，≤8 他先</div>
+<div><b>判据</b>他人代摇（≥9 / ≤8）</div>
+<div><b>赢</b>你先喊：以起拍价（半价）强制拍得他的地，他收全款</div>
+<div><b>输</b>他先喊：他半价拍得你的地，你收全款</div>
+<div><b>胜率</b>50%</div>
+</div>
+<div class="lbl">改动 → v7</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>事件</div>
+<div class="old">迪拜黑市「决斗拍卖」：你和右手玩家各押一块自己购地款最低的地上桌，中间人（由右手玩家的下家担任）掷骰定谁先喊价——≥9 你先，≤8 他先</div>
+<div class="new">拉什努显灵，善良者会得到保佑，为恶者会得到惩罚</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>判据</div>
+<div class="old">他人代摇（≥9 / ≤8）</div>
+<div class="new">摇两次骰子，第一次单双决定善恶，第二次决定目标</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>赢</div>
+<div class="old">你先喊：以起拍价（半价）强制拍得他的地，他收全款</div>
+<div class="new">第一次：单数善良，升级所在格房子；双数为恶，降级所在格房子</div>
+</div>
+<div class="chg"><div class="fld"><span class="tag t-red">红</span>输</div>
+<div class="old">他先喊：他半价拍得你的地，你收全款</div>
+<div class="new">第二次：你前方开始数第X个玩家所在格子</div>
+</div>
+<div class="note"><b>提示</b>：赢/输写反了结构：赢格写第一次骰（善恶）、输格写第二次骰（决定目标），两者不是输赢关系；输格只说「决定目标」，没说对目标做什么；目标格没房时无兜底。建议重构为——判据：摇两次，第一次单=善/双=恶，第二次从你前方数第 X 个玩家；赢：善，那格房子 +1 级；输：恶，那格房子 −1 级（无房则无事发生）。</div>
+</section>
+<h2>需要你补确认的白格改动</h2>
+<p class="lead">这些单元格你在 xlsx 里标了白色（即「未改」），但文字实际与 v6 不同：</p>
+<section class="card">
+<h3>命运 #5 · 输<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">中咒：下回合你所有过路费收入减半（≈ -1000）</div><div class="new">诅咒：下回合你的过路费收入减半</div></div>
+</section>
+<section class="card">
+<h3>命运 #6 · 事件<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定生死</div><div class="new">你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定话事权</div></div>
+</section>
+<section class="card">
+<h3>命运 #6 · 判据<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">石头剪刀布：与左手玩家一局定胜负，平局算都收手重来</div><div class="new">石头剪刀布：与左手玩家一局定胜负，平局重来</div></div>
+</section>
+<section class="card">
+<h3>命运 #7 · 事件<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">你潜入西西里黑手党的金库，守卫报告警戒等级 1-16，1-7 级可以摸进宝库</div><div class="new">你潜入西西里黑手党的金库，守卫警戒等级 1-16</div></div>
+</section>
+<section class="card">
+<h3>命运 #11 · 事件<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰：单数 = 通过，双数 = 识破</div><div class="new">你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰</div></div>
+</section>
+<section class="card">
+<h3>命运 #13 · 事件<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">你去抢瑞士银行。金库大门是 1-16 密码转盘，守卫今天设的是小户门还是大户门全看运气</div><div class="new">你去抢瑞士银行。金库大门有4个，但只有一个是真的</div></div>
+</section>
+<section class="card">
+<h3>命运 #14 · 事件<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级以上它才拐得走</div><div class="new">台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级或以上会摧毁你的房子</div></div>
+</section>
+<section class="card">
+<h3>命运 #19 · 赢<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">法官心情好：关 1 回合，净 +1000（2000 - 1000）</div><div class="new"><span class="empty">（空）</span></div></div>
+</section>
+<section class="card">
+<h3>命运 #19 · 输<span class="tag t-white">白*</span></h3>
+<div class="chg"><div class="old">法官心情差：关 3 回合，净 -1000（2000 - 3000）</div><div class="new"><span class="empty">（空）</span></div></div>
+</section>
+
+<p class="foot">本页由 tools 一次性生成，不参与首页/打印页构建。定稿后会把这批内容以 v7 追加进 cards.csv。</p>
+</div>
+<script>
+var btns = document.querySelectorAll('.tools button');
+btns.forEach(function(b){
+  b.addEventListener('click', function(){
+    btns.forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    var f = b.dataset.f;
+    document.querySelectorAll('section.card').forEach(function(c){
+      var show = f === 'all' || (f === 'chg' && c.classList.contains('has-chg'))
+                 || (f === 'note' && c.classList.contains('has-note'));
+      c.style.display = show ? '' : 'none';
+    });
+  });
+});
+</script>
+</body>
+</html>

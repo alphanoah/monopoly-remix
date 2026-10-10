@@ -22,7 +22,7 @@ CSV_PATH = os.path.join(ROOT, 'cards.csv')
 JSON_PATH = os.path.join(ROOT, 'cards.json')
 INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
-RULES_PATH = os.path.join(ROOT, 'docs', 'rules.md')
+RULES_PATH = os.path.join(ROOT, 'docs', 'full-rules.md')
 ORIGINAL_DIR = os.path.join(ROOT, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 # 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
@@ -121,7 +121,7 @@ def build(rows):
     }
 
 
-# ---------- 简易 markdown → HTML（够 rules.md 用：标题/列表/引用/链接/粗体/行内码）----------
+# ---------- 简易 markdown → HTML（够 full-rules.md 用：标题/列表/引用/表格/链接/粗体/行内码）----------
 def inline(t, prefix='docs/'):
     t = html.escape(t)
     t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
@@ -271,26 +271,38 @@ def build_original():
     return '\n'.join(parts)
 
 
+def strip_tags(s):
+    """去掉行内标签，只留文字（折叠标题里常有 <code>【新版新增】</code> 这类标注）。"""
+    return html.unescape(re.sub(r'<[^>]+>', '', s)).strip()
+
+
+def fold_from(rules_html, keyword, to_end=False):
+    """把标题里带 keyword 的小节折进 <details>，默认收起。
+
+    to_end=False 时只折到下一个同级/上级标题为止（用于「备选：北极监狱」这类可选小节）。
+    """
+    out = rules_html
+    while True:
+        m = re.search(r'<h4>(.*?%s.*?)</h4>' % keyword, out)
+        if not m:
+            return out
+        end = len(out)
+        if not to_end:
+            nxt = re.search(r'<h[34][ >]', out[m.end():])
+            if nxt:
+                end = m.end() + nxt.start()
+        out = ('%s<details class="fold"><summary>%s</summary>\n%s\n</details>\n%s'
+               % (out[:m.start()], strip_tags(m.group(1)), out[m.end():end], out[end:]))
+
+
 def fold_archive(rules_html):
-    """把 rules.md 末尾那段「初版卡牌」存档折进 <details>（原生折叠，不依赖 JS）。"""
-    m = re.search(r'<h4>([^<]*初版卡牌[^<]*)</h4>', rules_html)
-    if not m:
-        return rules_html
-    return ('%s<details class="fold"><summary>%s</summary>\n%s\n</details>'
-            % (rules_html[:m.start()], m.group(1), rules_html[m.end():]))
+    """把规则末尾那段「初版卡牌」存档整段折进 <details>（原生折叠，不依赖 JS）。"""
+    return fold_from(rules_html, '初版卡牌', to_end=True)
 
 
 def fold_sections(rules_html, keyword='备选'):
     """把规则里标题带「备选」的小节（可选玩法）折进 <details>，默认收起。"""
-    out = rules_html
-    while True:
-        m = re.search(r'<h4>([^<]*%s[^<]*)</h4>' % keyword, out)
-        if not m:
-            return out
-        nxt = re.search(r'<h[34][ >]', out[m.end():])
-        end = m.end() + nxt.start() if nxt else len(out)
-        out = ('%s<details class="fold"><summary>%s</summary>\n%s\n</details>\n%s'
-               % (out[:m.start()], m.group(1), out[m.end():end], out[end:]))
+    return fold_from(rules_html, keyword)
 
 
 # ---------- 写入 ----------

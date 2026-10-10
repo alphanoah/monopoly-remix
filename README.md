@@ -27,7 +27,7 @@
 
 ## 改完内容怎么同步
 
-改卡牌改 `cards.csv`，改规则改 `docs/rules.md`，改原版资料改 `original/*.md`，然后**跑一次脚本**：
+改卡牌改 `cards.csv`，改规则改 `docs/full-rules.md`，改原版资料改 `original/*.md`，然后**跑一次脚本**：
 
 ```bash
 python3 tools/update.py
@@ -71,7 +71,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 - 单元格里可以正常写逗号和引号，Excel 保存时会自动加转义。
 - 改完保存 → 跑 `python3 tools/update.py` → push。
 
-规则改 `docs/rules.md` 同理，首页规则区是从它生成的，**不要在首页直接改规则**。
+规则改 `docs/full-rules.md` 同理，首页规则区是从它生成的，**不要在首页直接改规则**。
 `original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
 
 ---
@@ -94,7 +94,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 ```bash
 # 1. 改内容（任选）
 #    卡牌   → cards.csv
-#    规则   → docs/rules.md
+#    规则   → docs/full-rules.md
 #    原版   → original/*.md
 
 # 2. 本地重新生成（macOS 也可以直接双击 update.command）
@@ -119,7 +119,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 |---|---|
 | Pages | Settings → Pages → Deploy from a branch → `main` / `/ (root)` |
 | Actions 权限 | Settings → Actions → General → Workflow permissions → **Read and write** |
-| Actions 自动触发 | 改了 `cards.csv` / `docs/rules.md` / `original/**` / `tools/update.py` 时 |
+| Actions 自动触发 | 改了 `cards.csv` / `docs/full-rules.md` / `original/**` / `tools/update.py` 时 |
 | 手动触发 | Actions → 重新生成页面 → Run workflow |
 
 > Actions 的写权限是**必须的**：workflow 要把生成的文件提交回仓库，只读权限会失败。
@@ -148,7 +148,8 @@ richer/
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
 ├── docs/
-│   ├── rules.md            改版规则真源（首页规则区由它生成，含初版卡牌留档）
+│   ├── full-rules.md       完整规则真源（首页规则区由它生成，含新旧版本标注）
+│   ├── rules.md            初版规则留档（已被 full-rules.md 取代，不再参与生成）
 │   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
 │   └── card-diff.md        新版 vs 原版差异对照
 ├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
@@ -160,7 +161,7 @@ richer/
 ├── tools/
 │   ├── update.py           一键更新：CSV → JSON + 首页 + 打印页
 │   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
-└── .github/workflows/      cards.csv / docs/rules.md / original/ 变更时自动重生成
+└── .github/workflows/      cards.csv / docs/full-rules.md / original/ 变更时自动重生成
 ```
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。

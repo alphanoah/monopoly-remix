@@ -2,223 +2,220 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>手机上看地图 · 三种排版效果（预览草稿）</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>地图排版效果对比 · 每边16格不变</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
-       background:#f2efe9;color:#2c2c2a;padding:18px 14px 40px;
-       display:flex;flex-direction:column;align-items:center}
-  h1{font-size:19px;font-weight:600;margin-bottom:5px;text-align:center}
-  .sub{font-size:12.5px;color:#8a8880;margin-bottom:18px;text-align:center;line-height:1.65;max-width:640px}
-  .row{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start;width:100%;max-width:1220px}
-  .card{background:#fff;border:1px solid #e5e1da;border-radius:14px;padding:12px;
-        box-shadow:0 2px 10px rgba(0,0,0,.05);width:374px;max-width:100%}
-  .card h2{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .tag{font-size:11px;background:#B06F88;color:#fff;border-radius:999px;padding:1.5px 9px;font-weight:500;white-space:nowrap}
-  .tag.grey{background:#b3afa6}
-  .meta{font-size:11.5px;color:#8a8880;margin:7px 0 9px;line-height:1.6}
-  .meta b{color:#96597A;font-weight:600}
-  .phone{width:100%;background:#fbfaf8;border:1px solid #e8e5df;border-radius:10px;padding:8px;overflow:hidden}
-  .phone svg{display:block;width:100%;height:auto}
-  .ruler{font-size:11px;color:#b0aca4;text-align:center;margin-top:6px}
-  .foot{font-size:12.5px;color:#6b6a66;margin-top:22px;max-width:780px;line-height:1.75;text-align:center}
-  .foot b{color:#2c2c2a}
+  *{box-sizing:border-box}
+  body{margin:0;padding:22px 20px 40px;background:#f6f4f1;color:#2c2c2a;
+       font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;}
+  h1{font-size:19px;margin:0 0 6px}
+  .sub{font-size:13px;line-height:1.7;color:#6b6862;margin:0 0 18px;max-width:780px}
+  .sub b{color:#c05a72}
+  .grid{display:flex;flex-wrap:wrap;gap:18px}
+  .card{width:376px;background:#fff;border:1px solid #e5e1da;border-radius:12px;padding:14px;
+        box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .card.cur{background:#f2f0ec}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#efe7ea;
+       color:#8a5a68;margin-bottom:6px}
+  .card.cur .tag{background:#e3ddd6;color:#7a756c}
+  .ttl{font-size:14px;font-weight:700;margin:0 0 6px}
+  .meta{font-size:12px;line-height:1.75;color:#6b6862;margin:0 0 10px;min-height:80px}
+  .meta b{color:#2c2c2a}
+  .phone{width:344px;height:344px;background:#fff;border:1px solid #ddd8d0;border-radius:4px;overflow:hidden}
+  .ruler{font-size:11px;color:#8a8880;margin-top:8px;text-align:center}
+  #foot{font-size:13px;line-height:1.8;color:#6b6862;margin-top:22px;max-width:920px;
+        border-top:1px solid #e5e1da;padding-top:14px}
+  #foot b{color:#c05a72}
 </style>
 </head>
 <body>
-<h1>手机上看地图 · 三种排版效果</h1>
-<div class="sub">下面每个手机框的宽度 = 真实手机宽度（约 360px，已按比例缩放显示）。<br>框里的字在手机上就是这么大 —— 可以直接判断哪种看得清。</div>
-<div class="row" id="row"></div>
-<div class="foot" id="foot"></div>
+<h1>每边 16 格（角格 + 15）不变 · 只把环加厚</h1>
+<p class="sub">
+结构完全照旧：还是一圈、角格（赤道 / 地中海 / 北极 / 夏威夷）仍在四个角、每边 16 个、顺时针走。
+唯一改动是让<b>每个格子往中间伸长</b>，中间的空被吃掉，格子随之变大。
+下面四张都按真实手机宽度 <b>344px</b> 渲染，整板都是 <b>344×344 一屏放下</b>，可以直接判断字看不看得清。
+</p>
+<div id="grid" class="grid"></div>
+<p id="foot"></p>
 
 <script>
-const COLORS={red:"#d16b62","light-blue":"#7ba7c9","yellow-green":"#a3b862",purple:"#9b7fb5",
-  pink:"#e3a6b0","dark-gray":"#6f7b85","dark-blue":"#5f6da3","light-green":"#8ec6a6",
-  khaki:"#ccb487","hot-pink":"#e0709c",green:"#6aa877"};
-const SPECIAL={corner:"#b3afa6",chance:"#B06F88",destiny:"#D9BA8E",ocean:"#9BB6C4"};
-// [名称, 价格, 颜色或类型, 首都/备注]
-const TILES=[
-["赤道",0,"corner","酬金 $2000"],
-["中国",4000,"red","北京"],
-["日本",1000,"red","东京"],
-["机会",0,"chance",""],
-["韩国",1000,"red","首尔"],
-["菲律宾",600,"light-blue","马尼拉"],
-["马来西亚",2600,"light-blue","吉隆坡"],
-["越南",2800,"light-blue","河内"],
-["泰国",1600,"light-blue","曼谷"],
-["印度",1400,"light-blue","新德里"],
-["太平洋",0,"ocean",""],
-["斯里兰卡",1400,"yellow-green","科伦坡"],
-["伊朗",2000,"yellow-green","德黑兰"],
-["伊拉克",1800,"yellow-green","巴格达"],
-["沙特阿拉伯",1800,"yellow-green","利雅得"],
-["叙利亚",3500,"yellow-green","大马士革"],
-["地中海",0,"corner",""],
-["土耳其",3500,"yellow-green","安卡拉"],
-["命运",0,"destiny",""],
-["黎巴嫩",600,"purple","贝鲁特"],
-["以色列",2000,"purple","耶路撒冷"],
-["俄罗斯",1000,"purple","莫斯科"],
-["波兰",1200,"purple","华沙"],
-["德国",2400,"purple","柏林"],
-["印度洋",0,"ocean",""],
-["奥地利",3000,"pink","维也纳"],
-["瑞士",3200,"pink","伯尔尼"],
-["法国",3000,"pink","巴黎"],
-["比利时",2200,"pink","布鲁塞尔"],
-["机会",0,"chance",""],
-["荷兰",2400,"dark-gray","阿姆斯特丹"],
-["英国",2200,"dark-gray","伦敦"],
-["北极",0,"corner",""],
-["芬兰",2600,"dark-gray","赫尔辛基"],
-["瑞典",2600,"dark-gray","斯德哥尔摩"],
-["丹麦",2800,"dark-gray","哥本哈根"],
-["希腊",1600,"dark-blue","雅典"],
-["意大利",1400,"dark-blue","罗马"],
-["命运",0,"destiny",""],
-["西班牙",1400,"dark-blue","马德里"],
-["葡萄牙",2000,"dark-blue","里斯本"],
-["埃及",1800,"light-green","开罗"],
-["摩洛哥",1800,"light-green","拉巴特"],
-["赞比亚",600,"light-green","卢萨卡"],
-["机会",0,"chance",""],
-["南非",600,"light-green","比勒陀利亚"],
-["加拿大",3500,"khaki","渥太华"],
-["美国",3500,"khaki","华盛顿"],
-["夏威夷",0,"corner",""],
-["墨西哥",1000,"khaki","墨西哥城"],
-["洪都拉斯",1200,"khaki","特古西加尔巴"],
-["尼加拉瓜",3000,"hot-pink","马那瓜"],
-["哥斯达黎加",1000,"hot-pink","圣何塞"],
-["命运",0,"destiny",""],
-["巴拿马",3200,"hot-pink","巴拿马城"],
-["古巴",3000,"hot-pink","哈瓦那"],
-["哥伦比亚",1800,"green","波哥大"],
-["玻利维亚",1200,"green","苏克雷·拉巴斯"],
-["巴西",2600,"green","巴西利亚"],
-["大西洋",0,"ocean",""],
-["阿根廷",1000,"green","布宜诺斯艾利斯"],
-["智利",3500,"green","圣地亚哥"],
-["澳大利亚",3200,"red","堪培拉"],
-["新西兰",3500,"red","惠灵顿"]
-];
-</script>
-<script>
-const NS="http://www.w3.org/2000/svg";
-function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
-function tx(x,y,s,fs,o){o=o||{};const t=el("text",{x:x,y:y,"font-size":fs,
-  "font-family":"-apple-system,PingFang SC,Microsoft YaHei,sans-serif",
-  "font-weight":o.w||400,fill:o.fill||"#333","text-anchor":"middle","dominant-baseline":"middle"});
-  t.textContent=s;return t;}
-function isSpecial(t){return t[2]==="corner"||t[2]==="chance"||t[2]==="destiny"||t[2]==="ocean";}
+const TILES = [{"name": "赤道", "price": null, "color": null, "type": "corner", "sub": "起点 · 酬金 $2000"}, {"name": "中国", "price": 4000, "color": "red", "type": null, "sub": null}, {"name": "日本", "price": 1000, "color": "red", "type": null, "sub": null}, {"name": "机会", "price": null, "color": null, "type": "chance", "sub": null}, {"name": "韩国", "price": 1000, "color": "red", "type": null, "sub": null}, {"name": "菲律宾", "price": 600, "color": "light-blue", "type": null, "sub": null}, {"name": "马来西亚", "price": 2600, "color": "light-blue", "type": null, "sub": null}, {"name": "越南", "price": 2800, "color": "light-blue", "type": null, "sub": null}, {"name": "泰国", "price": 1600, "color": "light-blue", "type": null, "sub": null}, {"name": "印度", "price": 1400, "color": "light-blue", "type": null, "sub": null}, {"name": "太平洋", "price": null, "color": null, "type": "ocean", "sub": null}, {"name": "斯里兰卡", "price": 1400, "color": "yellow-green", "type": null, "sub": null}, {"name": "伊朗", "price": 2000, "color": "yellow-green", "type": null, "sub": null}, {"name": "伊拉克", "price": 1800, "color": "yellow-green", "type": null, "sub": null}, {"name": "沙特阿拉伯", "price": 1800, "color": "yellow-green", "type": null, "sub": null}, {"name": "叙利亚", "price": 3500, "color": "yellow-green", "type": null, "sub": null}, {"name": "地中海", "price": null, "color": null, "type": "corner", "sub": null}, {"name": "土耳其", "price": 3500, "color": "yellow-green", "type": null, "sub": null}, {"name": "命运", "price": null, "color": null, "type": "destiny", "sub": null}, {"name": "黎巴嫩", "price": 600, "color": "purple", "type": null, "sub": null}, {"name": "以色列", "price": 2000, "color": "purple", "type": null, "sub": null}, {"name": "俄罗斯", "price": 1000, "color": "purple", "type": null, "sub": null}, {"name": "波兰", "price": 1200, "color": "purple", "type": null, "sub": null}, {"name": "德国", "price": 2400, "color": "purple", "type": null, "sub": null}, {"name": "印度洋", "price": null, "color": null, "type": "ocean", "sub": null}, {"name": "奥地利", "price": 3000, "color": "pink", "type": null, "sub": null}, {"name": "瑞士", "price": 3200, "color": "pink", "type": null, "sub": null}, {"name": "法国", "price": 3000, "color": "pink", "type": null, "sub": null}, {"name": "比利时", "price": 2200, "color": "pink", "type": null, "sub": null}, {"name": "机会", "price": null, "color": null, "type": "chance", "sub": null}, {"name": "荷兰", "price": 2400, "color": "dark-gray", "type": null, "sub": null}, {"name": "英国", "price": 2200, "color": "dark-gray", "type": null, "sub": null}, {"name": "北极", "price": null, "color": null, "type": "corner", "sub": null}, {"name": "芬兰", "price": 2600, "color": "dark-gray", "type": null, "sub": null}, {"name": "瑞典", "price": 2600, "color": "dark-gray", "type": null, "sub": null}, {"name": "丹麦", "price": 2800, "color": "dark-gray", "type": null, "sub": null}, {"name": "希腊", "price": 1600, "color": "dark-blue", "type": null, "sub": null}, {"name": "意大利", "price": 1400, "color": "dark-blue", "type": null, "sub": null}, {"name": "命运", "price": null, "color": null, "type": "destiny", "sub": null}, {"name": "西班牙", "price": 1400, "color": "dark-blue", "type": null, "sub": null}, {"name": "葡萄牙", "price": 2000, "color": "dark-blue", "type": null, "sub": null}, {"name": "埃及", "price": 1800, "color": "light-green", "type": null, "sub": null}, {"name": "摩洛哥", "price": 1800, "color": "light-green", "type": null, "sub": null}, {"name": "赞比亚", "price": 600, "color": "light-green", "type": null, "sub": null}, {"name": "机会", "price": null, "color": null, "type": "chance", "sub": null}, {"name": "南非共和国", "price": 600, "color": "light-green", "type": null, "sub": null}, {"name": "加拿大", "price": 3500, "color": "khaki", "type": null, "sub": null}, {"name": "美国", "price": 3500, "color": "khaki", "type": null, "sub": null}, {"name": "夏威夷", "price": null, "color": null, "type": "corner", "sub": null}, {"name": "墨西哥", "price": 1000, "color": "khaki", "type": null, "sub": null}, {"name": "洪都拉斯", "price": 1200, "color": "khaki", "type": null, "sub": null}, {"name": "尼加拉瓜", "price": 3000, "color": "hot-pink", "type": null, "sub": null}, {"name": "哥斯达黎加", "price": 1000, "color": "hot-pink", "type": null, "sub": null}, {"name": "命运", "price": null, "color": null, "type": "destiny", "sub": null}, {"name": "巴拿马", "price": 3200, "color": "hot-pink", "type": null, "sub": null}, {"name": "古巴", "price": 3000, "color": "hot-pink", "type": null, "sub": null}, {"name": "哥伦比亚", "price": 1800, "color": "green", "type": null, "sub": null}, {"name": "玻利维亚", "price": 1200, "color": "green", "type": null, "sub": null}, {"name": "巴西", "price": 2600, "color": "green", "type": null, "sub": null}, {"name": "大西洋", "price": null, "color": null, "type": "ocean", "sub": null}, {"name": "阿根廷", "price": 1000, "color": "green", "type": null, "sub": null}, {"name": "智利", "price": 3500, "color": "green", "type": null, "sub": null}, {"name": "澳大利亚", "price": 3200, "color": "red", "type": null, "sub": null}, {"name": "新西兰", "price": 3500, "color": "red", "type": null, "sub": null}];
 
-function drawTile(g,t,x,y,w,h,adp){
-  if(isSpecial(t)){
-    let bg="#fff",st="#e5e1da",sw=1;
-    if(t[2]==="corner"){bg="#f4f2ee";st="#b3afa6";sw=2;}
-    else if(t[2]==="chance"){bg="#faf3f6";st="#B06F88";}
-    else if(t[2]==="destiny"){bg="#faf5ec";st="#D9BA8E";}
-    else if(t[2]==="ocean"){bg="#eef3f6";st="#9BB6C4";}
-    g.appendChild(el("rect",{x:x,y:y,width:w,height:h,fill:bg,stroke:st,"stroke-width":sw,rx:2}));
-    const fs=Math.max(3,Math.min(w*(adp?0.30:0.26),h*(adp?0.30:0.26)));
-    const hasSub=!!t[3];
-    g.appendChild(tx(x+w/2,y+h/2-(hasSub?h*0.16:0),t[0],fs,{w:600,fill:t[2]==="chance"?"#96597A":(t[2]==="destiny"?"#7A6338":(t[2]==="ocean"?"#4a6b7c":"#2c2c2a"))}));
-    if(hasSub) g.appendChild(tx(x+w/2,y+h/2+h*0.22,t[3],fs*0.62,{w:600,fill:"#96597A"}));
-  }else{
-    g.appendChild(el("rect",{x:x,y:y,width:w,height:h,fill:"#fff",stroke:"#e5e1da","stroke-width":1,rx:2}));
-    const bandH=Math.max(5,h*0.16);
-    g.appendChild(el("rect",{x:x,y:y,width:w,height:bandH,fill:COLORS[t[2]]||"#ccc",rx:2}));
-    const cx=x+w/2;
-    const L=t[0].length, byW=w*0.90/L;
-    const nf=adp?Math.max(3,Math.min(w*0.28,h*0.24,byW))
-                :Math.max(3,Math.min(w*0.185,h*0.24));
-    let cy=y+bandH+nf*0.95;
-    g.appendChild(tx(cx,cy,t[0],nf,{w:700,fill:"#2c2c2a"}));
-    cy+=nf*0.98;
-    g.appendChild(tx(cx,cy,"$"+t[1],nf*0.94,{w:700,fill:"#96597A"}));
-    if(t[3]){cy+=nf*0.88;g.appendChild(tx(cx,cy,t[3],nf*0.60,{fill:"#8a8880"}));}
-  }
+const N = 17;              // 每边 17 个位置（角格 + 15 + 角格）
+const U = 344 / N;         // 手机上一个位置 = 20.2px
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const COLORS = {
+  "red":"#d16b62","light-blue":"#7ba7c9","yellow-green":"#a3b862","purple":"#9b7fb5",
+  "pink":"#e3a6b0","dark-gray":"#6f7b85","dark-blue":"#5f6da3","light-green":"#8ec6a6",
+  "khaki":"#ccb487","hot-pink":"#e0709c","green":"#6aa877"
+};
+const SPECIAL = {"corner":"#b3afa6","chance":"#B06F88","destiny":"#D9BA8E","ocean":"#9BB6C4"};
+
+function el(n, a){const e=document.createElementNS(SVG_NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function tx(x,y,s,o){const t=el("text",{x:x,y:y,"text-anchor":"middle","dominant-baseline":"middle",
+  "font-family":'-apple-system,"PingFang SC","Microsoft YaHei",sans-serif'});
+  t.setAttribute("font-size",o.f||10); t.setAttribute("font-weight",o.w||400);
+  t.setAttribute("fill",o.fill||"#33312e"); t.textContent=s; return t;}
+
+// 每边 16 格（角格 + 15）不变，只把环加厚到 T 个位置深
+function rectOf(i, T){
+  const L = N - 2*T, ew = L/15;
+  if(i===0)  return {x:N-T, y:N-T, w:T, h:T};                            // 赤道 右下角
+  if(i<=15){ const k=i-1;  return {x:N-T-(k+1)*ew, y:N-T, w:ew, h:T}; }  // 底边向左
+  if(i===16) return {x:0, y:N-T, w:T, h:T};                              // 地中海 左下角
+  if(i<=31){ const k=i-17; return {x:0, y:N-T-(k+1)*ew, w:T, h:ew}; }    // 左边向上
+  if(i===32) return {x:0, y:0, w:T, h:T};                                // 北极 左上角
+  if(i<=47){ const k=i-33; return {x:T+k*ew, y:0, w:ew, h:T}; }          // 顶边向右
+  if(i===48) return {x:N-T, y:0, w:T, h:T};                              // 夏威夷 右上角
+  const k=i-49; return {x:N-T, y:T+k*ew, w:T, h:ew};                     // 右边向下
+}
+function outerEdge(i){
+  if(i<=16) return "bottom"; if(i<=32) return "left";
+  if(i<=48) return "top";    return "right";
 }
 
-function ringPos(id,cols,rows){const L=cols-1;
-  if(id<=L) return {c:L-id,r:L};
-  if(id<=2*L) return {c:0,r:2*L-id};
-  if(id<=3*L) return {c:id-2*L,r:0};
-  return {c:L,r:id-3*L};}
-function snakePos(id,cols){const r=Math.floor(id/cols),p=id%cols;
-  return {c:(r%2===0)?p:cols-1-p,r:r};}
-// 矩形单层环（顺时针：底边向左 → 左边向上 → 顶边向右 → 右边向下）
-function rectRing(j,W,H){
-  if(j<=W-1)      return {c:W-1-j,       r:H-1};        // 底边
-  if(j<=W+H-2){   const k=j-W;        return {c:0,     r:H-2-k};}   // 左边
-  if(j<=2*W+H-3){ const k=j-(W+H-1);  return {c:k+1,   r:0};}       // 顶边
-  const k=j-(2*W+H-2); return {c:W-1, r:k+1};                       // 右边
+// 三种文字排法里挑字号最大的那种（窄格子价格竖着排）
+function pickText(t, W, H){
+  const name = t.name;
+  const price = t.price ? String(t.price) : null;
+  const n = name.length, pl = price ? price.length : 0;
+  const stackPrice = price ? (W*0.94/(pl*0.58 + 0.2) < 6.5) : false;
+  const kP = price ? (stackPrice ? pl*1.08*0.92*0.95 : 1.9) : 0.25;
+  const cands = [
+    {m:"v",  f:Math.min(W*0.84, H*0.94/(n*1.08 + kP)), stackPrice:stackPrice},
+    {m:"h2", f:Math.min(W*0.94/Math.max(1,n), H*0.465)},
+    {m:"h1", f:Math.min(W*0.94/(n + pl*0.58 + 0.3), H*0.80)}
+  ];
+  cands.sort(function(a,b){return b.f-a.f;});
+  const c = cands[0];
+  c.f = Math.max(3, Math.min(c.f, 15));
+  return c;
 }
-// 双层环：外圈 2(W+H)-4 格 + 内圈 2(W+H-2)-4 格 = 4(W+H)-16；
-// 要凑满 64 格 ⇒ W+H = 20（10×10 / 9×11 / 8×12 / 7×13 都行，列数越少格子越大、板子越长）
-function spiralPos(id,cols,rows){
-  const outer=2*(cols+rows)-4;
-  if(id<outer) return rectRing(id,cols,rows);
-  const p=rectRing(id-outer,cols-2,rows-2);
-  return {c:p.c+1,r:p.r+1};}
 
-function render(cfg){
-  const cols=cfg.cols,rows=cfg.rows,tw=cfg.tw,th=cfg.th,gap=1;
-  const W=cols*tw+(cols+1)*gap,H=rows*th+(rows+1)*gap;
-  const svg=el("svg",{viewBox:"0 0 "+W+" "+H,preserveAspectRatio:"xMidYMid meet"});
-  svg.appendChild(el("rect",{x:0,y:0,width:W,height:H,fill:"#f4f2ee",rx:4}));
-  if(cfg.hole){
-    const o=cfg.hole.off,sw=cfg.hole.sw,sh=cfg.hole.sh;
-    const hx=gap+o*(tw+gap),hy=gap+o*(th+gap);
-    const hw=sw*tw+(sw-1)*gap,hh=sh*th+(sh-1)*gap;
-    svg.appendChild(el("rect",{x:hx,y:hy,width:hw,height:hh,fill:"#fbfaf8",stroke:"#e8e5df","stroke-width":1,rx:2}));
-    const tf=cfg.hole.tf||24;
-    svg.appendChild(tx(hx+hw/2,hy+hh/2-tf*0.35,"世界之旅",tf,{w:700,fill:"#2c2c2a"}));
-    svg.appendChild(tx(hx+hw/2,hy+hh/2+tf*0.65,"WORLD TOUR",tf*0.5,{fill:"#8a8880"}));
+function drawCell(g, t, r, edge, stat){
+  const X=r.x*U, Y=r.y*U, W=r.w*U, H=r.h*U;
+  const col = t.color ? COLORS[t.color] : SPECIAL[t.type||"corner"];
+  g.appendChild(el("rect",{x:X,y:Y,width:W,height:H,fill:"#fff",stroke:"#d6d2cb","stroke-width":0.6}));
+  const bt = Math.max(2, Math.min(W,H)*0.15);
+  let bx=X, by=Y, bw=W, bh=H;
+  if(edge==="bottom"){ by=Y+H-bt; bh=bt; }
+  else if(edge==="top"){ bh=bt; }
+  else if(edge==="left"){ bw=bt; }
+  else { bx=X+W-bt; bw=bt; }
+  g.appendChild(el("rect",{x:bx,y:by,width:bw,height:bh,fill:col}));
+
+  if(t.type==="corner"){
+    const f = Math.min(W*0.42, H*0.30, 15);
+    const sub = t.sub ? (t.sub.length > 9 ? "起点 $2000" : t.sub) : "";
+    g.appendChild(tx(X+W/2, Y+H*(sub?0.40:0.5), t.name, {f:f, w:700}));
+    if(sub) g.appendChild(tx(X+W/2, Y+H*0.72, sub, {f:f*0.62, fill:"#6b6862"}));
+    return;
   }
-  TILES.forEach(function(t,id){
-    const p=cfg.pos(id,cols,rows);
-    const x=gap+p.c*(tw+gap),y=gap+p.r*(th+gap);
-    const g=el("g",{});
-    drawTile(g,t,x,y,tw,th,cfg.adp);
+  const c = pickText(t, W, H);
+  const price = t.price ? String(t.price) : "";
+  if(c.m === "v"){
+    const fp = price ? (c.stackPrice ? c.f*0.92 : c.f*0.85) : 0;
+    const nameH = t.name.length*1.08*c.f;
+    const priceH = price ? (c.stackPrice ? price.length*1.08*fp : 1.6*fp) : 0;
+    let y = Y + (H - nameH - priceH)/2 + c.f*0.55;
+    for(let k=0;k<t.name.length;k++){
+      g.appendChild(tx(X+W/2, y, t.name[k], {f:c.f, w:600}));
+      y += c.f*1.08;
+    }
+    if(price){
+      if(c.stackPrice){
+        y += fp*0.35;
+        for(let k=0;k<price.length;k++){ g.appendChild(tx(X+W/2, y, price[k], {f:fp, fill:"#7a756c"})); y += fp*1.08; }
+      } else {
+        y += fp*0.6;
+        g.appendChild(tx(X+W/2, y, price, {f:fp, fill:"#7a756c"}));
+      }
+    }
+  } else if(c.m === "h2"){
+    g.appendChild(tx(X+W/2, Y+H*0.40, t.name, {f:c.f, w:600}));
+    if(price) g.appendChild(tx(X+W/2, Y+H*0.74, price, {f:c.f*0.85, fill:"#7a756c"}));
+  } else {
+    const s = price ? t.name + " " + price : t.name;
+    g.appendChild(tx(X+W/2, Y+H*0.52, s, {f:c.f, w:600}));
+  }
+  if(t.price) stat.push(c.f);
+}
+
+function render(T){
+  const svg = el("svg",{width:344,height:344,viewBox:"0 0 344 344"});
+  svg.appendChild(el("rect",{x:0,y:0,width:344,height:344,fill:"#fbfaf8"}));
+  const hole = N - 2*T;
+  if(hole > 0.5){
+    const hx=T*U, hw=hole*U;
+    svg.appendChild(el("rect",{x:hx,y:hx,width:hw,height:hw,fill:"#fbfaf8",stroke:"#e8e5df","stroke-width":1}));
+    if(hw > 80){
+      svg.appendChild(tx(hx+hw/2, hx+hw/2-6, "世界之旅", {f:Math.min(22,hw*0.13), w:700, fill:"#2c2c2a"}));
+      svg.appendChild(tx(hx+hw/2, hx+hw/2+12, "WORLD TOUR", {f:Math.min(11,hw*0.065), fill:"#a8a49c"}));
+    }
+  }
+  const stat = [];
+  const defs = el("defs",{});
+  svg.appendChild(defs);
+  TILES.forEach(function(t, i){
+    const r = rectOf(i, T);
+    const cp = el("clipPath",{id:"cp"+T+"_"+i});
+    cp.appendChild(el("rect",{x:r.x*U,y:r.y*U,width:r.w*U,height:r.h*U}));
+    defs.appendChild(cp);
+    const g = el("g",{});
+    drawCell(g, t, r, outerEdge(i), stat);
+    g.setAttribute("clip-path","url(#cp"+T+"_"+i+")");
     svg.appendChild(g);
   });
-  return svg;
+  const L = N - 2*T;
+  const ew = L/15*U, dep = T*U;
+  stat.sort(function(a,b){return a-b;});
+  return {svg:svg, ew:ew, dep:dep, hole:hole*U,
+          fmin:stat.length?stat[0]:0, fmed:stat.length?stat[Math.floor(stat.length/2)]:0};
 }
 
-const CARDS=[
- {tag:"现状",grey:true,title:"A · 现在的样子（单层空心环）",
-  meta:"一层环 = 横向 17 格，中间 15×15 全空。缩到手机宽度后 <b>每格约 20px</b>，国名/价格约 <b>3~4px</b> —— 看不清。",
-  cfg:{cols:17,rows:17,tw:76,th:100,pos:ringPos,hole:{off:1,size:15,tf:24}},ruler:"整板 17×17 · 中空 15×15"},
- {tag:"A+B 结合 · 推荐",title:"B · 双层环 10×10（中空方正）",
-  meta:"一圈变两圈：先绕外圈 36 格，紧跟内圈 28 格，正中间留 <b>6×6 方形中空</b>放 logo。板子 10×10 → <b>每格约 34px</b>（比现在大 1.7×），国名按字数撑满格子，字约 <b>7~9px</b>。整板正方，手机一屏放得下。",
-  cfg:{cols:10,rows:10,tw:130,th:130,pos:spiralPos,hole:{off:2,sw:6,sh:6,tf:34},adp:true},ruler:"整板 10×10 · 中空 6×6 方正"},
- {tag:"格子最大",title:"C · 双层环 8×12（少排 2 列，格子最大）",
-  meta:"同样两层环、同样 64 格，但只排 8 列 → <b>每格约 43px</b>（大 2.1×）、字约 <b>9~11px</b>，最好读。代价：板子变高（手机上要滑一点），中空变成 <b>4×8 的竖长条</b>。",
-  cfg:{cols:8,rows:12,tw:163,th:163,pos:spiralPos,hole:{off:2,sw:4,sh:8,tf:70},adp:true},ruler:"整板 8×12 · 中空 4×8 竖条"}
+const CARDS = [
+ {T:1, cur:true, tag:"现状", ttl:"环厚 1（现在）",
+  note:"每格 20×20px，字只有 3~4px，中间空占板宽 88%。"},
+ {T:2, tag:"格子 2×", ttl:"环厚 2（略加厚）",
+  note:"上下边的格子竖着长、左右边的格子横着长；中间空缩到板宽 76%。"},
+ {T:3, tag:"格子 3×", ttl:"环厚 3（推荐）",
+  note:"格子明显变长，中文竖排/横排自适应，中间空缩到板宽 65%。"},
+ {T:4, tag:"格子 4×", ttl:"环厚 4（最厚）",
+  note:"字最大，但格子很细长（约 1:4），中间空只剩板宽 53%。"}
 ];
 
-const row=document.getElementById("row");
+const grid = document.getElementById("grid");
 CARDS.forEach(function(c){
-  const card=document.createElement("div");card.className="card";
-  const h2=document.createElement("h2");
-  h2.appendChild(document.createTextNode(c.title));
-  const tg=document.createElement("span");tg.className="tag"+(c.grey?" grey":"");tg.textContent=c.tag;
-  h2.appendChild(tg);card.appendChild(h2);
-  const m=document.createElement("div");m.className="meta";m.innerHTML=c.meta;card.appendChild(m);
-  const ph=document.createElement("div");ph.className="phone";ph.appendChild(render(c.cfg));card.appendChild(ph);
-  const rl=document.createElement("div");rl.className="ruler";rl.textContent=c.ruler;card.appendChild(rl);
-  row.appendChild(card);
+  const r = render(c.T);
+  const card = document.createElement("div");
+  card.className = "card" + (c.cur ? " cur" : "");
+  const pct = Math.round(r.hole/344*100);
+  card.innerHTML =
+    '<span class="tag">' + c.tag + '</span>' +
+    '<p class="ttl">' + c.ttl + '</p>' +
+    '<p class="meta">' + c.note + '<br>' +
+      '每格 <b>' + r.ew.toFixed(0) + ' × ' + r.dep.toFixed(0) + ' px</b>' +
+      '（角格 <b>' + r.dep.toFixed(0) + '×' + r.dep.toFixed(0) + '</b>）<br>' +
+      '字号 <b>' + r.fmin.toFixed(0) + '~' + r.fmed.toFixed(0) + ' px</b>' +
+      ' · 中空 <b>' + r.hole.toFixed(0) + 'px</b>（占板宽 ' + pct + '%）</p>';
+  const box = document.createElement("div");
+  box.className = "phone";
+  box.appendChild(r.svg);
+  card.appendChild(box);
+  const ruler = document.createElement("div");
+  ruler.className = "ruler";
+  ruler.textContent = "整板 344 × 344 px · 每边 16 格 · 角格仍在四角";
+  card.appendChild(ruler);
+  grid.appendChild(card);
 });
 
-document.getElementById("foot").innerHTML=
- "B / C 都是「A+B 结合」：<b>保留环形 + 中间留空</b>，还是顺时针一圈圈走。两者的取舍只有一句话——"+
- "<b>中空越大，格子越小</b>。列数可在 8~10 之间随便调（10×10 最方正，8×12 格子最大）。<br>"+
- "⚠️ 一个要你拍板的点：环变两层后，<b>最后一格（新西兰）回到起点（赤道）会差一格</b>——"+
- "因为两层环在平面上没法真正首尾相接（外圈走到头接内圈是顺的，内圈走到头接回外圈起点的位置对不上）。"+
- "<br>能接受就按 B 或 C 改正式代码；不接受的话，我还有个折中方案：保留单层环，只把格子加厚一点 + 手机上默认放大。";
+document.getElementById("foot").innerHTML =
+ "四版<b>结构完全一样</b>：一圈、每边 16 个（角格 + 15）、角格还在四个角、顺时针、整板都是正方形一屏放下。<br>" +
+ "差别只在<b>环有多厚</b>——格子往中间伸得越多，字越大、中间的空越小，代价是格子越细长" +
+ "（上下边的格子是竖长条、左右边的格子是横长条、四个角格是正方）。<br>" +
+ "环厚可以取任意值（不必是整数），你觉得哪个顺眼我就按哪个改 <b>map-svg.html</b>；" +
+ "也可以只给手机做厚环版，电脑/打印仍保持现在的薄环。";
 </script>
 </body>
 </html>

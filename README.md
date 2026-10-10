@@ -17,7 +17,7 @@
 - **首页 `index.html`**：改版规则 + 卡牌全文，可切换版本浏览（静态页面，双击就能看）
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印
-- **在线地址**：开启 Pages 后为 `https://<用户名>.github.io/<仓库名>/`
+- **在线地址**：https://alphanoah.github.io/monopoly-remix/
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
 
 > `original.html` 是实体《大富翁》的卡牌、说明书、地图格子转录，
@@ -89,14 +89,40 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 
 ---
 
-## 开启 GitHub Pages
+## 日常流程：改完内容怎么上线
 
-1. 仓库设为 **public**
-2. Settings → **Pages** → Source 选 **Deploy from a branch**
-3. Branch 选 `main`、目录选 `/ (root)` → Save
-4. 首次发布等 1-2 分钟，Actions 页面可以看部署进度
+```bash
+# 1. 改内容（任选）
+#    卡牌   → cards.csv
+#    规则   → docs/rules.md
+#    原版   → original/*.md
 
-如果 Actions 自动提交失败，检查 Settings → Actions → General → **Workflow permissions** 是否选了 **Read and write permissions**。
+# 2. 本地重新生成（macOS 也可以直接双击 update.command）
+python3 tools/update.py
+
+# 3. 提交并推送
+git add -A && git commit -m "改了什么" && git push
+```
+
+push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同一个脚本，
+把重新生成的 `cards.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
+然后 Pages 自动部署，约 1 分钟线上生效。
+
+**即使你忘了跑第 2 步也没关系**——Actions 会自己跑一遍并补提交，本地文件下次 pull 就能同步回来。
+本地跑的好处是能立刻看到结果、校验报错也能当场发现。
+
+## 首次搭建 Pages（已经配好，留档备查）
+
+仓库是 **public**，Pages 和 Actions 都已开启：
+
+| 项目 | 设置 |
+|---|---|
+| Pages | Settings → Pages → Deploy from a branch → `main` / `/ (root)` |
+| Actions 权限 | Settings → Actions → General → Workflow permissions → **Read and write** |
+| Actions 自动触发 | 改了 `cards.csv` / `docs/rules.md` / `original/**` / `tools/update.py` 时 |
+| 手动触发 | Actions → 重新生成页面 → Run workflow |
+
+> Actions 的写权限是**必须的**：workflow 要把生成的文件提交回仓库，只读权限会失败。
 
 ---
 

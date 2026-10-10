@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大富翁「世界之旅」地图 (SVG)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #e8edf2;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: #2c3e50;
+  }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .toolbar button {
+    background: #fff;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #2c3e50;
+    transition: all 0.15s;
+  }
+  .toolbar button:hover { background: #ecf0f1; }
+  .toolbar button:active { transform: scale(0.95); }
+  .toolbar .zoom-level {
+    font-size: 13px;
+    color: #7f8c8d;
+    min-width: 50px;
+    text-align: center;
+  }
+  .svg-container {
+    background: #fefefe;
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 1320px;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    position: relative;
+  }
+  .svg-container.grabbing { cursor: grabbing; }
+  svg { display: block; width: 100%; height: auto; user-select: none; }
+  .legend {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-color { width: 16px; height: 12px; border-radius: 2px; border: 1px solid #ccd5db; }
+  .hint {
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 8px;
+    text-align: center;
+  }
+  .home {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .home:hover { color: #2c3e50; }
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">← 返回首页</a>
+<h1>大富翁「世界之旅」 WORLD TOUR</h1>
+<div class="toolbar">
+  <button id="btn-zoom-out">−</button>
+  <span class="zoom-level" id="zoom-level">100%</span>
+  <button id="btn-zoom-in">+</button>
+  <button id="btn-reset">重置</button>
+</div>
+<div class="svg-container" id="svg-container">
+  <svg id="map" xmlns="http://www.w3.org/2000/svg">
+    <g id="viewport-group"></g>
+  </svg>
+</div>
+<div id="legend" class="legend"></div>
+<div class="hint">滚轮/双指缩放 · 拖拽平移 · 双击重置</div>
+
+<script>
+// ===== 颜色映射 =====
+const COLORS = {
+  "red": "#e74c3c",
+  "light-blue": "#5dade2",
+  "yellow-green": "#a3c44a",
+  "purple": "#8e44ad",
+  "pink": "#f1948a",
+  "dark-gray": "#566573",
+  "dark-blue": "#2c3e8a",
+  "light-green": "#7dcea0",
+  "khaki": "#c9b88a",
+  "hot-pink": "#ff66a3",
+  "green": "#239b56"
+};
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// 布局参数
+const TILE_W = 76;
+const TILE_H = 100;
+const GAP = 1;
+const BAND_H = 14;
+const COLS = 17;
+const ROWS = 17;
+const SVG_W = COLS * TILE_W + (COLS + 1) * GAP;
+const SVG_H = ROWS * TILE_H + (ROWS + 1) * GAP;
+
+// ===== 本地兜底数据（同 map-data.json）=====
+const FALLBACK_DATA = {
+  "version": "1.0",
+  "name": "大富翁「世界之旅」",
+  "nameEn": "World Tour Monopoly",
+  "totalTiles": 64,
+  "propertyTiles": 51,
+  "specialTiles": 13,
+  "colorGroups": 11,
+  "startBonus": 2000,
+  "boardSize": { "rows": 17, "cols": 17, "sides": 4, "tilesPerSide": 15, "corners": 4 },
+  "colorGroups": [
+    { "color": "red", "name": "红", "nameEn": "Red", "count": 5, "avgPrice": 2740 },
+    { "color": "light-blue", "name": "浅蓝", "nameEn": "Light Blue", "count": 5, "avgPrice": 1800 },
+    { "color": "yellow-green", "name": "黄绿", "nameEn": "Yellow Green", "count": 6, "avgPrice": 2333 },
+    { "color": "purple", "name": "紫", "nameEn": "Purple", "count": 5, "avgPrice": 1440 },
+    { "color": "pink", "name": "粉", "nameEn": "Pink", "count": 4, "avgPrice": 2850 },
+    { "color": "dark-gray", "name": "深灰", "nameEn": "Dark Gray", "count": 5, "avgPrice": 2520 },
+    { "color": "dark-blue", "name": "深蓝", "nameEn": "Dark Blue", "count": 4, "avgPrice": 1600 },
+    { "color": "light-green", "name": "浅绿", "nameEn": "Light Green", "count": 4, "avgPrice": 1200 },
+    { "color": "khaki", "name": "浅灰(卡其)", "nameEn": "Khaki", "count": 4, "avgPrice": 2300 },
+    { "color": "hot-pink", "name": "粉红", "nameEn": "Hot Pink", "count": 4, "avgPrice": 2550 },
+    { "color": "green", "name": "绿", "nameEn": "Green", "count": 5, "avgPrice": 2020 }
+  ],
+  "tiles": [
+    { "id": 0, "name": "赤道", "nameEn": "EQUATOR", "type": "corner", "sub": "起点 · 酬金 $2000", "col": 16, "row": 16, "side": "bottom-right" },
+    { "id": 1, "name": "中华人民共和国", "nameEn": "CHINA", "capital": "北京", "price": 4000, "color": "red", "col": 15, "row": 16, "side": "bottom" },
+    { "id": 2, "name": "日本", "nameEn": "JAPAN", "capital": "东京", "price": 1000, "color": "red", "col": 14, "row": 16, "side": "bottom" },
+    { "id": 3, "name": "机会", "nameEn": "CHANCE", "type": "chance", "col": 13, "row": 16, "side": "bottom" },
+    { "id": 4, "name": "韩国", "nameEn": "KOREA", "capital": "首尔", "price": 1000, "color": "red", "col": 12, "row": 16, "side": "bottom" },
+    { "id": 5, "name": "菲律宾", "nameEn": "PHILIPPINES", "capital": "马尼拉", "price": 600, "color": "light-blue", "col": 11, "row": 16, "side": "bottom" },
+    { "id": 6, "name": "马来西亚", "nameEn": "MALAYSIA", "capital": "吉隆坡", "price": 2600, "color": "light-blue", "col": 10, "row": 16, "side": "bottom" },
+    { "id": 7, "name": "越南", "nameEn": "VIETNAM", "capital": "河内", "price": 2800, "color": "light-blue", "col": 9, "row": 16, "side": "bottom" },
+    { "id": 8, "name": "泰国", "nameEn": "THAILAND", "capital": "曼谷", "price": 1600, "color": "light-blue", "col": 8, "row": 16, "side": "bottom" },
+    { "id": 9, "name": "印度", "nameEn": "INDIA", "capital": "新德里", "price": 1400, "color": "light-blue", "col": 7, "row": 16, "side": "bottom" },
+    { "id": 10, "name": "太平洋", "nameEn": "PACIFIC", "type": "ocean", "col": 6, "row": 16, "side": "bottom" },
+    { "id": 11, "name": "斯里兰卡", "nameEn": "SRI LANKA", "capital": "科伦坡", "price": 1400, "color": "yellow-green", "col": 5, "row": 16, "side": "bottom" },
+    { "id": 12, "name": "伊朗", "nameEn": "IRAN", "capital": "德黑兰", "price": 2000, "color": "yellow-green", "col": 4, "row": 16, "side": "bottom" },
+    { "id": 13, "name": "伊拉克", "nameEn": "IRAQ", "capital": "巴格达", "price": 1800, "color": "yellow-green", "col": 3, "row": 16, "side": "bottom" },
+    { "id": 14, "name": "沙特阿拉伯", "nameEn": "SAUDI ARABIA", "capital": "利雅得", "price": 1800, "color": "yellow-green", "col": 2, "row": 16, "side": "bottom" },
+    { "id": 15, "name": "叙利亚", "nameEn": "SYRIA", "capital": "大马士革", "price": 3500, "color": "yellow-green", "col": 1, "row": 16, "side": "bottom" },
+    { "id": 16, "name": "地中海", "nameEn": "MEDITERRANEAN", "type": "corner", "col": 0, "row": 16, "side": "bottom-left" },
+    { "id": 17, "name": "土耳其", "nameEn": "TURKEY", "capital": "安卡拉", "price": 3500, "color": "yellow-green", "col": 0, "row": 15, "side": "left" },
+    { "id": 18, "name": "命运", "nameEn": "DESTINY", "type": "destiny", "col": 0, "row": 14, "side": "left" },
+    { "id": 19, "name": "黎巴嫩", "nameEn": "LEBANON", "capital": "贝鲁特", "price": 600, "color": "purple", "col": 0, "row": 13, "side": "left" },
+    { "id": 20, "name": "以色列", "nameEn": "ISRAEL", "capital": "耶路撒冷", "price": 2000, "color": "purple", "col": 0, "row": 12, "side": "left" },
+    { "id": 21, "name": "俄罗斯", "nameEn": "RUSSIA", "capital": "莫斯科", "price": 1000, "color": "purple", "col": 0, "row": 11, "side": "left" },
+    { "id": 22, "name": "波兰", "nameEn": "POLAND", "capital": "华沙", "price": 1200, "color": "purple", "col": 0, "row": 10, "side": "left" },
+    { "id": 23, "name": "德国", "nameEn": "GERMANY", "capital": "柏林", "price": 2400, "color": "purple", "col": 0, "row": 9, "side": "left" },
+    { "id": 24, "name": "印度洋", "nameEn": "INDIAN OCEAN", "type": "ocean", "col": 0, "row": 8, "side": "left" },
+    { "id": 25, "name": "奥地利", "nameEn": "AUSTRIA", "capital": "维也纳", "price": 3000, "color": "pink", "col": 0, "row": 7, "side": "left" },
+    { "id": 26, "name": "瑞士", "nameEn": "SWITZERLAND", "capital": "伯尔尼", "price": 3200, "color": "pink", "col": 0, "row": 6, "side": "left" },
+    { "id": 27, "name": "法国", "nameEn": "FRANCE", "capital": "巴黎", "price": 3000, "color": "pink", "col": 0, "row": 5, "side": "left" },
+    { "id": 28, "name": "比利时", "nameEn": "BELGIUM", "capital": "布鲁塞尔", "price": 2200, "color": "pink", "col": 0, "row": 4, "side": "left" },
+    { "id": 29, "name": "机会", "nameEn": "CHANCE", "type": "chance", "col": 0, "row": 3, "side": "left" },
+    { "id": 30, "name": "荷兰", "nameEn": "NETHERLANDS", "capital": "阿姆斯特丹", "price": 2400, "color": "dark-gray", "col": 0, "row": 2, "side": "left" },
+    { "id": 31, "name": "英国", "nameEn": "UK", "capital": "伦敦", "price": 2200, "color": "dark-gray", "col": 0, "row": 1, "side": "left" },
+    { "id": 32, "name": "北极", "nameEn": "ARCTIC", "type": "corner", "col": 0, "row": 0, "side": "top-left" },
+    { "id": 33, "name": "芬兰", "nameEn": "FINLAND", "capital": "赫尔辛基", "price": 2600, "color": "dark-gray", "col": 1, "row": 0, "side": "top" },
+    { "id": 34, "name": "瑞典", "nameEn": "SWEDEN", "capital": "斯德哥尔摩", "price": 2600, "color": "dark-gray", "col": 2, "row": 0, "side": "top" },
+    { "id": 35, "name": "丹麦", "nameEn": "DENMARK", "capital": "哥本哈根", "price": 2800, "color": "dark-gray", "col": 3, "row": 0, "side": "top" },
+    { "id": 36, "name": "希腊", "nameEn": "GREECE", "capital": "雅典", "price": 1600, "color": "dark-blue", "col": 4, "row": 0, "side": "top" },
+    { "id": 37, "name": "意大利", "nameEn": "ITALY", "capital": "罗马", "price": 1400, "color": "dark-blue", "col": 5, "row": 0, "side": "top" },
+    { "id": 38, "name": "命运", "nameEn": "DESTINY", "type": "destiny", "col": 6, "row": 0, "side": "top" },
+    { "id": 39, "name": "西班牙", "nameEn": "SPAIN", "capital": "马德里", "price": 1400, "color": "dark-blue", "col": 7, "row": 0, "side": "top" },
+    { "id": 40, "name": "葡萄牙", "nameEn": "PORTUGAL", "capital": "里斯本", "price": 2000, "color": "dark-blue", "col": 8, "row": 0, "side": "top" },
+    { "id": 41, "name": "埃及", "nameEn": "EGYPT", "capital": "开罗", "price": 1800, "color": "light-green", "col": 9, "row": 0, "side": "top" },
+    { "id": 42, "name": "摩洛哥", "nameEn": "MOROCCO", "capital": "拉巴特", "price": 1800, "color": "light-green", "col": 10, "row": 0, "side": "top" },
+    { "id": 43, "name": "赞比亚", "nameEn": "ZAMBIA", "capital": "卢萨卡", "price": 600, "color": "light-green", "col": 11, "row": 0, "side": "top" },
+    { "id": 44, "name": "机会", "nameEn": "CHANCE", "type": "chance", "col": 12, "row": 0, "side": "top" },
+    { "id": 45, "name": "南非共和国", "nameEn": "SOUTH AFRICA", "capital": "比勒陀利亚", "price": 600, "color": "light-green", "col": 13, "row": 0, "side": "top" },
+    { "id": 46, "name": "加拿大", "nameEn": "CANADA", "capital": "渥太华", "price": 3500, "color": "khaki", "col": 14, "row": 0, "side": "top" },
+    { "id": 47, "name": "美国", "nameEn": "USA", "capital": "华盛顿", "price": 3500, "color": "khaki", "col": 15, "row": 0, "side": "top" },
+    { "id": 48, "name": "夏威夷", "nameEn": "HAWAII", "type": "corner", "col": 16, "row": 0, "side": "top-right" },
+    { "id": 49, "name": "墨西哥", "nameEn": "MEXICO", "capital": "墨西哥城", "price": 1000, "color": "khaki", "col": 16, "row": 1, "side": "right" },
+    { "id": 50, "name": "洪都拉斯", "nameEn": "HONDURAS", "capital": "特古西加尔巴", "price": 1200, "color": "khaki", "col": 16, "row": 2, "side": "right" },
+    { "id": 51, "name": "尼加拉瓜", "nameEn": "NICARAGUA", "capital": "马那瓜", "price": 3000, "color": "hot-pink", "col": 16, "row": 3, "side": "right" },
+    { "id": 52, "name": "哥斯达黎加", "nameEn": "COSTA RICA", "capital": "圣何塞", "price": 1000, "color": "hot-pink", "col": 16, "row": 4, "side": "right" },
+    { "id": 53, "name": "命运", "nameEn": "DESTINY", "type": "destiny", "col": 16, "row": 5, "side": "right" },
+    { "id": 54, "name": "巴拿马", "nameEn": "PANAMA", "capital": "巴拿马城", "price": 3200, "color": "hot-pink", "col": 16, "row": 6, "side": "right" },
+    { "id": 55, "name": "古巴", "nameEn": "CUBA", "capital": "哈瓦那", "price": 3000, "color": "hot-pink", "col": 16, "row": 7, "side": "right" },
+    { "id": 56, "name": "哥伦比亚", "nameEn": "COLOMBIA", "capital": "波哥大", "price": 1800, "color": "green", "col": 16, "row": 8, "side": "right" },
+    { "id": 57, "name": "玻利维亚", "nameEn": "BOLIVIA", "capital": "苏克雷·拉巴斯", "price": 1200, "color": "green", "col": 16, "row": 9, "side": "right" },
+    { "id": 58, "name": "巴西", "nameEn": "BRAZIL", "capital": "巴西利亚", "price": 2600, "color": "green", "col": 16, "row": 10, "side": "right" },
+    { "id": 59, "name": "大西洋", "nameEn": "ATLANTIC", "type": "ocean", "col": 16, "row": 11, "side": "right" },
+    { "id": 60, "name": "阿根廷", "nameEn": "ARGENTINA", "capital": "布宜诺斯艾利斯", "price": 1000, "color": "green", "col": 16, "row": 12, "side": "right" },
+    { "id": 61, "name": "智利", "nameEn": "CHILE", "capital": "圣地亚哥", "price": 3500, "color": "green", "col": 16, "row": 13, "side": "right" },
+    { "id": 62, "name": "澳大利亚", "nameEn": "AUSTRALIA", "capital": "堪培拉", "price": 3200, "color": "red", "col": 16, "row": 14, "side": "right" },
+    { "id": 63, "name": "新西兰", "nameEn": "NEW ZEALAND", "capital": "惠灵顿", "price": 3500, "color": "red", "col": 16, "row": 15, "side": "right" }
+  ]
+};
+
+// ===== SVG 辅助函数 =====
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    el.setAttribute(k, v);
+  }
+  return el;
+}
+
+function svgText(x, y, text, fontSize, opts = {}) {
+  const t = svgEl("text", {
+    x: x,
+    y: y,
+    "font-size": fontSize,
+    "font-family": opts.fontFamily || "-apple-system, PingFang SC, Microsoft YaHei, sans-serif",
+    "font-weight": opts.weight || "normal",
+    fill: opts.color || "#333",
+    "text-anchor": "middle",
+    "dominant-baseline": "middle"
+  });
+  if (opts.letterSpacing) t.setAttribute("letter-spacing", opts.letterSpacing);
+  t.textContent = text;
+  return t;
+}
+
+// ===== 缩放平移状态 =====
+let zoom = 1;
+let panX = 0;
+let panY = 0;
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 5;
+
+function updateViewport() {
+  const g = document.getElementById("viewport-group");
+  g.setAttribute("transform", `translate(${panX},${panY}) scale(${zoom})`);
+  document.getElementById("zoom-level").textContent = Math.round(zoom * 100) + "%";
+}
+
+// ===== 渲染地图 =====
+function renderMap(data) {
+  const svg = document.getElementById("map");
+  svg.setAttribute("viewBox", `0 0 ${SVG_W} ${SVG_H}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+  // 所有内容画到 viewport-group 里
+  const vg = document.getElementById("viewport-group");
+
+  // 背景
+  vg.appendChild(svgEl("rect", {
+    x: 0, y: 0, width: SVG_W, height: SVG_H,
+    fill: "#d4e6f1", rx: 4
+  }));
+
+  // 中心区域
+  const cx = GAP + TILE_W;
+  const cy = GAP + TILE_H;
+  const cw = 15 * TILE_W + 14 * GAP;
+  const ch = 15 * TILE_H + 14 * GAP;
+
+  const centerGrad = svgEl("linearGradient", { id: "centerGrad", x1: "0%", y1: "0%", x2: "100%", y2: "100%" });
+  centerGrad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "#eaf2f8" }));
+  centerGrad.appendChild(svgEl("stop", { offset: "100%", "stop-color": "#d4e6f1" }));
+  svg.insertBefore(centerGrad, vg);
+
+  vg.appendChild(svgEl("rect", {
+    x: cx, y: cy, width: cw, height: ch,
+    fill: "url(#centerGrad)", stroke: "#aeb6bf", "stroke-width": 1, rx: 2
+  }));
+
+  // 中心标题
+  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 - 8, "世界之旅", 24, { weight: "bold", color: "#2c3e50", letterSpacing: "4" }));
+  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 + 16, "WORLD TOUR", 12, { color: "#85929e", letterSpacing: "2" }));
+
+  // 渲染格子
+  data.tiles.forEach(t => {
+    const x = GAP + t.col * (TILE_W + GAP);
+    const y = GAP + t.row * (TILE_H + GAP);
+    const g = svgEl("g", { transform: `translate(${x},${y})` });
+
+    if (t.type) {
+      let bg = "#fff", stroke = "#ccd5db", sw = 1;
+      if (t.type === "corner") { bg = "#d4e6f1"; stroke = "#2980b9"; sw = 2; }
+      else if (t.type === "chance") { bg = "#fffde7"; stroke = "#f1c40f"; sw = 1; }
+      else if (t.type === "destiny") { bg = "#f5eef8"; stroke = "#a569bd"; sw = 1; }
+      else if (t.type === "ocean") { bg = "#e8f6f3"; stroke = "#2ecc71"; sw = 1; }
+
+      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
+
+      if (t.type === "corner") {
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 6, t.name, 16, { weight: "bold", color: "#1a5276" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.nameEn, 9, { color: "#5499c7", letterSpacing: "0.5" }));
+        if (t.sub) {
+          g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.sub, 8, { weight: "bold", color: "#d35400" }));
+        }
+      } else if (t.type === "chance") {
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "?", 28, { weight: "bold", color: "#e74c3c" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#b7950b" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#b7950b" }));
+      } else if (t.type === "destiny") {
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "\u2726", 24, { weight: "bold", color: "#8e44ad" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#6c3483" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#6c3483" }));
+      } else if (t.type === "ocean") {
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "~", 22, { color: "#2471a3" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 10, t.name, 11, { weight: "bold", color: "#1a5276" }));
+        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#1a5276" }));
+      }
+    } else {
+      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: "#fff", stroke: "#ccd5db", "stroke-width": 1, rx: 2 }));
+
+      const bandColor = COLORS[t.color] || "#ccc";
+      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: BAND_H, fill: bandColor, rx: 2 }));
+      g.appendChild(svgText(8, BAND_H + 8, "#" + t.id, 6, { color: "#d5dbdb" }));
+
+      const cx2 = TILE_W / 2;
+      let cy2 = BAND_H + 20;
+      g.appendChild(svgText(cx2, cy2, t.name, 13, { weight: "bold", color: "#1a252f" }));
+      cy2 += 16;
+      g.appendChild(svgText(cx2, cy2, t.nameEn, 7, { color: "#b0b8bf", letterSpacing: "0.3" }));
+      cy2 += 14;
+      g.appendChild(svgText(cx2, cy2, "$" + t.price, 12, { weight: "bold", color: "#d35400" }));
+      cy2 += 14;
+      g.appendChild(svgText(cx2, cy2, t.capital, 8, { color: "#95a5a6" }));
+    }
+
+    vg.appendChild(g);
+  });
+
+  // 渲染图例
+  const legend = document.getElementById("legend");
+  data.colorGroups.forEach(g => {
+    const item = document.createElement("div");
+    item.className = "legend-item";
+    const color = document.createElement("div");
+    color.className = "legend-color";
+    color.style.background = COLORS[g.color] || "#ccc";
+    item.appendChild(color);
+    item.appendChild(document.createTextNode(`${g.name} (${g.count})`));
+    legend.appendChild(item);
+  });
+
+  // 初始化 viewport
+  updateViewport();
+  initPanZoom();
+}
+
+// ===== 缩放平移交互 =====
+function initPanZoom() {
+  const container = document.getElementById("svg-container");
+  const svg = document.getElementById("map");
+
+  // 鼠标滚轮缩放
+  container.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * delta));
+
+    // 以鼠标位置为中心缩放
+    const scaleRatio = newZoom / zoom;
+    panX = mx - (mx - panX) * scaleRatio;
+    panY = my - (my - panY) * scaleRatio;
+    zoom = newZoom;
+
+    updateViewport();
+  }, { passive: false });
+
+  // 拖拽平移（鼠标）
+  let isDragging = false;
+  let startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+
+  container.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = panX;
+    startPanY = panY;
+    container.classList.add("grabbing");
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    updateViewport();
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    container.classList.remove("grabbing");
+  });
+
+  // 触摸：双指缩放 + 单指拖拽
+  let touches = {};
+  let pinchDist = 0;
+  let pinchZoom = 1;
+
+  container.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    for (const t of e.touches) {
+      touches[t.identifier] = { x: t.clientX, y: t.clientY };
+    }
+    if (e.touches.length === 1) {
+      isDragging = true;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startPanX = panX;
+      startPanY = panY;
+    }
+    if (e.touches.length === 2) {
+      isDragging = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchDist = Math.hypot(dx, dy);
+      pinchZoom = zoom;
+    }
+  }, { passive: false });
+
+  container.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging) {
+      panX = startPanX + (e.touches[0].clientX - startX);
+      panY = startPanY + (e.touches[0].clientY - startY);
+      updateViewport();
+    }
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / pinchDist;
+      zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pinchZoom * ratio));
+      updateViewport();
+    }
+  }, { passive: false });
+
+  container.addEventListener("touchend", (e) => {
+    for (const t of e.changedTouches) {
+      delete touches[t.identifier];
+    }
+    if (e.touches.length === 0) {
+      isDragging = false;
+    }
+  });
+
+  // 双击重置
+  container.addEventListener("dblclick", () => {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    updateViewport();
+  });
+
+  // 工具栏按钮
+  document.getElementById("btn-zoom-in").addEventListener("click", () => {
+    zoom = Math.min(MAX_ZOOM, zoom * 1.2);
+    updateViewport();
+  });
+
+  document.getElementById("btn-zoom-out").addEventListener("click", () => {
+    zoom = Math.max(MIN_ZOOM, zoom * 0.8);
+    updateViewport();
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    updateViewport();
+  });
+}
+
+// ===== 加载数据：优先 fetch JSON，失败则用本地兜底 =====
+fetch("./docs/map-data.json")
+  .then(res => {
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+  })
+  .then(data => {
+    console.log("[map-svg] 数据来源: map-data.json");
+    renderMap(data);
+  })
+  .catch(err => {
+    console.warn("[map-svg] fetch map-data.json 失败，使用本地兜底数据:", err.message);
+    renderMap(FALLBACK_DATA);
+  });
+</script>
+
+</body>
+</html>

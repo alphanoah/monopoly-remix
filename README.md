@@ -142,6 +142,7 @@ richer/
 ├── index.html              首页：规则 + 卡牌浏览（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具（脚本回写兜底）
+├── map-svg.html            电子地图：64 格 SVG 棋盘，可拖动缩放（手写页，脚本不动）
 ├── cards.csv               卡牌数据真源
 ├── cards.json              由 cards.csv 生成，供打印页读取
 ├── update.command          macOS 双击运行 update.py
@@ -151,6 +152,7 @@ richer/
 │   ├── full-rules.md       完整规则真源（首页规则区由它生成，含新旧版本标注）
 │   ├── rules.md            初版规则留档（已被 full-rules.md 取代，不再参与生成）
 │   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
+│   └── map-data.json       电子地图用的 64 格数据（map-svg.html 内置同款兜底）
 │   └── card-diff.md        新版 vs 原版差异对照
 ├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
 │   ├── cards.md            原版命运牌 & 机会牌（20 + 20）转录

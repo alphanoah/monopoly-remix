@@ -260,6 +260,19 @@ def fold_archive(rules_html):
             % (rules_html[:m.start()], m.group(1), rules_html[m.end():]))
 
 
+def fold_sections(rules_html, keyword='备选'):
+    """把规则里标题带「备选」的小节（可选玩法）折进 <details>，默认收起。"""
+    out = rules_html
+    while True:
+        m = re.search(r'<h4>([^<]*%s[^<]*)</h4>' % keyword, out)
+        if not m:
+            return out
+        nxt = re.search(r'<h[34][ >]', out[m.end():])
+        end = m.end() + nxt.start() if nxt else len(out)
+        out = ('%s<details class="fold"><summary>%s</summary>\n%s\n</details>\n%s'
+               % (out[:m.start()], m.group(1), out[m.end():end], out[end:]))
+
+
 # ---------- 写入 ----------
 def swap(path, pattern, block, label):
     if not os.path.exists(path):
@@ -332,7 +345,7 @@ def main():
     data = build(rows)
 
     with open(RULES_PATH, encoding='utf-8') as f:
-        rules_html = fold_archive(md_to_html(f.read()))
+        rules_html = fold_sections(fold_archive(md_to_html(f.read())))
     original_html = build_original()
 
     print('写入：')

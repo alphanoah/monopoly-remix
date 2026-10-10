@@ -1,0 +1,266 @@
+#!/usr/bin/env python3
+# 一键更新：cards.csv → cards.json + index.html（首页）+ print.html（打印页）
+#
+#   python3 tools/update.py
+#
+# 做四件事：
+#   1. 校验 cards.csv（结构、必填字段、每版本张数）
+#   2. 生成 cards.json                      —— 打印页线上 fetch 用
+#   3. 重写 index.html 的卡牌数据与规则区    —— 首页内容（静态，离线可看）
+#   4. 回写 print.html 的内置兜底数据         —— 本地 file:// 打开时用
+#
+# 校验不通过就不写任何文件。GitHub Actions 跑的是同一个脚本。
+import csv
+import html
+import json
+import os
+import re
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CSV_PATH = os.path.join(ROOT, 'cards.csv')
+JSON_PATH = os.path.join(ROOT, 'cards.json')
+INDEX_PATH = os.path.join(ROOT, 'index.html')
+PRINT_PATH = os.path.join(ROOT, 'print.html')
+RULES_PATH = os.path.join(ROOT, 'docs', 'rules.md')
+
+DEFAULT_VERSION = 'v6'
+VERSION_LABELS = {
+    'v4': 'v4 · 主线常规版',
+    'v5': 'v5 · 邪恶版 · 魔幻',
+    'v6': 'v6 · 邪恶版 · 世界之旅',
+}
+KEEP = ['deck', 'face', 'event', 'effect', 'cond', 'win', 'lose', 'rate']
+
+
+# ---------- CSV 读取与校验 ----------
+def load_rows():
+    with open(CSV_PATH, encoding='utf-8-sig', newline='') as f:
+        return [r for r in csv.DictReader(f)]
+
+
+def validate(rows):
+    errs = []
+    count = {}
+    for i, r in enumerate(rows, start=2):
+        v = (r.get('version') or '').strip()
+        deck = (r.get('deck') or '').strip()
+        where = '第 %d 行(%s %s #%s)' % (i, v, deck, r.get('seq', '?'))
+        if not v:
+            errs.append(where + '缺少 version')
+        if deck not in ('chance', 'fate'):
+            errs.append(where + 'deck 必须是 chance 或 fate')
+            continue
+        if not (r.get('event') or '').strip():
+            errs.append(where + 'event 不能为空')
+        if deck == 'chance':
+            if (r.get('face') or '').strip() not in ('smile', 'frown'):
+                errs.append(where + '机会牌 face 必须是 smile 或 frown')
+            if not (r.get('effect') or '').strip():
+                errs.append(where + '机会牌 effect 不能为空')
+        else:
+            for k in ('cond', 'win', 'lose'):
+                if not (r.get(k) or '').strip():
+                    errs.append(where + '命运牌 %s 不能为空' % k)
+        if (r.get('use') or '1').strip() == '1':
+            count.setdefault(v, {'chance': 0, 'fate': 0})[deck] += 1
+    for v, c in count.items():
+        print('  %s：机会 %d 张 / 命运 %d 张' % (v, c['chance'], c['fate']))
+    return errs
+
+
+def build(rows):
+    versions, order = {}, []
+    for r in rows:
+        v = (r.get('version') or '').strip()
+        if v and v not in order:
+            order.append(v)
+        if (r.get('use') or '1').strip() != '1':
+            continue
+        item = {}
+        for k in KEEP:
+            val = (r.get(k) or '').strip()
+            if val:
+                item[k] = val
+        versions.setdefault(v, []).append(item)
+    return {
+        'default': DEFAULT_VERSION if DEFAULT_VERSION in versions else (order[-1] if order else ''),
+        'order': order,
+        'versions': {
+            v: {'label': VERSION_LABELS.get(v, v.upper()), 'cards': versions[v]} for v in order
+        },
+    }
+
+
+# ---------- 简易 markdown → HTML（够 rules.md 用：标题/列表/引用/链接/粗体/行内码）----------
+def inline(t):
+    t = html.escape(t)
+    t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
+    t = re.sub(r'`(.+?)`', r'<code>\1</code>', t)
+    t = re.sub(r'\[(.+?)\]\((?!https?:|#)(.+?)\)', r'<a href="docs/\2">\1</a>', t)
+    t = re.sub(r'\[(.+?)\]\((https?:.+?)\)', r'<a href="\2">\1</a>', t)
+    return t
+
+
+def render_list(items):
+    out, stack = [], []
+    for lvl, ordered, text in items:
+        tag = 'ol' if ordered else 'ul'
+        while stack and stack[-1][0] > lvl:
+            out.append('</li></%s>' % stack.pop()[1])
+        if not stack:
+            out.append('<%s>' % tag)
+            stack.append((lvl, tag))
+        else:
+            top_lvl, top_tag = stack[-1]
+            if lvl > top_lvl:
+                out.append('<%s>' % tag)
+                stack.append((lvl, tag))
+            elif top_tag != tag:
+                out.append('</li></%s>' % top_tag)
+                stack.pop()
+                out.append('<%s>' % tag)
+                stack.append((lvl, tag))
+            else:
+                out.append('</li>')
+        out.append('<li>' + inline(text))
+    while stack:
+        out.append('</li></%s>' % stack.pop()[1])
+    return '\n'.join(out)
+
+
+def md_to_html(md):
+    lines = md.replace('\r\n', '\n').split('\n')
+    out, i = [], 0
+    while i < len(lines):
+        raw = lines[i]
+        line = raw.rstrip()
+        if not line.strip():
+            i += 1
+            continue
+        indent = len(line) - len(line.lstrip())
+        s = line.strip()
+
+        # 标题：# 是文件标题，首页已有大标题，跳过
+        m = re.match(r'^(#{1,6})\s+(.*)', s)
+        if m:
+            lvl = len(m.group(1))
+            if lvl >= 2:
+                out.append('<h%d>%s</h%d>' % (min(lvl + 1, 6), inline(m.group(2)), min(lvl + 1, 6)))
+            i += 1
+            continue
+
+        # 列表
+        if re.match(r'^([-*+]|\d+[.)])\s+', s):
+            items = []
+            while i < len(lines):
+                cur = lines[i].rstrip()
+                if not cur.strip():
+                    break
+                ci = len(cur) - len(cur.lstrip())
+                cs = cur.strip()
+                mm = re.match(r'^(\d+[.)]|[-*+])\s+(.*)', cs)
+                if not mm:
+                    break
+                items.append((ci // 2, bool(re.match(r'^\d', mm.group(1))), mm.group(2)))
+                i += 1
+            out.append(render_list(items))
+            continue
+
+        # 引用
+        if s.startswith('>'):
+            buf = []
+            while i < len(lines) and lines[i].strip().startswith('>'):
+                buf.append(lines[i].strip().lstrip('>').strip())
+                i += 1
+            out.append('<blockquote>%s</blockquote>' % inline(' '.join(buf)))
+            continue
+
+        # 普通段落（连续行合并）
+        buf = []
+        while i < len(lines):
+            cur = lines[i].rstrip()
+            cs = cur.strip()
+            if not cs or re.match(r'^(#{1,6})\s+', cs) or re.match(r'^([-*+]|\d+[.)])\s+', cs) or cs.startswith('>'):
+                break
+            buf.append(cs)
+            i += 1
+        if buf:
+            out.append('<p>%s</p>' % '<br>'.join(inline(x) for x in buf))
+    return '\n'.join(out)
+
+
+# ---------- 写入 ----------
+def swap(path, pattern, block, label):
+    if not os.path.exists(path):
+        print('  跳过：未找到 %s' % path)
+        return False
+    with open(path, encoding='utf-8') as f:
+        txt = f.read()
+    new, n = re.subn(pattern, lambda m: block, txt, flags=re.S)
+    if n != 1:
+        print('  !! %s 里的标记块不是唯一（找到 %d 处），已跳过 %s' % (path, n, label))
+        return False
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(new)
+    return True
+
+
+def write_json(data):
+    with open(JSON_PATH, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    print('  cards.json（%d 个版本，默认 %s）' % (len(data['versions']), data['default']))
+
+
+def write_index(data, rules_html):
+    js = 'const DECKS = ' + json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';'
+    ok1 = swap(INDEX_PATH,
+               r'/\* CARDS:START \*/.*?/\* CARDS:END \*/',
+               '/* CARDS:START */\n' + js + '\n/* CARDS:END */',
+               '卡牌数据')
+    ok2 = swap(INDEX_PATH,
+               r'<!-- RULES:START -->.*?<!-- RULES:END -->',
+               '<!-- RULES:START -->\n' + rules_html + '\n<!-- RULES:END -->',
+               '规则区')
+    if ok1 and ok2:
+        total = sum(len(data['versions'][v]['cards']) for v in data['order'])
+        print('  index.html（%d 个版本共 %d 张 + 规则区 %d 字符）' % (len(data['order']), total, len(rules_html)))
+
+
+def write_print_fallback(data):
+    vid = data['default']
+    cards = data['versions'][vid]['cards']
+    js = 'const FALLBACK = ' + json.dumps(
+        {'version': vid, 'label': data['versions'][vid]['label'], 'cards': cards},
+        ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';'
+    block = ('  /* FALLBACK:START */  // 由 tools/update.py 生成，请勿手改\n'
+             '  %s\n'
+             '  /* FALLBACK:END */' % js)
+    if swap(PRINT_PATH, r'[ \t]*\/\* FALLBACK:START \*\/.*?\/\* FALLBACK:END \*\/', block, '兜底数据'):
+        print('  print.html 内置兜底（%s，%d 张）' % (vid, len(cards)))
+
+
+def main():
+    print('读取 %s' % CSV_PATH)
+    rows = load_rows()
+    errs = validate(rows)
+    if errs:
+        print('\n校验未通过，未改动任何文件：')
+        for e in errs:
+            print('  - ' + e)
+        sys.exit(1)
+    data = build(rows)
+
+    with open(RULES_PATH, encoding='utf-8') as f:
+        rules_html = md_to_html(f.read())
+
+    print('写入：')
+    write_json(data)
+    write_index(data, rules_html)
+    write_print_fallback(data)
+    print('完成。')
+
+
+if __name__ == '__main__':
+    main()

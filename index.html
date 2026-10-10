@@ -2,514 +2,1130 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>大富翁卡牌打印版 · v6</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大富翁 · 自制机会 / 命运卡牌</title>
+<meta name="description" content="自制大富翁改版玩法：机会牌与命运牌全文、完整规则，以及可直接打印的卡牌排版页。">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { background: #1c1c1e; font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif; }
-
-  .chrome { background: #232327; border-bottom: 1px solid #3a3a40; padding: 14px 20px; color: #e8e8e8; position: sticky; top: 0; z-index: 10; }
-  .chrome h1 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
-  .chrome p { font-size: 12px; color: #9a9aa2; margin: 0 0 12px; line-height: 1.6; }
-  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .btn { background: #32323a; color: #dcdce2; border: 0.5px solid #4a4a52; border-radius: 8px; padding: 7px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
-  .btn:hover { border-color: #6a6a72; }
-  .btn.on { background: #0F6E56; border-color: #1D9E75; color: #E1F5EE; }
-  .btn.print { background: #D94F6E; border-color: #E8738C; color: #fff; }
-  .btn.off { opacity: .38; pointer-events: none; }
-  .sel { background: #32323a; color: #dcdce2; border: 0.5px solid #4a4a52; border-radius: 8px; padding: 7px 9px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
-  .sel:disabled { opacity: .55; cursor: default; }
-  .sep { width: 1px; height: 18px; background: #4a4a52; }
-  .specs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; color: #9a9aa2; }
-  .specs b { color: #e8e8e8; font-weight: 500; }
-
-  .wrap { padding: 24px 0 60px; }
-  .page-tag { margin: 0 auto 6px; font-size: 11.5px; color: #7a7a82; letter-spacing: .3px; }
-  .sheet {
-    background: #fff; margin: 0 auto 22px;
-    padding: var(--my) var(--mx);
-    display: flex; flex-wrap: wrap; align-content: flex-start;
-    gap: var(--gy) var(--gx);
-    page-break-after: always; break-after: page;
-    box-shadow: 0 2px 10px rgba(0,0,0,.4);
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
   }
-  .sheet:last-child { page-break-after: auto; break-after: auto; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
+  header { padding: 52px 0 30px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 26px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0 0 18px; color: #6b6a66; font-size: 14.5px; max-width: 640px; }
+  .btn {
+    display: inline-block; background: #B06F88; color: #fff; text-decoration: none;
+    padding: 9px 18px; border-radius: 8px; font-size: 14px;
+  }
+  .btn:hover { background: #96597A; }
+
+  section { padding: 34px 0; border-bottom: 1px solid #e8e5df; }
+  h2 { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+
+  .sec-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  select, .seg button {
+    font-family: inherit; font-size: 13px; background: #fff; color: #2c2c2a;
+    border: 1px solid #ddd9d2; border-radius: 8px; padding: 6px 11px; cursor: pointer;
+  }
+  .seg { display: flex; gap: 6px; }
+  .seg button.on { background: #2c2c2a; border-color: #2c2c2a; color: #fff; }
+  .meta { color: #8a8880; font-size: 13px; margin: 6px 0 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
   .card {
-    width: var(--cw); height: var(--ch);
-    border-radius: 2.6mm;
-    display: flex; flex-direction: column; align-items: center;
-    padding: 2mm 3mm 2.5mm;
-    position: relative; overflow: hidden;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    border-radius: 11px; padding: 14px 15px 15px; min-height: 156px;
+    display: flex; flex-direction: column; font-size: 13.5px; line-height: 1.55;
   }
   .card.chance { background: #B06F88; color: #fff; }
   .card.fate { background: #D9BA8E; color: #2C3E6B; }
+  .c-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .c-title { font-size: 15px; font-weight: 500; letter-spacing: 2px; }
+  .c-num { font-size: 11.5px; opacity: .7; }
+  .c-ev { flex: 1; }
+  .c-line { display: flex; align-items: flex-start; gap: 6px; margin-top: 7px; }
+  .c-cond { margin-top: 7px; font-size: 12.5px; opacity: .85; }
+  .c-win, .c-lose { font-size: 12.5px; }
+  .face { width: 15px; height: 15px; flex: none; margin-top: 2px; }
+  .empty { color: #8a8880; font-size: 13.5px; }
 
-  /* 大号浅色底纹：作为背景顶到最右边缘，文字直接覆盖其上 */
-  /* 不用 transform（打印分页时 transform 会导致错位并逃出 overflow 裁剪），
-     改用 inset 定位 + 负 margin 抵消全角符号自带的右侧留白，让字形贴右边缘微出血 */
-  .wm {
-    position: absolute; top: 0; right: 0; bottom: 0;
-    display: flex; align-items: center; justify-content: flex-end;
-    font-size: var(--wms); line-height: 1; font-weight: 700;
-    pointer-events: none; z-index: 0;
+  .md { font-size: 14.5px; }
+  .md h2 { font-size: 19px; margin: 30px 0 10px; }
+  .md h3 { font-size: 16px; font-weight: 500; margin: 24px 0 8px; }
+  .md h4 { font-size: 14.5px; font-weight: 500; margin: 18px 0 6px; color: #55534e; }
+  .md ul, .md ol { margin: 6px 0 6px; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
   }
-  .card.chance .wm { color: #CDA3B4; }
-  .card.fate .wm { color: #EEE0C4; }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
 
-  /* 编号：左上角 */
-  .num { position: absolute; left: 2mm; top: 1.2mm; font-size: var(--nfs); letter-spacing: .5px; font-weight: 500; z-index: 2; }
-  .card.chance .num { color: rgba(40,18,28,.8); }
-  .card.fate .num { color: rgba(35,30,25,.75); }
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+  footer a:hover { color: #96597A; }
 
-  .title {
-    flex: none; font-size: var(--tfs); font-weight: 700; line-height: 1.15;
-    letter-spacing: .28em; margin-right: -.28em;
-    margin-top: .5mm; margin-bottom: 1.5mm;
-    position: relative; z-index: 1;
-  }
-
-  /* 正文区域：整卡宽度（文字直接覆盖底纹），带内边距，超长自动缩字号 */
-  .txt {
-    flex: 1; min-height: 0; width: 100%;
-    padding: 0 1mm;
-    position: relative; z-index: 1;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 1.6mm; text-align: center; overflow: hidden;
-  }
-  .ev { font-size: var(--evfs); font-weight: 700; line-height: 1.4; }
-  .ef { font-size: var(--effs); font-weight: 500; line-height: 1.4; }
-  .sub { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
-  .cond { font-size: calc(var(--effs) - 0.5px); font-weight: 500; line-height: 1.35; opacity: .88; }
-  .cond::before { content: "◆ "; font-size: .8em; }
-
-  /* 带小脸的行：图标与文字保持间距 */
-  .line { display: flex; align-items: center; justify-content: center; gap: 1.2mm; max-width: 100%; }
-  .line .face { width: 1.05em; height: 1.05em; flex: none; display: block; }
-  .out { font-size: var(--effs); font-weight: 600; line-height: 1.38; }
-  .out.lose { font-weight: 500; opacity: .9; }
-
-  .blank { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 4px, #f2f2f2 4px, #f2f2f2 8px); border: 1px dashed #ddd; border-radius: 2.6mm; width: var(--cw); height: var(--ch); display: flex; align-items: center; justify-content: center; color: #c4c4c4; font-size: var(--evfs); }
-
-  /* ===== 卡牌背面：子元素全部绝对定位，故不参与 flex 排版 ===== */
-  .card.back { display: block; }
-  .back-frame {
-    position: absolute; inset: 3mm;
-    border-radius: 1.6mm;
-    border: 0.6mm solid currentColor;
-    opacity: .72;
-    pointer-events: none;
-  }
-  .back-face {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    gap: calc(var(--cw) * 0.075);
-  }
-  .back-face .w { font-size: calc(var(--cw) * 0.185); font-weight: 700; line-height: 1; }
-  .back-face .sym { font-size: calc(var(--cw) * 0.30); font-weight: 700; line-height: 1; opacity: .5; }
-  .back-en {
-    position: absolute; left: 0; right: 0; top: 70%;
-    font-size: calc(var(--cw) * 0.055); letter-spacing: .45em; text-indent: .45em;
-    text-align: center; opacity: .7;
-  }
-  .back-stamp {
-    position: absolute;
-    top: calc(var(--ch) * 0.07);
-    left: calc(var(--cw) * 0.04);
-    width: calc(var(--cw) * 0.24); height: calc(var(--cw) * 0.16);
-    transform: rotate(-12deg);
-    opacity: .85;
-    pointer-events: none;
-  }
-  .back-stamp ellipse {
-    fill: none; stroke: currentColor; stroke-width: 2;
-    stroke-dasharray: 6 5; opacity: .88;
-  }
-  .back-stamp text {
-    fill: currentColor; font-weight: 700;
-    font-size: calc(var(--cw) * 0.048);
-    text-anchor: middle; dominant-baseline: central;
-  }
-  .back-ver {
-    position: absolute; right: 5.5%; bottom: 5.5%;
-    font-size: calc(var(--cw) * 0.058); letter-spacing: .18em;
-    opacity: .82; pointer-events: none;
-    display: flex; align-items: center; gap: calc(var(--cw) * 0.012);
-  }
-  .devil {
-    width: calc(var(--cw) * 0.10); height: auto; flex: none;
-    fill: currentColor;
-  }
-
-  @media print {
-    body { background: #fff; }
-    .chrome { display: none !important; }
-    .wrap { padding: 0; }
-    .page-tag { display: none; }
-    .sheet { margin: 0; box-shadow: none; overflow: hidden; }
+  @media (max-width: 600px) {
+    header { padding: 34px 0 22px; }
+    header h1 { font-size: 21px; }
+    .grid { grid-template-columns: 1fr; }
   }
 </style>
-<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
 </head>
 <body>
 
-<div class="chrome">
-  <h1 id="pageTitle">大富翁卡牌打印版 · 横版</h1>
-  <p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。</p>
-  <div class="row">
-    <select id="verSel" class="sel" title="卡牌数据版本"></select>
-    <span class="sep"></span>
-    <button class="btn" data-paper="a4">A4 纸</button>
-    <button class="btn on" data-paper="photo6">6 寸相片纸 · 4 张/页</button>
-    <span class="sep"></span>
-    <button class="btn on" data-layout="standard">标准 · 8 张/页</button>
-    <button class="btn" data-layout="compact">紧凑 · 10 张/页</button>
-    <span class="sep"></span>
-    <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
-    <button class="btn" data-mode="split">按花色分页</button>
-    <span class="sep"></span>
-    <button class="btn on" data-side="front">正面</button>
-    <button class="btn" data-side="back">背面（对背打印）</button>
-    <button class="btn print" id="doPrint">打印</button>
+<div class="wrap">
+<header>
+  <h1>大富翁 · 自制机会 / 命运卡牌</h1>
+  <p>在实体《大富翁》基础上改的一套玩法：单个十六面骰、19580 起始资金，机会牌与命运牌全部重写。
+     下面是卡牌全文与完整规则，要打印的话走打印页。</p>
+  <a class="btn" href="print.html">去打印页 →</a>
+</header>
+
+<section id="cards">
+  <div class="sec-head">
+    <h2>卡牌</h2>
+    <div class="ctrl">
+      <select id="verSel" title="卡牌版本"></select>
+      <div class="seg" id="deckSeg">
+        <button data-deck="all" class="on">全部</button>
+        <button data-deck="chance">机会</button>
+        <button data-deck="fate">命运</button>
+      </div>
+    </div>
   </div>
-  <div class="specs" id="specs"></div>
+  <p class="meta" id="cardMeta"></p>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section id="rules">
+  <h2>游戏规则</h2>
+  <div class="md">
+<!-- RULES:START -->
+<h3>基本规则：</h3>
+<ul>
+<li>沿用地图
+</li>
+<li>1个十六面骰子（1-16机会均等）
+</li>
+<li>摇到16可以再摇一次
+</li>
+<li>初始资金 19580 = 5000*2 + 2000*2 + 1000*3 + 500*3 + 200*3 + 100*3 + 50*3 + 10*3
+</li>
+<li>每次路过出生点，可获得2000
+</li>
+<li>每次路过乞丐（破产玩家），需要施舍500块
+</li></ul>
+<h3>房子规则：</h3>
+<ul>
+<li>房子等级： 0-空地，1-3绿色，4红色（MAX）
+</li>
+<li>1-3级绿色房子升级费用 = 购地款 * 50%
+</li>
+<li>4级红色房子升级费用 = 购地款 * 100%
+</li>
+<li>单格过路费
+<ul>
+<li>空地：购地款 * 20%
+</li>
+<li>1-3级：购地款 * 50% * 等级
+</li>
+<li>4级：购地款 * 300%
+</li></ul>
+</li>
+<li>总过路费 = 同色同归属的所有房屋的过路费的总和，向下取整十
+</li></ul>
+<h3>监狱规则：</h3>
+<ul>
+<li>送进监狱 = 强制移动到离出生点最远的格子，跳过你的回合，无法收租，无法参与拍卖
+</li>
+<li>连续两次摇到16送进监狱1回合
+</li>
+<li>机会/命运牌可能送进监狱
+</li></ul>
+<h3>拍卖规则</h3>
+<ul>
+<li>不够钱交过路费时，可以选择一个房子进行拍卖，起拍价为房子总价的50%，向下取整十
+</li>
+<li>升级/购地时不能触发拍卖
+</li>
+<li>所有人都可以参加拍卖（监狱内玩家除外）
+</li>
+<li>每次最少加100
+</li>
+<li>流拍时，银行以起拍价收购房子，此后房子无主
+</li>
+<li>拍卖所得的25%上交银行，向下取整十，剩下部分归房屋所有者
+</li></ul>
+<h3>卡牌</h3>
+<h4>当前生效的卡牌</h4>
+<p>在 <strong><code>cards.csv</code></strong>，打印页读的就是它。要改卡牌内容请改这个文件，<br>字段怎么填见 <a href="docs/csv-fields.md">csv-fields.md</a>。</p>
+<h4>历史版本</h4>
+<p><code>cards/v1.md</code> … <code>cards/v6.md</code>。当前内容来自 <strong>v6（邪恶版·世界之旅）</strong>。</p>
+<h4>初版卡牌（2026-10-08，机会 16 + 命运 16）</h4>
+<p>最早写在 Word 文档里的版本，此处存档备查，实际游戏已不使用。</p>
+<p><strong>机会牌</strong></p>
+<ol>
+<li>你买的国足赢了世界杯：+3000
+</li>
+<li>你与马来西亚农民一起种植油棕：+2000
+</li>
+<li>你在马里亚纳海沟钓到了深海克苏鲁：+1000
+</li>
+<li>你的航班延误了，获得赔偿+500
+</li>
+<li>你在家里的厕所挖到了古董：+500
+</li>
+<li>你在珠穆朗玛峰成功救下了一个富豪：+500
+</li>
+<li>今天你生日，每个玩家给你发红包：+200*N
+</li>
+<li>你在埃及找到了一支野生的工程队：下一回合到达的地块免费升级一次
+</li>
+<li>你在中国乘坐磁悬浮列车：+1骰子次数
+</li>
+<li>你假冒FBI查房：向所有玩家收取过路费（所有玩家触发一次当前格子的过路费，钱给你）
+</li>
+<li>你在缅甸遭遇诈骗：摇一次骰子，强制拍卖该处房子
+</li>
+<li>你前往加拿大的海上遇到了飓风：+1骰子次数，向后移动
+</li>
+<li>你在日本遭遇地震：-500
+</li>
+<li>你在古巴遭受袭击：-500
+</li>
+<li>你在南非买了大象：-1000
+</li>
+<li>你在冰岛种植橡胶树：-2000
+</li></ol>
+<p><strong>命运牌</strong></p>
+<ol>
+<li>你存在瑞士的加密货币被黑客盗取了：-3000
+</li>
+<li>你在南极看企鹅的时候弄丢了手机：-2000
+</li>
+<li>你在新加坡吸烟：-1000
+</li>
+<li>你去墨尔本挖翡翠：-500
+</li>
+<li>你去巴西观看世界杯：-500
+</li>
+<li>你请所有人去韩国吃烤肉：-200*N
+</li>
+<li>你在叙利亚被导弹锁定了：下一回合到达的地块降级一次
+</li>
+<li>你在美国跟牛仔决斗：摇一次骰子猜大小，输了把你送进监狱3回合，赢了+3000
+</li>
+<li>你在印度用左手吃饭，因吃坏肚子重新出生了：回到出生点（没有奖励）
+</li>
+<li>你在澳大利亚被外星人绑架了：跳过下一个回合
+</li>
+<li>你乘船通过巴拿马运河：+1骰子次数
+</li>
+<li>你在澳门玩的很开心，给每个玩家发红包：-200*N
+</li>
+<li>你在英国给旅行者当翻译：+500
+</li>
+<li>你受邀至拉斯维加斯表演魔术：+500
+</li>
+<li>你在俄罗斯捡到了钻石：+1000
+</li>
+<li>你在墨西哥走私显卡：+2000
+</li></ol>
+<blockquote><code>N</code> = 存活玩家人数（含自己）</blockquote>
+<!-- RULES:END -->
+  </div>
+</section>
+
+<footer>
+  <a href="print.html">打印页</a>
+  <a href="docs/rules.md">规则源文件</a>
+  <a href="docs/map-tiles.md">地图格子数据</a>
+  <a href="docs/csv-fields.md">卡牌字段说明</a>
+  <a href="docs/card-diff.md">与原版卡差异</a>
+  <span>CC BY-NC 4.0</span>
+</footer>
 </div>
 
-<div class="wrap" id="wrap"></div>
-
+<script id="deckData">
+/* CARDS:START */
+const DECKS = {
+  "default": "v6",
+  "order": [
+    "v4",
+    "v5",
+    "v6"
+  ],
+  "versions": {
+    "v4": {
+      "label": "v4 · 主线常规版",
+      "cards": [
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你买的国足赢了世界杯",
+          "effect": "+3000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你与马来西亚农民一起种植油棕",
+          "effect": "+2000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在马里亚纳海沟钓到了深海克苏鲁",
+          "effect": "+1000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你的航班延误了，获得赔偿",
+          "effect": "+500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在家里的厕所挖到了古董",
+          "effect": "+500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在珠穆朗玛峰成功救下了一个富豪",
+          "effect": "+500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "今天你生日，每个玩家给你发红包",
+          "effect": "+200 × N"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在埃及找到了一支野生的工程队",
+          "effect": "下一回合到达的地块免费升级一次"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在中国乘坐磁悬浮列车",
+          "effect": "+1 骰子次数"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你假冒 FBI 查房",
+          "effect": "向所有玩家收取过路费（所有玩家触发一次当前格子的过路费，钱给你）"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在迪拜淘到一辆二手超跑，转手卖出",
+          "effect": "+2500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在挪威钓到三文鱼王，被海鲜商高价收购",
+          "effect": "+1500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在泰国成为人妖秀头牌，全场观众给你打赏",
+          "effect": "+300 × N"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你成为首位平民太空旅客，NASA 发放补贴",
+          "effect": "+2000，并 +1 骰子次数"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在缅甸遭遇诈骗",
+          "effect": "强制拍卖该处房子"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在日本遭遇地震",
+          "effect": "-500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在古巴遭受袭击",
+          "effect": "-500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在南非买了大象",
+          "effect": "-1000"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在冰岛种植橡胶树",
+          "effect": "-2000"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你前往加拿大的海上遇到了飓风",
+          "effect": "倒退 3 格，并取消下一次掷骰机会"
+        },
+        {
+          "deck": "fate",
+          "event": "你在美国跟牛仔决斗，规则是背对背各走十六步才许回头开枪——你押他会在前八步还是后八步回头",
+          "cond": "押大小：前八步 = 小（1-8）/ 后八步 = 大（9-16）",
+          "win": "押中你抢先开枪：+3000",
+          "lose": "押错你被打中：送进监狱 3 回合（≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在摩纳哥赌场玩轮盘，身上钱只够押最后一注：单还是双",
+          "cond": "押单双：奇数 = 单 / 偶数 = 双",
+          "win": "+2000",
+          "lose": "-2000",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在迪拜看骆驼赛，你和左手边的玩家各买了一头骆驼，两头骆驼同时冲刺，跑得快的那头赢",
+          "cond": "比点数：你和左手玩家各摇一颗判定骰（= 两头骆驼的冲刺距离），大者胜，平局是并列冠军、重赛",
+          "win": "你的骆驼夺冠：+1500",
+          "lose": "他的骆驼夺冠：-1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在西班牙过奔牛节，跳进赛道和公牛一起狂奔——你能跑出多少步，就看你这回合的移动骰，跑出 9 步以上才能甩开牛群",
+          "cond": "用本次移动骰点数判定：≥ 9 甩开牛群",
+          "win": "安全甩开，还捡到观众掉的钱包：+500",
+          "lose": "跑得不够快被牛顶伤：-500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在泰国夜市碰上当地最流行的猜骰子摊：摊主把骰子攥在一只拳头里让你猜在哪只手",
+          "cond": "猜左右手：摊主（由左手玩家扮演）握骰，你猜左或右",
+          "win": "+1000",
+          "lose": "-1000",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在阿根廷酒馆和当地人起争执，他提议按南美人的老规矩一局手势定胜负，输的付酒钱",
+          "cond": "石头剪刀布：与左手玩家（扮演当地人）一局定胜负，平局算酒洒了重来",
+          "win": "+1500",
+          "lose": "-1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在冰岛跟着向导走到火山口边缘，向导说今天火山活跃度指数 1-16 级，1-7 级可以继续走到边缘拍照卖钱，8 级以上必须立刻撤离、团费不退",
+          "cond": "押区间：摇判定骰 = 活跃度指数，1-7 为赢",
+          "win": "火山口大片卖给杂志：+900",
+          "lose": "被迫撤离 + 没收定金：-700",
+          "rate": "43.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在埃及盗掘金字塔，石门上有一圈 16 格太阳历转盘，传说拉美西斯二世的幸运数字是 14、15、16，拨到这三格石门才开，拨错会触发流沙陷阱",
+          "cond": "赌爆点：摇到 14 / 15 / 16",
+          "win": "石门开启，搬空墓室：+2600",
+          "lose": "流沙灌进装备包：-600",
+          "rate": "18.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在尼泊尔随夏尔巴搜救队进山找失踪登山者，队长摊开地图：16 条搜索路线，只有 1 号线下方是暗裂缝，抽到就得下坠救援，其余路线都能找到人领酬金",
+          "cond": "押「不摇到 1」：摇到 2-16 都算赢",
+          "win": "找到登山者，拿到酬金：+200",
+          "lose": "抽中 1 号线坠落：-3000",
+          "rate": "93.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在里约桑巴大赛即兴上台跳了一段，全场喝彩。下台前主持人起哄：敢不敢竞猜评委会给你打几分？评分制 3-14 分，误差在 2 分以内算你猜中",
+          "cond": "猜数字：从 3-14 中猜一个数（= 你猜的分数），摇判定骰 = 评委实际打分，误差 ≤ 2 算赢",
+          "win": "猜中拿走竞猜大奖：+2200",
+          "lose": "差太多，交竞猜罚金：-1000",
+          "rate": "31.25%"
+        },
+        {
+          "deck": "fate",
+          "event": "你被外星人绑架去做体检。飞船上的测醉仪是颗十六面骰：单数 = 清醒，双数 = 喝醉",
+          "cond": "押单双",
+          "win": "清醒的外星人礼貌送你回家，还赔了精神损失费：+800",
+          "lose": "喝醉的外星人把你冻在半空一整回合，忘了帮你收租：原地停止 1 回合 + 本回合不收租（≈ -800）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "蒙面大盗（你）潜入旅馆行窃，专挑钱包最鼓的人下手——你和最有钱的玩家在小巷里扭打，各显身手",
+          "cond": "比点数：你和最有钱的玩家各摇一颗，大者胜，平局重来",
+          "win": "摸走他 1500（他 -1500，你 +1500）",
+          "lose": "被反手按住，赔他 1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你去抢银行。金库大门是 1-16 的密码转盘，守卫今天设的是小户门（1-8）还是大户门（9-16）全看运气",
+          "cond": "押大小",
+          "win": "密码押中，搬空金库：+3000",
+          "lose": "警报响起，被送进监狱 3 回合（≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "外星人喝醉了开飞船，朝你领地上等级最高的那栋房栽过来——飞船稳定仪 1-16 级，9 级以上才能拉起机头",
+          "cond": "押区间 9-16",
+          "win": "飞船擦着楼顶拉起，外星人赔钱帮你加盖：那栋房 +1 级",
+          "lose": "飞船撞烂楼顶：那栋房 -1 级（1 级 → 空地；名下无房则你 +1000 / 外星人跑了你自认倒霉 -1000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "税务局搞路段单双号抽查：你现在站的格子是单号就退税、双号就补税，税额 = 判定骰点数 × 100",
+          "cond": "所在格奇偶 + 骰点计税：单号格 = 退税，双号格 = 补税",
+          "win": "退税：+点数 × 100（均值 +850）",
+          "lose": "补税：-点数 × 100（均值 -850）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "殖民舰队降临，要在你和左手玩家的领地上选一处建主基地。舰队主炮充能转盘 1-8 打你的旗、9-16 打他的旗，旗子没被打掉的领地归胜者",
+          "cond": "押大小（= 他人代摇）",
+          "win": "你的旗升起：免费占有他购地款最低的一块地（连房带地归你）",
+          "lose": "他的旗升起：你购地款最低的一块地归他",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你掉进百慕大时空隧道，隧道的极性由奇偶决定：单数 = 顺流，双数 = 逆流",
+          "cond": "押单双",
+          "win": "顺流被推着走：前进 4 格（经过出生点照常领 +2000）",
+          "lose": "逆流被拽回去：后退 4 格",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "荒野镖客对决：你和棋盘上顺时针离你最近的玩家狭路相逢，各自拔枪——枪法就是各摇一颗骰",
+          "cond": "比点数：各摇一颗，大者胜，平局重来",
+          "win": "你赢下对决：拿走他现金的一半（向下取整十）",
+          "lose": "他赢下对决：拿走你现金的一半",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你举报黑帮成为污点证人：警方发 2000 补贴并把你保护性羁押，法官心情骰单双决定关多久——反正牢是要坐的，钱也是要拿的",
+          "cond": "押单双（奖罚同时）",
+          "win": "法官心情好：关 1 回合，净 +1000（2000 - 1000）",
+          "lose": "法官心情差：关 3 回合，净 -1000（2000 - 3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "黑市地下拍卖：你和右手玩家各押一块自己购地款最低的地上桌，拍卖师（由右手玩家的下家担任）掷骰定先后手——≥9 你先拍，≤8 他先拍",
+          "cond": "他人代摇（≥9 / ≤8）",
+          "win": "你先拍：以起拍价（半价）强制拍得他的那块地，他收全款",
+          "lose": "他先拍：他半价拍得你的那块地，你收全款",
+          "rate": "50%"
+        }
+      ]
+    },
+    "v5": {
+      "label": "v5 · 邪恶版 · 魔幻",
+      "cards": [
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你举报同桌玩家偷税，税务局发举报奖金",
+          "effect": "+2000，被举报者（最有钱的玩家）-2000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你冒充税务稽查员上门「查账」",
+          "effect": "向最有钱的玩家罚款 2000，钱归你"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在赌场出千被荷官发现——但荷官是你发小",
+          "effect": "+3000，左手玩家替你平事被没收 1000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你把假地图卖给刚要出发的旅行团",
+          "effect": "+1000，右手玩家取消下次掷骰"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你倒卖限量球鞋，黄牛圈为你封神",
+          "effect": "+1500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你买通裁判，你押的队「赢了」",
+          "effect": "+2500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你偷了隔壁玩家的登机牌，占了头等舱",
+          "effect": "+500，他退到经济舱：跳过下回合"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你给对手的咖啡里下泻药，拍卖会上他狂奔离席",
+          "effect": "他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你卖「防雷符」给富豪，当天下雨他就信了",
+          "effect": "+1000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在保险公司给你最贵的房投了灾险，然后隔壁「不小心」着火了",
+          "effect": "那块房 -1 级，你领赔偿 +1500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你开了一家「监狱代购」，垄断了铁窗外的外卖",
+          "effect": "所有监狱里的玩家每人付你 300"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你仿冒名牌包卖给旅游团",
+          "effect": "+800 ×（在场有房的玩家人数）"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你把游戏说明书改成「路过出生点交 500」，居然真有人信了",
+          "effect": "每个玩家付你 200（收「智商税」）"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你贿赂骰子之神",
+          "effect": "+1 骰子次数，且下次移动骰摇到 8-16 可任选正走或倒走"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你出千被真正的赌场抓了现行",
+          "effect": "强制拍卖该处房子，拍卖所得上交银行（你一分拿不到）"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你造的假币被人用回你自己的店",
+          "effect": "-1500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你买的「纯金」纪念币是镀金的",
+          "effect": "-500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你教唆的小孩把他家房契拿去换卡牌，家长找上门",
+          "effect": "-1000，并且下一回合你到达的地块若属他人，过路费翻倍（顶风作案人尽皆知）"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你的诈骗集团被一锅端，你是唯一没跑掉的",
+          "effect": "-2500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你被全网曝光，人肉搜索出所有黑历史",
+          "effect": "所有玩家可向你「索赔」一次：每人拿走 200（-200 × N）"
+        },
+        {
+          "deck": "fate",
+          "event": "魔鬼跟你玩「灵魂赌局」：他背对背走十六步才回头索命——你押他会在前八步还是后八步回头",
+          "cond": "押大小",
+          "win": "抢先点名魔鬼真名，他倒赔封口费：+3000",
+          "lose": "灵魂被抵押：送进监狱 3 回合（≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "地下钱庄最后一注，庄家冷笑：单还是双",
+          "cond": "押单双",
+          "win": "+3000",
+          "lose": "-2000，还被掰断手指：取消下次掷骰（合计 ≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你和左手玩家各自雇了杀手互杀——谁先得手，就看各自杀手的骰点",
+          "cond": "比点数：各摇一颗（= 杀手行动力），大者胜，平局双双失手重来",
+          "win": "他「意外身亡」：你分到他 2000 遗产（他 -2000，你 +2000）",
+          "lose": "你进了医院：-2000（医药费归医院）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "亡命狂奔：宪兵队放狗追你——你跑出的步数 = 这回合的移动骰点数，9 步以上才能翻墙",
+          "cond": "用本次移动骰点数判定：≥ 9",
+          "win": "翻墙甩脱，口袋里还装着刚偷的钱：+500",
+          "lose": "被扑倒搜身：-500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "巫婆把诅咒骰攥在拳头里让你猜——猜错就中咒",
+          "cond": "猜左右手：巫婆（由左手玩家扮演）握骰",
+          "win": "解咒 +1000",
+          "lose": "中咒：下回合你所有过路费收入减半（≈ -1000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "黑帮谈判破裂，双方按江湖规矩一局手势定生死",
+          "cond": "石头剪刀布：与左手玩家一局定胜负，平局算都收手重来",
+          "win": "+1500",
+          "lose": "-1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你潜入魔王的火山老巢，卫兵报告警戒等级 1-16，1-7 级可以摸进宝库",
+          "cond": "押区间 1-7",
+          "win": "偷出魔物蛋卖给收藏家：+900",
+          "lose": "触发警报被熔岩燎到：-700",
+          "rate": "43.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "死神的轮盘：十六格命盘，14、15、16 三格写着「缓刑」，其余都是「即刻带走」",
+          "cond": "赌爆点：摇到 14 / 15 / 16",
+          "win": "死神输了面子，倒赔你阳寿钱：+2600",
+          "lose": "交赎命钱：-600",
+          "rate": "18.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你跟食人族跳完祭祀舞，族长掷命运骨：只有掷出 1 的人会成为今晚的主菜",
+          "cond": "押「不摇到 1」",
+          "win": "平安无事，还领了部落赏金：+200",
+          "lose": "成为主菜，连夜凑赎身钱：-3000",
+          "rate": "93.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "歌舞厅老板娘逼你竞猜她给你打的「好感分」（3-14 分，差 2 以内她请你喝酒）",
+          "cond": "猜数字：从 3-14 猜一个数，摇判定骰 = 实际好感分，误差 ≤ 2 算赢",
+          "win": "+2200",
+          "lose": "-1000（她男人的医药费归你出）",
+          "rate": "31.25%"
+        },
+        {
+          "deck": "fate",
+          "event": "你对恶魔撒了个弥天大谎。恶魔的测谎仪是颗十六面骰：单数 = 通过，双数 = 识破",
+          "cond": "押单双",
+          "win": "谎言生效，恶魔信了还倒贴「诚意金」：+800",
+          "lose": "被识破，舌头被施咒：下回合禁止交易与谈判（≈ -800）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你潜入首富卧室行窃，惊醒了他——床上床下各显身手",
+          "cond": "比点数：你和最有钱的玩家各摇一颗，平局重来",
+          "win": "卷走 1500（他 -1500，你 +1500）",
+          "lose": "被抓包，私了赔 1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你去抢恶魔银行。地狱金库门是 1-16 密码转盘，恶魔守卫今天设的是小户门还是大户门全看运气",
+          "cond": "押大小",
+          "win": "+3000",
+          "lose": "传入地狱监狱：坐牢 3 回合（≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "巨龙喝醉了朝你最高的塔楼俯冲——风力 9 级以上才能让它拉起机头",
+          "cond": "押区间 9-16",
+          "win": "巨龙擦着塔尖拉起，还赔钱帮你加盖：那栋房 +1 级",
+          "lose": "撞烂塔顶：那栋房 -1 级（1 级 → 空地；名下无房则 ±1000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "魔王税务局搞单双号抽魂：单号格退魂给钱，双号格抽魂给钱，数额 = 骰点 × 100",
+          "cond": "所在格奇偶 + 骰点计税",
+          "win": "退魂费：+点数 × 100（均值 +850）",
+          "lose": "抽魂费：-点数 × 100（均值 -850）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "双头恶魔要吃地契：它嘴里有两杆秤，1-8 吃你的、9-16 吃左手的",
+          "cond": "押大小",
+          "win": "吃掉左手玩家购地款最低的一块地（归你）",
+          "lose": "吃掉你的那块（归他）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "传送门故障，奇偶决定把你扔向未来还是过去",
+          "cond": "押单双",
+          "win": "被扔向未来：前进 4 格（经过出生点照常领 +2000）",
+          "lose": "被扔向过去：后退 4 格",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "赏金猎人放出的悬赏令同时锁定了你和顺时针最近的玩家——赏金归活下来的那个",
+          "cond": "比点数：各摇一颗（= 出枪快慢），平局同归于尽重来",
+          "win": "你活着领赏：拿走他现金的一半（向下取整十）",
+          "lose": "他领赏：拿走你现金的一半",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你向魔王告发了自己的黑帮兄弟——赏金必拿，牢也必坐，魔王掷骰决定关你多久",
+          "cond": "押单双（奖罚同时）",
+          "win": "魔王高兴：关 1 回合，净 +1000（2000 - 1000）",
+          "lose": "魔王嫌弃告密者：关 3 回合，净 -1000（2000 - 3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "黑市「决斗拍卖」：你和右手玩家各押一块自己购地款最低的地上桌，中间人（由右手玩家的下家担任）掷骰定谁先喊价——≥9 你先，≤8 他先",
+          "cond": "他人代摇（≥9 / ≤8）",
+          "win": "你先喊：以起拍价（半价）强制拍得他的地，他收全款",
+          "lose": "他先喊：他半价拍得你的地，你收全款",
+          "rate": "50%"
+        }
+      ]
+    },
+    "v6": {
+      "label": "v6 · 邪恶版 · 世界之旅",
+      "cards": [
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金",
+          "effect": "+2000，被举报者（最有钱的玩家）-2000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」",
+          "effect": "向最有钱的玩家罚款 2000，钱归你"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在澳门赌场出千被荷官发现——但荷官是你发小",
+          "effect": "+3000，左手玩家替你平事被没收 1000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团",
+          "effect": "+1000，右手玩家取消下次掷骰"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在米兰倒卖限量球鞋，黄牛圈为你封神",
+          "effect": "+1500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你买通了马赛的裁判，你押的队「赢了」世界杯",
+          "effect": "+2500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱",
+          "effect": "+500，他退到经济舱：跳过下回合"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药",
+          "effect": "他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在里约把「防抢劫符」卖给富豪，当晚贫民窟枪一响他就信了",
+          "effect": "+1000"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在伦敦给你最贵的房产投了灾险，然后隔壁「不小心」着火了",
+          "effect": "那块房 -1 级，你领赔偿 +1500"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在莫斯科开「监狱代购」，垄断了西伯利亚铁窗外的外卖",
+          "effect": "所有监狱里的玩家每人付你 300"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在广州仿冒名牌包卖给欧洲旅游团",
+          "effect": "+800 ×（在场有房的玩家人数）"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了",
+          "effect": "每个玩家付你 200（收「智商税」）"
+        },
+        {
+          "deck": "chance",
+          "face": "smile",
+          "event": "你在拉斯维加斯贿赂了骰子之神",
+          "effect": "+1 骰子次数，且下次移动骰摇到 8-16 可任选正走或倒走"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在拉斯维加斯出千被真正的赌场抓了现行",
+          "effect": "强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在平壤造的假美元被人用回你自己的黑市摊位",
+          "effect": "-1500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在开罗买的「图坦卡蒙纯金」圣甲虫是镀金的",
+          "effect": "-500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在那不勒斯教唆小孩把家里房契拿去换球星卡，黑手党家长找上门",
+          "effect": "-1000，并且下一回合你到达的地块若属他人，过路费翻倍（顶风作案人尽皆知）"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在哥伦比亚的诈骗集团被一锅端，你是唯一没跑掉的",
+          "effect": "-2500"
+        },
+        {
+          "deck": "chance",
+          "face": "frown",
+          "event": "你在首尔被全网人肉，黑历史挂上热搜",
+          "effect": "所有玩家可向你「索赔」一次：每人拿走 200（-200 × N）"
+        },
+        {
+          "deck": "fate",
+          "event": "你在德州跟亡命牛仔玩「灵魂赌局」：背对背各走十六步才回头开枪——你押他会在前八步还是后八步回头",
+          "cond": "押大小",
+          "win": "抢先点名牛仔真名，他倒赔封口费：+3000",
+          "lose": "灵魂被抵押：送进监狱 3 回合（≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在澳门地下钱庄押上最后一注，庄家冷笑：单还是双",
+          "cond": "押单双",
+          "win": "+3000",
+          "lose": "-2000，还被掰断手指：取消下次掷骰（合计 ≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你和左手玩家在西西里各自雇了杀手互杀——谁先得手，就看各自杀手的骰点",
+          "cond": "比点数：各摇一颗（= 杀手行动力），大者胜，平局双双失手重来",
+          "win": "他「意外身亡」：你分到他 2000 遗产（他 -2000，你 +2000）",
+          "lose": "你重伤治疗：-2000（医药费）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "亡命狂奔：马德里宪兵队放狗追你——你跑出的步数 = 这回合的移动骰点数，9 步以上才能翻墙",
+          "cond": "用本次移动骰点数判定：≥ 9",
+          "win": "翻墙甩脱，口袋里还装着刚偷的钱：+500",
+          "lose": "被扑倒搜身：-500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在河内老街碰上巫祝：她把诅咒骰攥在拳头里让你猜在哪只手——猜错就中咒",
+          "cond": "猜左右手：巫祝（由左手玩家扮演）握骰",
+          "win": "解咒 +1000",
+          "lose": "中咒：下回合你所有过路费收入减半（≈ -1000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定生死",
+          "cond": "石头剪刀布：与左手玩家一局定胜负，平局算都收手重来",
+          "win": "+1500",
+          "lose": "-1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你潜入西西里黑手党的金库，守卫报告警戒等级 1-16，1-7 级可以摸进宝库",
+          "cond": "押区间 1-7",
+          "win": "偷出教父的藏品卖给收藏家：+900",
+          "lose": "触发警报被探照灯燎到：-700",
+          "rate": "43.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在蒙特卡洛把全部身家压上轮盘：十六格轮盘里 14、15、16 三格是「连本带利」，其余全吞",
+          "cond": "赌爆点：摇到 14 / 15 / 16",
+          "win": "连本带利：+2600",
+          "lose": "全被吞掉：-600",
+          "rate": "18.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在巴布亚新几内亚跟部落跳完祭祀舞，族长掷命运骨：只有掷出 1 的人会成为今晚的主菜",
+          "cond": "押「不摇到 1」",
+          "win": "平安无事，还领了部落赏金：+200",
+          "lose": "成为主菜，连夜凑赎身钱：-3000",
+          "rate": "93.75%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在巴黎红磨坊即兴演出，老板娘逼你竞猜她给你打的「好感分」（3-14 分，差 2 以内她请你喝酒）",
+          "cond": "猜数字：从 3-14 猜一个数，摇判定骰 = 实际好感分，误差 ≤ 2 算赢",
+          "win": "+2200",
+          "lose": "-1000（她相好的医药费归你出）",
+          "rate": "31.25%"
+        },
+        {
+          "deck": "fate",
+          "event": "你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰：单数 = 通过，双数 = 识破",
+          "cond": "押单双",
+          "win": "谎言生效，军阀信了还倒贴「诚意金」：+800",
+          "lose": "被识破，被押去跪榴莲：下回合禁止交易与谈判（≈ -800）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你潜入苏黎世首富的卧室行窃，惊醒了他——床上床下各显身手",
+          "cond": "比点数：你和最有钱的玩家各摇一颗，平局重来",
+          "win": "卷走 1500（他 -1500，你 +1500）",
+          "lose": "被抓包，私了赔 1500",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你去抢瑞士银行。金库大门是 1-16 密码转盘，守卫今天设的是小户门还是大户门全看运气",
+          "cond": "押大小",
+          "win": "+3000",
+          "lose": "被押进瑞士监狱：坐牢 3 回合（≈ -3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级以上它才拐得走",
+          "cond": "押区间 9-16",
+          "win": "台风擦楼而过，保险公司赔钱帮你加盖：那栋房 +1 级",
+          "lose": "撞烂楼顶：那栋房 -1 级（1 级 → 空地；名下无房则 ±1000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "伦敦税务局搞路段单双号抽查：单号格退税、双号格补税，税额 = 判定骰点数 × 100",
+          "cond": "所在格奇偶 + 骰点计税",
+          "win": "退税：+点数 × 100（均值 +850）",
+          "lose": "补税：-点数 × 100（均值 -850）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "东西两大财团要在你和左手玩家的地盘上建总部，董事会转盘 1-8 买你的地、9-16 买他的地——被买走的地归赢家",
+          "cond": "押大小",
+          "win": "财团买走左手玩家购地款最低的一块地（归你）",
+          "lose": "买走你的那块（归他）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你掉进百慕大三角，奇偶决定把你扔向未来还是过去",
+          "cond": "押单双",
+          "win": "被扔向未来：前进 4 格（经过出生点照常领 +2000）",
+          "lose": "被扔向过去：后退 4 格",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "索马里海岸，赏金猎人放出的通缉令同时锁定了你和顺时针最近的玩家——赏金归活下来的那个",
+          "cond": "比点数：各摇一颗（= 出枪快慢），平局同归于尽重来",
+          "win": "你活着领赏：拿走他现金的一半（向下取整十）",
+          "lose": "他领赏：拿走你现金的一半",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "你向国际刑警告发了同船的蛇头——赏金必拿，证人保护也必进，法官掷骰决定关你多久",
+          "cond": "押单双（奖罚同时）",
+          "win": "法官心情好：关 1 回合，净 +1000（2000 - 1000）",
+          "lose": "法官心情差：关 3 回合，净 -1000（2000 - 3000）",
+          "rate": "50%"
+        },
+        {
+          "deck": "fate",
+          "event": "迪拜黑市「决斗拍卖」：你和右手玩家各押一块自己购地款最低的地上桌，中间人（由右手玩家的下家担任）掷骰定谁先喊价——≥9 你先，≤8 他先",
+          "cond": "他人代摇（≥9 / ≤8）",
+          "win": "你先喊：以起拍价（半价）强制拍得他的地，他收全款",
+          "lose": "他先喊：他半价拍得你的地，你收全款",
+          "rate": "50%"
+        }
+      ]
+    }
+  }
+};
+/* CARDS:END */
+</script>
 <script>
-// ===== 卡牌数据 =====
-// 来源优先级：先尝试 fetch 同目录的 cards.json（GitHub Pages 上同源可读）；
-// 读不到就回退到下面的内置兜底数据 —— 本地双击打开是 file:// 协议，fetch 会被浏览器拦掉，
-// 所以内置兜底不是摆设，是本地使用模式的必需品。
-// 内置兜底由 tools/csv2json.py 从 cards.csv 自动生成，改卡牌请改 cards.csv，别手改这里。
-  /* FALLBACK:START */  // 由 tools/csv2json.py 生成，请勿手改
-  const FALLBACK = {
-    "version": "v6",
-    "label": "v6 · 邪恶版 · 世界之旅",
-    "cards": [
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在瑞士的匿名账户被发现，你抢先举报同桌开曼账户的同行，瑞银发洗钱举报奖金",
-        "effect": "+2000，被举报者（最有钱的玩家）-2000"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在巴拿马注册了空壳公司，冒充税务稽查员上门「查账」",
-        "effect": "向最有钱的玩家罚款 2000，钱归你"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在澳门赌场出千被荷官发现——但荷官是你发小",
-        "effect": "+3000，左手玩家替你平事被没收 1000"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在撒哈拉把假罗盘卖给刚要进沙漠的旅行团",
-        "effect": "+1000，右手玩家取消下次掷骰"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在米兰倒卖限量球鞋，黄牛圈为你封神",
-        "effect": "+1500"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你买通了马赛的裁判，你押的队「赢了」世界杯",
-        "effect": "+2500"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在伊斯坦布尔机场偷了隔壁玩家的登机牌，占了头等舱",
-        "effect": "+500，他退到经济舱：跳过下回合"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在迪拜拍卖会前给对手的阿拉伯咖啡里下了泻药",
-        "effect": "他（最有钱的玩家）名下一块地强制拍卖，你出价时其他人不许加价"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在里约把「防抢劫符」卖给富豪，当晚贫民窟枪一响他就信了",
-        "effect": "+1000"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在伦敦给你最贵的房产投了灾险，然后隔壁「不小心」着火了",
-        "effect": "那块房 -1 级，你领赔偿 +1500"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在莫斯科开「监狱代购」，垄断了西伯利亚铁窗外的外卖",
-        "effect": "所有监狱里的玩家每人付你 300"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在广州仿冒名牌包卖给欧洲旅游团",
-        "effect": "+800 ×（在场有房的玩家人数）"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在曼谷把大富翁说明书改成「路过出生点交 500」，全团居然信了",
-        "effect": "每个玩家付你 200（收「智商税」）"
-      },
-      {
-        "deck": "chance",
-        "face": "smile",
-        "event": "你在拉斯维加斯贿赂了骰子之神",
-        "effect": "+1 骰子次数，且下次移动骰摇到 8-16 可任选正走或倒走"
-      },
-      {
-        "deck": "chance",
-        "face": "frown",
-        "event": "你在拉斯维加斯出千被真正的赌场抓了现行",
-        "effect": "强制拍卖该处房子，拍卖所得上交赌场（你一分拿不到）"
-      },
-      {
-        "deck": "chance",
-        "face": "frown",
-        "event": "你在平壤造的假美元被人用回你自己的黑市摊位",
-        "effect": "-1500"
-      },
-      {
-        "deck": "chance",
-        "face": "frown",
-        "event": "你在开罗买的「图坦卡蒙纯金」圣甲虫是镀金的",
-        "effect": "-500"
-      },
-      {
-        "deck": "chance",
-        "face": "frown",
-        "event": "你在那不勒斯教唆小孩把家里房契拿去换球星卡，黑手党家长找上门",
-        "effect": "-1000，并且下一回合你到达的地块若属他人，过路费翻倍（顶风作案人尽皆知）"
-      },
-      {
-        "deck": "chance",
-        "face": "frown",
-        "event": "你在哥伦比亚的诈骗集团被一锅端，你是唯一没跑掉的",
-        "effect": "-2500"
-      },
-      {
-        "deck": "chance",
-        "face": "frown",
-        "event": "你在首尔被全网人肉，黑历史挂上热搜",
-        "effect": "所有玩家可向你「索赔」一次：每人拿走 200（-200 × N）"
-      },
-      {
-        "deck": "fate",
-        "event": "你在德州跟亡命牛仔玩「灵魂赌局」：背对背各走十六步才回头开枪——你押他会在前八步还是后八步回头",
-        "cond": "押大小",
-        "win": "抢先点名牛仔真名，他倒赔封口费：+3000",
-        "lose": "灵魂被抵押：送进监狱 3 回合（≈ -3000）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在澳门地下钱庄押上最后一注，庄家冷笑：单还是双",
-        "cond": "押单双",
-        "win": "+3000",
-        "lose": "-2000，还被掰断手指：取消下次掷骰（合计 ≈ -3000）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你和左手玩家在西西里各自雇了杀手互杀——谁先得手，就看各自杀手的骰点",
-        "cond": "比点数：各摇一颗（= 杀手行动力），大者胜，平局双双失手重来",
-        "win": "他「意外身亡」：你分到他 2000 遗产（他 -2000，你 +2000）",
-        "lose": "你重伤治疗：-2000（医药费）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "亡命狂奔：马德里宪兵队放狗追你——你跑出的步数 = 这回合的移动骰点数，9 步以上才能翻墙",
-        "cond": "用本次移动骰点数判定：≥ 9",
-        "win": "翻墙甩脱，口袋里还装着刚偷的钱：+500",
-        "lose": "被扑倒搜身：-500",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在河内老街碰上巫祝：她把诅咒骰攥在拳头里让你猜在哪只手——猜错就中咒",
-        "cond": "猜左右手：巫祝（由左手玩家扮演）握骰",
-        "win": "解咒 +1000",
-        "lose": "中咒：下回合你所有过路费收入减半（≈ -1000）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在那不勒斯和黑手党谈判破裂，双方按江湖规矩一局手势定生死",
-        "cond": "石头剪刀布：与左手玩家一局定胜负，平局算都收手重来",
-        "win": "+1500",
-        "lose": "-1500",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你潜入西西里黑手党的金库，守卫报告警戒等级 1-16，1-7 级可以摸进宝库",
-        "cond": "押区间 1-7",
-        "win": "偷出教父的藏品卖给收藏家：+900",
-        "lose": "触发警报被探照灯燎到：-700",
-        "rate": "43.75%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在蒙特卡洛把全部身家压上轮盘：十六格轮盘里 14、15、16 三格是「连本带利」，其余全吞",
-        "cond": "赌爆点：摇到 14 / 15 / 16",
-        "win": "连本带利：+2600",
-        "lose": "全被吞掉：-600",
-        "rate": "18.75%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在巴布亚新几内亚跟部落跳完祭祀舞，族长掷命运骨：只有掷出 1 的人会成为今晚的主菜",
-        "cond": "押「不摇到 1」",
-        "win": "平安无事，还领了部落赏金：+200",
-        "lose": "成为主菜，连夜凑赎身钱：-3000",
-        "rate": "93.75%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在巴黎红磨坊即兴演出，老板娘逼你竞猜她给你打的「好感分」（3-14 分，差 2 以内她请你喝酒）",
-        "cond": "猜数字：从 3-14 猜一个数，摇判定骰 = 实际好感分，误差 ≤ 2 算赢",
-        "win": "+2200",
-        "lose": "-1000（她相好的医药费归你出）",
-        "rate": "31.25%"
-      },
-      {
-        "deck": "fate",
-        "event": "你在缅甸对军阀撒了个弥天大谎。军阀的测谎仪是颗十六面骰：单数 = 通过，双数 = 识破",
-        "cond": "押单双",
-        "win": "谎言生效，军阀信了还倒贴「诚意金」：+800",
-        "lose": "被识破，被押去跪榴莲：下回合禁止交易与谈判（≈ -800）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你潜入苏黎世首富的卧室行窃，惊醒了他——床上床下各显身手",
-        "cond": "比点数：你和最有钱的玩家各摇一颗，平局重来",
-        "win": "卷走 1500（他 -1500，你 +1500）",
-        "lose": "被抓包，私了赔 1500",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你去抢瑞士银行。金库大门是 1-16 密码转盘，守卫今天设的是小户门还是大户门全看运气",
-        "cond": "押大小",
-        "win": "+3000",
-        "lose": "被押进瑞士监狱：坐牢 3 回合（≈ -3000）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "台风「醉汉」朝你名下等级最高的那栋楼拐来——风力 9 级以上它才拐得走",
-        "cond": "押区间 9-16",
-        "win": "台风擦楼而过，保险公司赔钱帮你加盖：那栋房 +1 级",
-        "lose": "撞烂楼顶：那栋房 -1 级（1 级 → 空地；名下无房则 ±1000）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "伦敦税务局搞路段单双号抽查：单号格退税、双号格补税，税额 = 判定骰点数 × 100",
-        "cond": "所在格奇偶 + 骰点计税",
-        "win": "退税：+点数 × 100（均值 +850）",
-        "lose": "补税：-点数 × 100（均值 -850）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "东西两大财团要在你和左手玩家的地盘上建总部，董事会转盘 1-8 买你的地、9-16 买他的地——被买走的地归赢家",
-        "cond": "押大小",
-        "win": "财团买走左手玩家购地款最低的一块地（归你）",
-        "lose": "买走你的那块（归他）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你掉进百慕大三角，奇偶决定把你扔向未来还是过去",
-        "cond": "押单双",
-        "win": "被扔向未来：前进 4 格（经过出生点照常领 +2000）",
-        "lose": "被扔向过去：后退 4 格",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "索马里海岸，赏金猎人放出的通缉令同时锁定了你和顺时针最近的玩家——赏金归活下来的那个",
-        "cond": "比点数：各摇一颗（= 出枪快慢），平局同归于尽重来",
-        "win": "你活着领赏：拿走他现金的一半（向下取整十）",
-        "lose": "他领赏：拿走你现金的一半",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "你向国际刑警告发了同船的蛇头——赏金必拿，证人保护也必进，法官掷骰决定关你多久",
-        "cond": "押单双（奖罚同时）",
-        "win": "法官心情好：关 1 回合，净 +1000（2000 - 1000）",
-        "lose": "法官心情差：关 3 回合，净 -1000（2000 - 3000）",
-        "rate": "50%"
-      },
-      {
-        "deck": "fate",
-        "event": "迪拜黑市「决斗拍卖」：你和右手玩家各押一块自己购地款最低的地上桌，中间人（由右手玩家的下家担任）掷骰定谁先喊价——≥9 你先，≤8 他先",
-        "cond": "他人代摇（≥9 / ≤8）",
-        "win": "你先喊：以起拍价（半价）强制拍得他的地，他收全款",
-        "lose": "他先喊：他半价拍得你的地，你收全款",
-        "rate": "50%"
-      }
-    ]
-  };
-  /* FALLBACK:END */
-
-let DATA = FALLBACK;            // 当前生效的版本数据 { version, label, cards }
-let ALL = null;                 // fetch 成功后的全量版本表（null = 只有内置兜底一份）
-let CARDS = FALLBACK.cards;
-let picked = false;             // 用户是否手动选过版本（决定 fetch 到货后要不要覆盖）
-
-const PAPERS = {
-  a4:     { w: 210, h: 297, css: 'A4 portrait',  name: 'A4',
-            tip: '打印设置：纸张选 A4、边距「无」、缩放 100%（不要选「适应页面」），勾选「背景图形」。' },
-  photo6: { w: 152, h: 102, css: '152mm 102mm',  name: '6 寸相片纸（横放）',
-            tip: '打印设置：6 寸纸横放（152×102mm），无边距（或边距「无」）、缩放 100%，勾选「背景图形」。相片纸本身较厚，可不过塑直接裁，或单张过塑后再裁。' }
-};
-
-const LAYOUTS = {
-  standard: { per: 8,  cols: 2, cw: 88, ch: 57, gx: 6, gy: 6, mx: 14, my: 25.5,
-              tfs: 30, evfs: 14, effs: 12.5, nfs: 9, wms: 44 },
-  compact:  { per: 10, cols: 2, cw: 76, ch: 50, gx: 6, gy: 6, mx: 26, my: 11.5,
-              tfs: 24, evfs: 12, effs: 11, nfs: 8, wms: 38 },
-  photo4:   { per: 4,  cols: 2, cw: 72, ch: 46, gx: 4, gy: 4, mx: 2, my: 3,
-              tfs: 22, evfs: 11.5, effs: 10.5, nfs: 8, wms: 34 }
-};
-
-const DECK_NAME = { chance: '机会', fate: '命运' };
-let currentPaper = 'photo6';
-let currentLayout = 'standard';
-let pageMode = 'flow';
-let side = 'front';
-
-function activeLayout() {
-  return currentPaper === 'photo6' ? LAYOUTS.photo4 : LAYOUTS[currentLayout];
-}
-
-// 线条小脸：currentColor 跟随卡面文字色
 function faceSVG(kind) {
-  const mouth = kind === 'smile'
-    ? 'M6.5 12.2 Q10 15.6 13.5 12.2'
-    : 'M6.5 14.2 Q10 10.8 13.5 14.2';
+  const mouth = kind === 'smile' ? 'M6.5 12.8 Q10 16.2 13.5 12.8' : 'M6.5 14.2 Q10 10.8 13.5 14.2';
   return '<svg class="face" viewBox="0 0 20 20">' +
     '<circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/>' +
     '<circle cx="7" cy="8" r="1.4" fill="currentColor"/>' +
@@ -517,239 +1133,63 @@ function faceSVG(kind) {
     '<path d="' + mouth + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
     '</svg>';
 }
+const DECK_NAME = { chance: '机会', fate: '命运' };
 
-function cardNode(card, idxInDeck, total) {
-  let inner;
-  if (card.cond) {
-    inner = '<div class="ev">' + card.event + '</div>' +
-      '<div class="sub">' +
-      '<div class="cond">摇骰 · ' + card.cond + '</div>' +
-      '<div class="line"><span class="out win">' + faceSVG('smile') + '</span><span class="out win">赢：' + card.win + '</span></div>' +
-      '<div class="line"><span class="out lose">' + faceSVG('frown') + '</span><span class="out lose">输：' + card.lose + '</span></div>' +
-      '</div>';
+function cardHTML(c, seq, total) {
+  let body;
+  if (c.cond) {
+    body = '<div class="c-cond">摇骰 · ' + c.cond + '</div>' +
+      '<div class="c-line">' + faceSVG('smile') + '<span class="c-win">赢：' + c.win + '</span></div>' +
+      '<div class="c-line">' + faceSVG('frown') + '<span class="c-lose">输：' + c.lose + '</span></div>';
+  } else if (c.effect) {
+    body = '<div class="c-line">' + faceSVG(c.face || 'smile') + '<span>' + c.effect + '</span></div>';
   } else {
-    inner = '<div class="ev">' + card.event + '</div>' +
-      (card.effect ? '<div class="line"><span class="ef">' + faceSVG(card.face || 'smile') + '</span><span class="ef">' + card.effect + '</span></div>' : '');
+    body = '';
   }
-  const el = document.createElement('div');
-  el.className = 'card ' + card.deck;
-  el.innerHTML =
-    '<div class="wm">' + (card.deck === 'chance' ? '?' : '!') + '</div>' +
-    '<div class="num">' + (idxInDeck + 1) + '-' + total + '</div>' +
-    '<div class="title">' + DECK_NAME[card.deck] + '</div>' +
-    '<div class="txt">' + inner + '</div>';
-  return el;
-}
-function deckList(kind) {
-  const list = CARDS.filter(c => c.deck === kind);
-  return list.map((c, i) => ({ card: c, i, n: list.length }));
+  return '<div class="card ' + c.deck + '">' +
+    '<div class="c-top"><span class="c-title">' + DECK_NAME[c.deck] + '</span>' +
+    '<span class="c-num">' + seq + '-' + total + '</span></div>' +
+    '<div class="c-ev">' + (c.event || '') + '</div>' + body +
+    '</div>';
 }
 
-// ===== 卡牌背面：同色底 + 双线内框 + 「机?会/命!运」中央构图 + 斜章 + 邪恶版 =====
-function backNode(kind) {
-  const isChance = kind === 'chance';
-  const w1 = isChance ? '机' : '命';
-  const w2 = isChance ? '会' : '运';
-  const sym = isChance ? '?' : '!';
-  const en = isChance ? 'CHANCE' : 'FATE';
-  const el = document.createElement('div');
-  el.className = 'card back ' + kind;
-  el.innerHTML =
-    '<div class="back-frame"></div>' +
-    '<div class="back-stamp"><svg viewBox="0 0 48 32">' +
-      '<ellipse cx="24" cy="16" rx="22" ry="14"/>' +
-      '<text x="24" y="16">大富翁</text>' +
-    '</svg></div>' +
-    '<div class="back-face"><span class="w">' + w1 + '</span><span class="sym">' + sym + '</span><span class="w">' + w2 + '</span></div>' +
-    '<div class="back-en">' + en + '</div>' +
-    '<div class="back-ver"><svg class="devil" viewBox="0 0 40 36">' +
-      '<path d="M8 8 Q6 2 11 0 Q10 6 14 8 Z"/>' +
-      '<path d="M32 8 Q34 2 29 0 Q30 6 26 8 Z"/>' +
-      '<path d="M20 6 C11 6 5 12 5 19 C5 26 11 30 20 30 C29 30 35 26 35 19 C35 12 29 6 20 6 Z"/>' +
-      '<path d="M12 17 Q15 14 18 17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
-      '<path d="M22 17 Q25 14 28 17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
-      '<path d="M13 21 Q20 27 27 21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
-    '</svg></div>';
-  return el;
-}
-
-// 背面是否需要按花色分页：只要某一堆（最后一堆除外）的张数不能被每页张数整除，
-// 连着排就会在某一页中间切换花色 → 出现混色页 → 翻面镜像会把颜色印到另一个花色的卡上。
-// 能整除时（如 6 寸 4 张/页、A4 紧凑 10 张/页，20 张都是整除）连着排本来就是整页同色，无需锁定。
-function backNeedsSplit() {
-  const per = activeLayout().per;
-  const kinds = [...new Set(CARDS.map(c => c.deck))];
-  return kinds.slice(0, -1).some(k => CARDS.filter(c => c.deck === k).length % per !== 0);
-}
-function useSplit() {
-  return pageMode === 'split' || (side === 'back' && backNeedsSplit());
-}
+let curVer = DECKS.default || (DECKS.order && DECKS.order[0]) || '';
+let curDeck = 'all';
 
 function render() {
-  const L = activeLayout();
-  const P = PAPERS[currentPaper];
-  const split = useSplit();
-  const pages = [];
-  if (split) {
-    ['chance', 'fate'].forEach(kind => {
-      const list = deckList(kind);
-      for (let i = 0; i < list.length; i += L.per) pages.push(list.slice(i, i + L.per));
-    });
-  } else {
-    const flow = deckList('chance').concat(deckList('fate'));
-    for (let i = 0; i < flow.length; i += L.per) pages.push(flow.slice(i, i + L.per));
-  }
-
-  const wrap = document.getElementById('wrap');
-  wrap.innerHTML = '';
-  pages.forEach((pageItems, pi) => {
-    const tag = document.createElement('div');
-    tag.className = 'page-tag';
-    tag.style.width = P.w + 'mm';
-    const kinds = [...new Set(pageItems.map(x => DECK_NAME[x.card.deck]))].join(' + ');
-    tag.textContent = '第 ' + (pi + 1) + ' 页 / 共 ' + pages.length + ' 页 · ' + kinds + '牌' +
-      (side === 'back' ? ' · 背面（对背打印，先印正面再翻面印本页）' : '');
-    wrap.appendChild(tag);
-
-    const sheet = document.createElement('div');
-    sheet.className = 'sheet';
-    sheet.style.width = P.w + 'mm';
-    sheet.style.height = P.h + 'mm';
-    sheet.style.setProperty('--cw', L.cw + 'mm');
-    sheet.style.setProperty('--ch', L.ch + 'mm');
-    sheet.style.setProperty('--gx', L.gx + 'mm');
-    sheet.style.setProperty('--gy', L.gy + 'mm');
-    sheet.style.setProperty('--mx', L.mx + 'mm');
-    sheet.style.setProperty('--my', L.my + 'mm');
-    sheet.style.setProperty('--tfs', L.tfs + 'px');
-    sheet.style.setProperty('--evfs', L.evfs + 'px');
-    sheet.style.setProperty('--effs', L.effs + 'px');
-    sheet.style.setProperty('--nfs', L.nfs + 'px');
-    sheet.style.setProperty('--wms', L.wms + 'mm');
-
-    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.deck) : cardNode(x.card, x.i, x.n)));
-    for (let k = pageItems.length; k < L.per; k++) {
-      const b = document.createElement('div');
-      b.className = 'blank';
-      b.textContent = '备用';
-      sheet.appendChild(b);
-    }
-    wrap.appendChild(sheet);
-  });
-  autoFit();
-  updateSpecs(pages.length);
-}
-
-// 内容超出正文区（纵向或横向）就整体缩字号，保证不贴边、不溢出
-function autoFit() {
-  document.querySelectorAll('.txt').forEach(txt => {
-    const nodes = [...txt.querySelectorAll('.ev, .ef, .cond, .out')];
-    if (!nodes.length) return;
-    const base = nodes.map(n => parseFloat(getComputedStyle(n).fontSize) || 10);
-    let k = 0;
-    while ((txt.scrollHeight > txt.clientHeight + 1 || txt.scrollWidth > txt.clientWidth + 1) && k < 60) {
-      k++;
-      nodes.forEach((n, i) => { n.style.fontSize = Math.max(5.2, base[i] - k * 0.3) + 'px'; });
-    }
-  });
-}
-
-function updateSpecs(pageCount) {
-  const L = activeLayout();
-  const P = PAPERS[currentPaper];
-  const rows = L.per / L.cols;
-  const modeText = side === 'back'
-    ? (backNeedsSplit()
-        ? '按花色分页（本版式会出混色页，背面自动锁定）'
-        : '连着排（本版式每页刚好整除，天然整页同色）')
-    : (pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）');
-  document.getElementById('specs').innerHTML =
-    '<span>纸张 <b>' + P.name + '（' + P.w + ' × ' + P.h + ' mm）</b></span>' +
-    '<span>卡片尺寸 <b>' + L.cw + ' × ' + L.ch + ' mm</b></span>' +
-    '<span>版式 <b>' + L.cols + ' 列 × ' + rows + ' 行 = ' + L.per + ' 张/页</b></span>' +
-    '<span>分页 <b>' + modeText + '</b></span>' +
-    '<span>共 <b>' + CARDS.length + ' 张 → ' + pageCount + ' 页</b></span>';
-}
-
-function syncPaperUI() {
-  const isPhoto = currentPaper === 'photo6';
-  document.getElementById('pageStyle').textContent =
-    '@page { size: ' + PAPERS[currentPaper].css + '; margin: 0; }';
-  document.getElementById('tip').textContent = side === 'back'
-    ? (backNeedsSplit()
-        ? '背面模式：本版式会出混色页，已自动锁定按花色分页（整页同色，翻面不错格）。'
-        : '背面模式：本版式每页张数刚好整除 20 张，连着排已是整页同色，任意翻法都不会错格。')
-      + '流程 = 先印正面 → 翻面 → 印背面（页数与格子一一对齐）。' + PAPERS[currentPaper].tip
-    : PAPERS[currentPaper].tip;
-  document.querySelectorAll('.btn[data-layout]').forEach(b => b.classList.toggle('off', isPhoto));
-  // 仅当本版式真的会出现混色页时才锁定分页按钮
-  document.querySelectorAll('.btn[data-mode]').forEach(b => b.classList.toggle('off', side === 'back' && backNeedsSplit()));
-}
-
-// 四组开关按钮共用一个互斥绑定（.off 的按钮带 pointer-events:none，点了也不会触发）
-function bindGroup(sel, apply) {
-  const btns = [...document.querySelectorAll(sel)];
-  btns.forEach(b => b.addEventListener('click', () => {
-    btns.forEach(x => x.classList.toggle('on', x === b));
-    apply(b);
-  }));
-}
-bindGroup('.btn[data-paper]', b => { currentPaper = b.dataset.paper; syncPaperUI(); render(); });
-bindGroup('.btn[data-layout]', b => { currentLayout = b.dataset.layout; syncPaperUI(); render(); });
-bindGroup('.btn[data-mode]', b => { pageMode = b.dataset.mode; render(); });
-bindGroup('.btn[data-side]', b => { side = b.dataset.side; syncPaperUI(); render(); });
-document.getElementById('doPrint').addEventListener('click', () => window.print());
-
-// ===== 数据版本：优先线上 cards.json，读不到就用内置兜底 =====
-let currentId = FALLBACK.version;
-
-function applyVersion(id) {
-  const v = ALL ? ALL.versions[id] : null;
-  if (!v) return;
-  currentId = id;
-  DATA = v;
-  CARDS = v.cards;
-  document.getElementById('pageTitle').textContent = '大富翁卡牌打印版 · 横版 · ' + v.label;
-  fillVerSel();
-  syncPaperUI();
-  render();
-}
-
-function fillVerSel() {
   const sel = document.getElementById('verSel');
-  if (!ALL) {
-    sel.innerHTML = '<option>' + FALLBACK.label + '</option>';
-    sel.disabled = true;
-    sel.title = '未加载到 cards.json（本地直接双击打开时属于正常现象）→ 正在使用内置兜底数据';
+  const grid = document.getElementById('grid');
+  const meta = document.getElementById('cardMeta');
+  if (!DECKS.order || !DECKS.order.length) {
+    grid.innerHTML = '<p class="empty">卡牌数据还没生成，跑一次 <code>python3 tools/update.py</code> 就有了。</p>';
+    meta.textContent = '';
     return;
   }
-  sel.disabled = false;
-  sel.title = '数据来自 cards.json（由 cards.csv 生成）';
-  sel.innerHTML = ALL.order.map(v =>
-    '<option value="' + v + '"' + (v === currentId ? ' selected' : '') + '>' +
-    ALL.versions[v].label + '</option>').join('');
-  sel.onchange = () => { picked = true; applyVersion(sel.value); };
+  if (sel.options.length !== DECKS.order.length) {
+    sel.innerHTML = DECKS.order.map(v =>
+      '<option value="' + v + '"' + (v === curVer ? ' selected' : '') + '>' +
+      DECKS.versions[v].label + '</option>').join('');
+  }
+  const list = DECKS.versions[curVer].cards || [];
+  const total = { chance: 0, fate: 0 };
+  list.forEach(c => { total[c.deck] = (total[c.deck] || 0) + 1; });
+  const seq = { chance: 0, fate: 0 };
+  const shown = list.filter(c => curDeck === 'all' || c.deck === curDeck);
+  grid.innerHTML = shown.length
+    ? shown.map(c => { seq[c.deck]++; return cardHTML(c, seq[c.deck], total[c.deck]); }).join('')
+    : '<p class="empty">这个版本没有该花色的牌。</p>';
+  meta.textContent = DECKS.versions[curVer].label + ' · 共 ' + list.length + ' 张（机会 ' +
+    (total.chance || 0) + ' / 命运 ' + (total.fate || 0) + '）';
 }
 
-// 先用兜底数据立刻渲染一版（不等网络），避免线上白屏；JSON 到货后再换掉
-fetch('cards.json', { cache: 'no-store' })
-  .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
-  .then(d => {
-    if (!d || !d.versions || !d.order || !d.order.length) throw new Error('cards.json 格式不对');
-    ALL = d;
-    // 用户已经手动选过版本就别抢他的选择，只刷新下拉；没选过就落到 default
-    if (!picked) applyVersion(d.default && d.versions[d.default] ? d.default : d.order[0]);
-    else fillVerSel();
-  })
-  .catch(() => {
-    ALL = null;
-    fillVerSel();
-    document.getElementById('pageTitle').textContent =
-      '大富翁卡牌打印版 · 横版 · ' + FALLBACK.label + '（内置兜底）';
-  });
-
-syncPaperUI();
-fillVerSel();
+document.getElementById('verSel').addEventListener('change', e => { curVer = e.target.value; render(); });
+document.getElementById('deckSeg').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  curDeck = b.dataset.deck;
+  [...document.querySelectorAll('#deckSeg button')].forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
 render();
 </script>
 </body>

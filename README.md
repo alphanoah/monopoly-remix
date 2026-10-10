@@ -1,11 +1,28 @@
-# 大富翁卡牌打印版
+# 大富翁 · 自制机会 / 命运卡牌
 
-自制大富翁「机会 / 命运」卡牌的排版打印页。打开页面选好纸张和版式，直接打印即可。
+在实体《大富翁》基础上改的一套玩法：单个十六面骰、19580 起始资金，机会牌与命运牌全部重写。
 
+- **首页 `index.html`**：规则 + 卡牌全文，可切换版本浏览（静态页面，双击就能看）
+- **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印
 - **在线地址**：开启 Pages 后为 `https://<用户名>.github.io/<仓库名>/`
-- **本地使用**：直接双击 `index.html`（此时用内置兜底数据，功能完整）
-- **规则**：见 [docs/rules.md](docs/rules.md)；完整地图格子数据见 [docs/map-tiles.md](docs/map-tiles.md)
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
+
+---
+
+## 改完内容怎么同步
+
+改卡牌改 `cards.csv`，改规则改 `docs/rules.md`，然后**跑一次脚本**：
+
+```bash
+python3 tools/update.py
+```
+
+macOS 上也可以直接双击 **`update.command`**，不用开终端。
+
+脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与规则 → 回写打印页内置兜底。
+push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
+
+> 校验不通过就不写任何文件，终端会指出第几行错在哪。
 
 ---
 
@@ -36,31 +53,22 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 - 用 Excel / Numbers 打开后**必须存成「CSV UTF-8（带 BOM）」**，否则中文会乱码。
   macOS 的 Numbers 导出时选「CSV」一般就是 UTF-8；Excel 另存时要挑「CSV UTF-8(逗号分隔)」那个选项。
 - 单元格里可以正常写逗号和引号，Excel 保存时会自动加转义。
-- 改完保存 → push，GitHub Actions 会自动重新生成 `cards.json` 并同步页面里的兜底数据。
+- 改完保存 → 跑 `python3 tools/update.py` → push。
 
-### 手动生成（可选）
-
-Actions 没跑或想先看结果时，本地跑同一个脚本：
-
-```bash
-python3 tools/csv2json.py
-```
-
-它会做一次校验（版本、张数、必填字段），通过才写文件，然后：
-
-1. 生成 `cards.json`（全版本，供页面读取）
-2. 替换 `index.html` 里 `FALLBACK:START / FALLBACK:END` 之间的内置兜底数据
+规则改 `docs/rules.md` 同理，首页规则区是从它生成的，**不要在首页直接改规则**。
 
 ---
 
-## 为什么有两份数据
+## 两个页面的数据来源
 
-| 打开方式 | 数据来源 |
-|---|---|
-| 线上 Pages | `fetch('cards.json')`，全版本可切换 |
-| 本地双击 `index.html` | `file://` 协议下 fetch 会被浏览器拦截 → 回退内置兜底数据 |
+| 页面 | 首页 index.html | 打印页 print.html |
+|---|---|---|
+| 内容 | 脚本静态写入，离线可看 | 线上 `fetch('cards.json')` |
+| 本地双击 | 正常（内容已写死在页面里） | 正常（fetch 被 CORS 拦 → 回退内置兜底） |
+| 版本切换 | 有，v4 / v5 / v6 | 有（需线上 JSON） |
 
-内置兜底由脚本从 CSV 自动生成，两份永远一致。页面先用兜底数据立刻渲染（不等网络），JSON 到货后再换掉，所以线上不会白屏。
+打印页保留双轨是因为本地 `file://` 打开时浏览器会拦截 fetch，内置兜底是必需品而不是摆设；
+首页不需要，内容直接由脚本写进 HTML，本地线上都一样。
 
 ---
 
@@ -88,13 +96,15 @@ python3 tools/csv2json.py
 
 ```
 richer/
-├── index.html              打印页（单文件，无外部依赖）
+├── index.html              首页：规则 + 卡牌浏览（脚本生成，静态）
+├── print.html              打印页：排版打印工具（脚本回写兜底）
 ├── cards.csv               卡牌数据真源
-├── cards.json              由 cards.csv 生成，供页面读取
+├── cards.json              由 cards.csv 生成，供打印页读取
+├── update.command          macOS 双击运行 update.py
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
 ├── docs/
-│   ├── rules.md            游戏规则（含初版卡牌留档）
+│   ├── rules.md            规则真源（首页规则区由它生成，含初版卡牌留档）
 │   ├── map-tiles.md        地图格子数据
 │   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
 │   ├── original-cards.md   原版实体卡文字转录
@@ -102,9 +112,9 @@ richer/
 │   └── card-diff.md        新版 vs 原版差异对照
 ├── cards/                  卡牌历史版本存档 v1–v6.md
 ├── tools/
-│   ├── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
-│   └── csv2json.py         cards.csv → cards.json + 回写内置兜底
-└── .github/workflows/      cards.csv 变更时自动生成 cards.json
+│   ├── update.py           一键更新：CSV → JSON + 首页 + 打印页
+│   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
+└── .github/workflows/      cards.csv / docs/rules.md 变更时自动重生成
 ```
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。

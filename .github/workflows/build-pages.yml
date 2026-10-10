@@ -1,0 +1,41 @@
+name: 重新生成页面
+
+# 改了卡牌（cards.csv）或规则（docs/rules.md）就自动跑，不用手动生成 JSON
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cards.csv'
+      - 'docs/rules.md'
+      - 'tools/update.py'
+      - '.github/workflows/build-pages.yml'
+  workflow_dispatch:
+
+# 需要往回提交生成的 cards.json / index.html / print.html
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 转换并生成页面
+        run: python3 tools/update.py
+
+      - name: 有改动就提交回去
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- cards.json index.html print.html; then
+            echo "没有变化，跳过提交"
+            exit 0
+          fi
+          git add cards.json index.html print.html
+          git commit -m "chore: 由 cards.csv / docs/rules.md 重新生成页面"
+          git push

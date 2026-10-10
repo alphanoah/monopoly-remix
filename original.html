@@ -344,7 +344,7 @@
 <p>这是这张「世界之旅」地图的设计特点——红色国家（中国、日本、韩国、澳大利亚、新西兰）地理上都在亚太地区，但在棋盘上因为布局原因被机会格和右行终点隔开了。游戏规则上它们仍属于同一颜色组。</p>
 <h3>六、开发参考</h3>
 <h4>6.1 数据结构示例</h4>
-<p><code>`</code>javascript<br>// 格子数据结构<br>const tile = {<br>id: 1,                    // 格号 0-63<br>name: &quot;中华人民共和国&quot;,    // 格子名称<br>capital: &quot;北京&quot;,          // 首都（地产格有，特殊格无）<br>price: 4000,              // 价格（地产格有，特殊格无）<br>color: &quot;红&quot;,              // 色带颜色<br>type: &quot;property&quot;,         // 类型：property/corner/chance/destiny/ocean<br>side: &quot;bottom&quot;,           // 所在边：bottom/left/top/right<br>};<br><code>`</code></p>
+<p><code>`</code>javascript<br>// 格子数据结构<br>const tile = {<br>id: 1,                    // 格号 0-63<br>name: &quot;中国&quot;,    // 格子名称<br>capital: &quot;北京&quot;,          // 首都（地产格有，特殊格无）<br>price: 4000,              // 价格（地产格有，特殊格无）<br>color: &quot;红&quot;,              // 色带颜色<br>type: &quot;property&quot;,         // 类型：property/corner/chance/destiny/ocean<br>side: &quot;bottom&quot;,           // 所在边：bottom/left/top/right<br>};<br><code>`</code></p>
 <h4>6.2 颜色组数据结构</h4>
 <p><code>`</code>javascript<br>const colorGroups = {<br>&quot;红&quot;: {<br>count: 5,<br>avgPrice: 2740,<br>tiles: [1, 2, 4, 62, 63],  // 格号数组<br>segments: 3,               // 连续段数<br>},<br>// ... 其他颜色组<br>};<br><code>`</code></p>
 <h4>6.3 常用计算</h4>
@@ -377,7 +377,7 @@
 <tr><td>起点酬金</td><td>$2000</td></tr>
 <tr><td>总地价</td><td>$107,600</td></tr>
 <tr><td>均价</td><td>$2,110</td></tr>
-<tr><td>最高价</td><td>$4,000（中华人民共和国）</td></tr>
+<tr><td>最高价</td><td>$4,000（中国）</td></tr>
 <tr><td>最低价</td><td>$600（菲律宾、黎巴嫩、赞比亚、南非）</td></tr>
 </tbody></table></div>
 <h3>二、颜色分组（核心数据）</h3>
@@ -386,7 +386,7 @@
 <div class="tw"><table>
 <thead><tr><th>格号</th><th>国家</th><th>首都</th><th>价格</th><th>位置</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>中华人民共和国</td><td>北京</td><td>$4000</td><td>底行（起点后第 1 格）</td></tr>
+<tr><td>1</td><td>中国</td><td>北京</td><td>$4000</td><td>底行（起点后第 1 格）</td></tr>
 <tr><td>2</td><td>日本</td><td>东京</td><td>$1000</td><td>底行</td></tr>
 <tr><td>4</td><td>韩国</td><td>首尔</td><td>$1000</td><td>底行</td></tr>
 <tr><td>62</td><td>澳大利亚</td><td>堪培拉</td><td>$3200</td><td>右行（倒数第 2 格）</td></tr>
@@ -550,7 +550,7 @@
 <ul>
 <li>地产格 <strong>51</strong> 个；总地价 <strong>$107,600</strong>；均价 <strong>$2,110</strong>；中位数 <strong>$2,000</strong>
 </li>
-<li><strong>最贵：中华人民共和国 $4000</strong>（全盘唯一，起点后第一格）
+<li><strong>最贵：中国 $4000</strong>（全盘唯一，起点后第一格）
 </li>
 <li><strong>并列第二贵 $3500（6 个）</strong>：叙利亚、土耳其、加拿大、美国、智利、新西兰
 </li>
@@ -579,7 +579,7 @@
 <thead><tr><th>#</th><th>格子</th><th>首都</th><th>价格</th><th>色带</th></tr></thead>
 <tbody>
 <tr><td>0</td><td>赤道（起点）</td><td>—</td><td>得酬金 $2000</td><td>角</td></tr>
-<tr><td>1</td><td>中华人民共和国</td><td>北京</td><td>$4000</td><td>红</td></tr>
+<tr><td>1</td><td>中国</td><td>北京</td><td>$4000</td><td>红</td></tr>
 <tr><td>2</td><td>日本</td><td>东京</td><td>$1000</td><td>红</td></tr>
 <tr><td>3</td><td>机会 CHANCE</td><td>—</td><td>—</td><td>特殊</td></tr>
 <tr><td>4</td><td>韩国</td><td>首尔</td><td>$1000</td><td>红</td></tr>

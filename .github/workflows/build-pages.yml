@@ -1,12 +1,13 @@
 name: 重新生成页面
 
-# 改了卡牌（cards.csv）或规则（docs/rules.md）就自动跑，不用手动生成 JSON
+# 改了卡牌（cards.csv）、规则（docs/rules.md）或原版资料（original/*.md）就自动跑，不用手动生成
 on:
   push:
     branches: [main]
     paths:
       - 'cards.csv'
       - 'docs/rules.md'
+      - 'original/**'
       - 'tools/update.py'
       - '.github/workflows/build-pages.yml'
   workflow_dispatch:
@@ -37,5 +38,5 @@ jobs:
             exit 0
           fi
           git add cards.json index.html print.html
-          git commit -m "chore: 由 cards.csv / docs/rules.md 重新生成页面"
+          git commit -m "chore: 由 cards.csv / docs/rules.md / original/ 重新生成页面"
           git push

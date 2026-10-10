@@ -6,7 +6,7 @@
 # 做四件事：
 #   1. 校验 cards.csv（结构、必填字段、每版本张数）
 #   2. 生成 cards.json                      —— 打印页线上 fetch 用
-#   3. 重写 index.html 的卡牌数据与规则区    —— 首页内容（静态，离线可看）
+#   3. 重写 index.html 的卡牌数据、规则区、原版资料区 —— 首页内容（静态，离线可看）
 #   4. 回写 print.html 的内置兜底数据         —— 本地 file:// 打开时用
 #
 # 校验不通过就不写任何文件。GitHub Actions 跑的是同一个脚本。
@@ -23,6 +23,13 @@ JSON_PATH = os.path.join(ROOT, 'cards.json')
 INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
 RULES_PATH = os.path.join(ROOT, 'docs', 'rules.md')
+ORIGINAL_DIR = os.path.join(ROOT, 'original')
+# 原版实体资料：文件名 → 首页折叠标题（按这个顺序展示）
+ORIGINAL_DOCS = [
+    ('cards.md', '原版命运牌 & 机会牌（20 + 20）'),
+    ('manual.md', '原版说明书（银牌）'),
+    ('map-tiles.md', '原版地图格子数据（64 格）'),
+]
 
 DEFAULT_VERSION = 'v6'
 VERSION_LABELS = {
@@ -93,16 +100,16 @@ def build(rows):
 
 
 # ---------- 简易 markdown → HTML（够 rules.md 用：标题/列表/引用/链接/粗体/行内码）----------
-def inline(t):
+def inline(t, prefix='docs/'):
     t = html.escape(t)
     t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
     t = re.sub(r'`(.+?)`', r'<code>\1</code>', t)
-    t = re.sub(r'\[(.+?)\]\((?!https?:|#)(.+?)\)', r'<a href="docs/\2">\1</a>', t)
+    t = re.sub(r'\[(.+?)\]\((?!https?:|#)(.+?)\)', r'<a href="%s\2">\1</a>' % prefix, t)
     t = re.sub(r'\[(.+?)\]\((https?:.+?)\)', r'<a href="\2">\1</a>', t)
     return t
 
 
-def render_list(items):
+def render_list(items, prefix):
     out, stack = [], []
     for lvl, ordered, text in items:
         tag = 'ol' if ordered else 'ul'
@@ -123,13 +130,30 @@ def render_list(items):
                 stack.append((lvl, tag))
             else:
                 out.append('</li>')
-        out.append('<li>' + inline(text))
+        out.append('<li>' + inline(text, prefix))
     while stack:
         out.append('</li></%s>' % stack.pop()[1])
     return '\n'.join(out)
 
 
-def md_to_html(md):
+def render_table(lines, i, prefix):
+    """解析 markdown 表格，返回 (html, 下一行下标)。首行必须是表头 + 分隔行。"""
+    cells = lambda s: [c.strip() for c in s.strip().strip('|').split('|')]
+    head = cells(lines[i])
+    i += 2
+    rows = []
+    while i < len(lines) and lines[i].strip().startswith('|'):
+        rows.append(cells(lines[i]))
+        i += 1
+    out = ['<div class="tw"><table>', '<thead><tr>' +
+           ''.join('<th>%s</th>' % inline(c, prefix) for c in head) + '</tr></thead>', '<tbody>']
+    for r in rows:
+        out.append('<tr>' + ''.join('<td>%s</td>' % inline(c, prefix) for c in r) + '</tr>')
+    out.append('</tbody></table></div>')
+    return '\n'.join(out), i
+
+
+def md_to_html(md, prefix='docs/'):
     lines = md.replace('\r\n', '\n').split('\n')
     out, i = [], 0
     while i < len(lines):
@@ -146,8 +170,14 @@ def md_to_html(md):
         if m:
             lvl = len(m.group(1))
             if lvl >= 2:
-                out.append('<h%d>%s</h%d>' % (min(lvl + 1, 6), inline(m.group(2)), min(lvl + 1, 6)))
+                out.append('<h%d>%s</h%d>' % (min(lvl + 1, 6), inline(m.group(2), prefix), min(lvl + 1, 6)))
             i += 1
+            continue
+
+        # 表格（表头行 + |---| 分隔行）
+        if s.startswith('|') and i + 1 < len(lines) and re.match(r'^\|[\s:|-]+\|$', lines[i + 1].strip()):
+            tbl, i = render_table(lines, i, prefix)
+            out.append(tbl)
             continue
 
         # 列表
@@ -164,7 +194,7 @@ def md_to_html(md):
                     break
                 items.append((ci // 2, bool(re.match(r'^\d', mm.group(1))), mm.group(2)))
                 i += 1
-            out.append(render_list(items))
+            out.append(render_list(items, prefix))
             continue
 
         # 引用
@@ -173,7 +203,7 @@ def md_to_html(md):
             while i < len(lines) and lines[i].strip().startswith('>'):
                 buf.append(lines[i].strip().lstrip('>').strip())
                 i += 1
-            out.append('<blockquote>%s</blockquote>' % inline(' '.join(buf)))
+            out.append('<blockquote>%s</blockquote>' % inline(' '.join(buf), prefix))
             continue
 
         # 普通段落（连续行合并）
@@ -186,8 +216,23 @@ def md_to_html(md):
             buf.append(cs)
             i += 1
         if buf:
-            out.append('<p>%s</p>' % '<br>'.join(inline(x) for x in buf))
+            out.append('<p>%s</p>' % '<br>'.join(inline(x, prefix) for x in buf))
     return '\n'.join(out)
+
+
+def build_original():
+    """把 original/ 下的原版实体资料转成首页用的折叠块。"""
+    parts = []
+    for fn, label in ORIGINAL_DOCS:
+        path = os.path.join(ORIGINAL_DIR, fn)
+        if not os.path.exists(path):
+            print('  跳过：未找到 original/%s' % fn)
+            continue
+        with open(path, encoding='utf-8') as f:
+            body = md_to_html(f.read(), prefix='original/')
+        parts.append('<details class="fold"><summary>%s</summary>\n<div class="md">\n%s\n</div>\n</details>'
+                     % (html.escape(label), body))
+    return '\n'.join(parts)
 
 
 def fold_archive(rules_html):
@@ -222,7 +267,7 @@ def write_json(data):
     print('  cards.json（%d 个版本，默认 %s）' % (len(data['versions']), data['default']))
 
 
-def write_index(data, rules_html):
+def write_index(data, rules_html, original_html):
     js = 'const DECKS = ' + json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';'
     ok1 = swap(INDEX_PATH,
                r'/\* CARDS:START \*/.*?/\* CARDS:END \*/',
@@ -232,9 +277,14 @@ def write_index(data, rules_html):
                r'<!-- RULES:START -->.*?<!-- RULES:END -->',
                '<!-- RULES:START -->\n' + rules_html + '\n<!-- RULES:END -->',
                '规则区')
+    ok3 = swap(INDEX_PATH,
+               r'<!-- ORIGINAL:START -->.*?<!-- ORIGINAL:END -->',
+               '<!-- ORIGINAL:START -->\n' + original_html + '\n<!-- ORIGINAL:END -->',
+               '原版资料区')
     if ok1 and ok2:
         total = sum(len(data['versions'][v]['cards']) for v in data['order'])
-        print('  index.html（%d 个版本共 %d 张 + 规则区 %d 字符）' % (len(data['order']), total, len(rules_html)))
+        print('  index.html（%d 个版本共 %d 张 + 规则区 %d 字符 + 原版资料 %d 字符）'
+              % (len(data['order']), total, len(rules_html), len(original_html)))
 
 
 def write_print_fallback(data):
@@ -263,10 +313,11 @@ def main():
 
     with open(RULES_PATH, encoding='utf-8') as f:
         rules_html = fold_archive(md_to_html(f.read()))
+    original_html = build_original()
 
     print('写入：')
     write_json(data)
-    write_index(data, rules_html)
+    write_index(data, rules_html, original_html)
     write_print_fallback(data)
     print('完成。')
 

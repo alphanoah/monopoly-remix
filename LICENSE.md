@@ -20,7 +20,7 @@
 ## 说明
 
 - 卡牌文案、数值与排版设计为原创内容。
-- `docs/original-cards.md` 与 `docs/original-manual.md` 是原版实体《大富翁》
+- `original/cards.md` 与 `original/manual.md` 是原版实体《大富翁》
   （发行：福州亚湾文具有限公司）卡牌与说明书的照片转录，仅作对照研究用途，
   其权利归属原发行方，不在本许可范围内。
 - `photos/` 目录为上述实体卡的本人拍摄照片，不随本仓库发布。

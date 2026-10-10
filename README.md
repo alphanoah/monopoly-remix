@@ -1,17 +1,21 @@
-# 大富翁 · 自制机会 / 命运卡牌
+# 大富翁改版 · 规则与自制卡牌
 
-在实体《大富翁》基础上改的一套玩法：单个十六面骰、19580 起始资金，机会牌与命运牌全部重写。
+在实体《大富翁》基础上重做的一套玩法：**规则改了，卡牌也改了**。
+单个十六面骰、19580 起始资金，房子、过路费、监狱、拍卖规则全部重写，机会牌与命运牌 40 张换成自制的。
 
-- **首页 `index.html`**：规则 + 卡牌全文，可切换版本浏览（静态页面，双击就能看）
+- **首页 `index.html`**：改版规则 + 卡牌全文 + 原版资料，可切换版本浏览（静态页面，双击就能看）
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印
 - **在线地址**：开启 Pages 后为 `https://<用户名>.github.io/<仓库名>/`
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
+
+> 首页的「原版资料」区块是实体《大富翁》的卡牌、说明书、地图格子转录，
+> 用来对照改版改了什么。照片体积太大未上传。
 
 ---
 
 ## 改完内容怎么同步
 
-改卡牌改 `cards.csv`，改规则改 `docs/rules.md`，然后**跑一次脚本**：
+改卡牌改 `cards.csv`，改规则改 `docs/rules.md`，改原版资料改 `original/*.md`，然后**跑一次脚本**：
 
 ```bash
 python3 tools/update.py
@@ -19,7 +23,7 @@ python3 tools/update.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与规则 → 回写打印页内置兜底。
+脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌、规则、原版资料 → 回写打印页内置兜底。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出第几行错在哪。
@@ -56,6 +60,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 - 改完保存 → 跑 `python3 tools/update.py` → push。
 
 规则改 `docs/rules.md` 同理，首页规则区是从它生成的，**不要在首页直接改规则**。
+`original/` 下的原版资料也是一样：改 md，跑脚本，首页那个区块就会更新。
 
 ---
 
@@ -104,17 +109,18 @@ richer/
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
 ├── docs/
-│   ├── rules.md            规则真源（首页规则区由它生成，含初版卡牌留档）
-│   ├── map-tiles.md        地图格子数据
+│   ├── rules.md            改版规则真源（首页规则区由它生成，含初版卡牌留档）
 │   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
-│   ├── original-cards.md   原版实体卡文字转录
-│   ├── original-manual.md  原版说明书转录
 │   └── card-diff.md        新版 vs 原版差异对照
-├── cards/                  卡牌历史版本存档 v1–v6.md
+├── original/               原版实体《大富翁》的电子化存档（首页「原版资料」区由它生成）
+│   ├── cards.md            原版命运牌 & 机会牌（20 + 20）转录
+│   ├── manual.md           原版说明书（银牌）转录
+│   └── map-tiles.md        原版地图 64 格数据
+├── cards/                  自制卡牌历史版本存档 v1–v6.md
 ├── tools/
 │   ├── update.py           一键更新：CSV → JSON + 首页 + 打印页
 │   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
-└── .github/workflows/      cards.csv / docs/rules.md 变更时自动重生成
+└── .github/workflows/      cards.csv / docs/rules.md / original/ 变更时自动重生成
 ```
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。

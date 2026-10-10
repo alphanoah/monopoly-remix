@@ -2,7 +2,7 @@
 
 对照对象：
 - **原版实体卡**：`photos/命运牌.jpg` + `photos/机会牌.jpg`（命运 20 张 + 机会 20 张，
-  文字版见 [original-cards.md](original-cards.md)）
+  文字版见 [original/cards.md](../original/cards.md)）
 - **自制新版卡**：`cards.csv`（当前生效，机会 20 条 + 命运 20 条）；
   历史版本见 `cards/v1.md` … `cards/v6.md`
 

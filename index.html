@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>大富翁 · 自制机会 / 命运卡牌</title>
-<meta name="description" content="自制大富翁改版玩法：机会牌与命运牌全文、完整规则，以及可直接打印的卡牌排版页。">
+<title>大富翁改版 · 规则与自制卡牌</title>
+<meta name="description" content="基于实体《大富翁》改的一套玩法：骰子、资金、房子、过路费、监狱、拍卖规则全部改过，机会牌与命运牌 40 张重写，附原版资料对照与卡牌打印页。">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -27,9 +27,14 @@
   .blk { padding: 32px 0; border-bottom: 1px solid #e8e5df; }
   h2 { font-size: 18px; font-weight: 500; margin: 0; }
 
-  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 16px 0 0; }
   .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
   .nav a:hover { border-color: #96597A; }
+
+  .notice {
+    background: #f4f2ee; border-left: 3px solid #B06F88; border-radius: 0 8px 8px 0;
+    padding: 10px 14px; margin: 14px 0 0; font-size: 14px; color: #55534e;
+  }
 
   /* 可折叠区块（原生 details，无 JS 也能用） */
   details.blk > summary {
@@ -99,6 +104,14 @@
   .md p { margin: 10px 0; }
   .md a { color: #96597A; }
 
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+  .orig .md { font-size: 14px; }
+  .orig .md h3 { font-size: 15px; margin: 18px 0 8px; }
+  .orig .md h4 { font-size: 14px; margin: 14px 0 6px; }
+
   footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; }
   footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
   footer a:hover { color: #96597A; }
@@ -114,10 +127,12 @@
 
 <div class="wrap">
 <header>
-  <h1>大富翁 · 自制机会 / 命运卡牌</h1>
-  <p>在实体《大富翁》基础上改的一套玩法：单个十六面骰、19580 起始资金，机会牌与命运牌全部重写。
-     规则在最上面，卡牌全文和打印入口在下面。</p>
-  <p class="nav"><a href="#rules">游戏规则</a><a href="#cards">卡牌全文</a><a href="#print">打印</a></p>
+  <h1>大富翁改版 · 规则与自制卡牌</h1>
+  <p>在实体《大富翁》基础上重做的一套玩法——<strong>规则改了，卡牌也改了</strong>：单个十六面骰、19580 起始资金，
+     房子、过路费、监狱、拍卖规则全部重写，机会牌与命运牌 40 张也换成自制的。</p>
+  <p class="notice">下面的「游戏规则」是<strong>改版后的新规则</strong>，跟原版说明书不是一回事。
+     想对照原版，看页尾的「原版资料」。</p>
+  <p class="nav"><a href="#rules">游戏规则</a><a href="#cards">卡牌全文</a><a href="#print">打印</a><a href="#original">原版资料</a></p>
 </header>
 
 <details class="blk" id="rules" open>
@@ -287,10 +302,290 @@
   <a class="btn" href="print.html">去打印页 →</a>
 </section>
 
+<details class="blk" id="original">
+  <summary><h2>原版资料</h2><span class="tog"></span></summary>
+  <p class="meta">实体《大富翁》的电子化存档，用来对照改版到底改了什么。照片太大没上传，这里是文字转录。</p>
+  <div class="orig">
+<!-- ORIGINAL:START -->
+<details class="fold"><summary>原版命运牌 &amp; 机会牌（20 + 20）</summary>
+<div class="md">
+<blockquote>提取自 <code>命运牌.jpg</code> 和 <code>机会牌.jpg</code>，共 20 + 20 = 40 张。每张牌左下角编号为「n-20」格式。</blockquote>
+<h3>命运牌（20 张）</h3>
+<div class="tw"><table>
+<thead><tr><th>编号</th><th>内容</th><th>效果</th></tr></thead>
+<tbody>
+<tr><td>1-20</td><td>与马来西亚农民一起种植油棕</td><td>可再翻下一张机会牌</td></tr>
+<tr><td>2-20</td><td>埃及金字塔内发现奇特木乃伊</td><td>获得 2000 分</td></tr>
+<tr><td>3-20</td><td>在澳大利亚遭受沙尘暴</td><td>损失 500 分</td></tr>
+<tr><td>4-20</td><td>请朋友吃韩国烤肉</td><td>付 200 分</td></tr>
+<tr><td>5-20</td><td>跳西班牙舞获得众人赞赏</td><td>前进二步</td></tr>
+<tr><td>6-20</td><td>畅游迪士尼乐园</td><td>门票 2000 分</td></tr>
+<tr><td>7-20</td><td>获得德国慕尼黑大学硕士学位</td><td>得 1000 分</td></tr>
+<tr><td>8-20</td><td>在印度旅行时见义勇为</td><td>得奖金 500 分</td></tr>
+<tr><td>9-20</td><td>游览意大利威尼斯城市风光</td><td>付船租金 1000 分</td></tr>
+<tr><td>10-20</td><td>横越马六甲海峡</td><td>奖励 1000 分</td></tr>
+<tr><td>11-20</td><td>救济非洲旱灾灾民</td><td>得奖金 3000 分</td></tr>
+<tr><td>12-20</td><td>航班因天气延误</td><td>暂停一次</td></tr>
+<tr><td>13-20</td><td>支付地税</td><td>房屋每幢 250 分，旅馆每幢 1000 分</td></tr>
+<tr><td>14-20</td><td>到法国尼斯滨海度假圣地，享受沙滩和海浪</td><td>如经过「由此去」得 2000 分</td></tr>
+<tr><td>15-20</td><td>成功登顶珠穆拉玛峰</td><td>奖金 500 分</td></tr>
+<tr><td>16-20</td><td>与家人共进晚餐吃惠灵顿牛排</td><td>费用 300 分</td></tr>
+<tr><td>17-20</td><td>探索墨西哥玛雅古文明</td><td>奖金 500 分</td></tr>
+<tr><td>18-20</td><td>用左手与越南友人行礼，触犯禁忌</td><td>退回起点</td></tr>
+<tr><td>19-20</td><td>在撒哈拉沙漠严重缺水</td><td>得救济金 1000 分</td></tr>
+<tr><td>20-20</td><td>前往中南美洲学习种植咖啡豆</td><td>付学费 1000 分</td></tr>
+</tbody></table></div>
+<h3>机会牌（20 张）</h3>
+<div class="tw"><table>
+<thead><tr><th>编号</th><th>内容</th><th>效果</th></tr></thead>
+<tbody>
+<tr><td>1-20</td><td>在俄罗斯开采矿石</td><td>获利 2500 分</td></tr>
+<tr><td>2-20</td><td>乘坐飞机到意大利度假（请移动到意大利，不要经过「由此去」）</td><td>如经过「由此去」得 2000 分</td></tr>
+<tr><td>3-20</td><td>在火星上发现了第一个液态水湖</td><td>得 500 分</td></tr>
+<tr><td>4-20</td><td>到巴西观看国际足联世界杯</td><td>门票 200 分</td></tr>
+<tr><td>5-20</td><td>乘坐波兰的有轨电车发生故障</td><td>失去所有现金的 1/10</td></tr>
+<tr><td>6-20</td><td>去瑞士滑雪</td><td>买雪橇 1000 分</td></tr>
+<tr><td>7-20</td><td>在斯里兰卡旅行时认识新好友</td><td>可再翻下一张机会</td></tr>
+<tr><td>8-20</td><td>完成徒步行遍中国的壮举</td><td>得奖金 2000 分</td></tr>
+<tr><td>9-20</td><td>荣获诺贝尔文学奖</td><td>得 3000 分</td></tr>
+<tr><td>10-20</td><td>迷失在亚马逊雨林</td><td>损失 600 分</td></tr>
+<tr><td>11-20</td><td>在日本旅行时发生地震</td><td>损失 1000 分</td></tr>
+<tr><td>12-20</td><td>前往泰国学习泰拳</td><td>得资助 1000 分</td></tr>
+<tr><td>13-20</td><td>受邀至拉斯维加斯表演魔术</td><td>谢礼 2000 分</td></tr>
+<tr><td>14-20</td><td>缴纳房产税</td><td>房屋每幢 250 分，旅馆每幢 1000 分</td></tr>
+<tr><td>15-20</td><td>购买比利时钻石花光现金</td><td>每人救济 1000 分</td></tr>
+<tr><td>16-20</td><td>在赞比亚探险时遭遇野兽袭击</td><td>损失 300 分</td></tr>
+<tr><td>17-20</td><td>获得采访英国女王的机会</td><td>得 500 分</td></tr>
+<tr><td>18-20</td><td>带旅游团参观智利国家自然历史博物馆</td><td>得 300 分</td></tr>
+<tr><td>19-20</td><td>误乘飞往菲律宾的航班</td><td>退回起点</td></tr>
+<tr><td>20-20</td><td>打碎摩洛哥陶瓷碗</td><td>罚款 500 分</td></tr>
+</tbody></table></div>
+<p>---</p>
+<h3>备注</h3>
+<ul>
+<li>编号「n-20」表示该牌是 20 张中的第 n 张。
+</li>
+<li>个别卡片角落的小字编号有轻微模糊（如命运 16-20、机会 1-20 / 7-20），已结合编号不重复的原则校正，如有出入以实体卡为准。
+</li>
+<li>意大利度假牌括号内的小字印刷较小，已按可见内容整理：「请移动到意大利，不要经过由此去」。
+</li>
+<li>这份是原版实体卡内容（照片见 <code>photos/</code>），与 <code>cards.csv</code> 中的自制机会牌/命运牌是两套不同的牌。
+</li></ul>
+</div>
+</details>
+<details class="fold"><summary>原版说明书（银牌）</summary>
+<div class="md">
+<blockquote>来源：原版实体卡《大富翁》（发行/福州亚湾文具有限公司，服务专线 0591-83855600）说明书照片转录。</blockquote>
+<h3>一 准备</h3>
+<p>棋盘平放，机会和命运卡分别放置于棋盘预定位置，卡片文字面向下（3001 银牌上海滩另有欢乐卡）。参加游戏的人各取一个代表物，集中摆在起点处，并分取计分券（钱币）如下：5000 元二张、1000 元四张、500 元一张、200 元一张、100 元两张、50 元一张、10 元五张（其余统归银行保管）。银行公推一人兼任，负责保管房屋、旅馆、计分券（钱币）、房权所有权证，并办理抵押及买卖土地。</p>
+<h3>二 转盘/骰子</h3>
+<p>开始时，玩家把代表物放在起点上，然后转盘或骰子决定顺序，点数多者先行。玩家轮流转盘或掷骰，按照点数移动自己的代表物顺时针方向在棋盘上行走。每到一处，玩家即按该地点格性质，执行相关的动作（见后续说明）。代表物可同时停在一格内。</p>
+<h3>三 起点</h3>
+<p>任何人经过或停留起点，银行须给他报酬金 <strong>2000 元</strong>。</p>
+<h3>四 地产</h3>
+<ul>
+<li>停留于未经他人购买之地产时，即有权依棋盘上规定价格购买，取得产权所有权证并公开置于面前。
+</li>
+<li>停留于已被人购买之地产上时，即检查该地建设之房屋及旅馆数量，依产权所有权证上规定金额付给地主过路费。
+</li>
+<li>停留于自己购买之地产时，可选择依产权所有权证上规定之房屋建筑费，付款给银行并拿取一幢（栋）房屋置于该地产。
+</li></ul>
+<h3>五 房屋</h3>
+<p>每一地产上所建筑房屋以<strong>五幢（栋）</strong>为限，建至第五幢（栋）时，将房屋缴回银行，并改以放置一幢（栋）旅馆（红色房屋）作为标志。</p>
+<h3>六 命运及机会</h3>
+<p>任何人移动到命运或机会格时，应翻阅对应之命运或机会卡一张，并按照卡上指示办理，随后将该卡放置于卡片堆底下。若该卡为「出狱许可证」，得由翻阅者保留使用或出售给他人。</p>
+<h3>七 所得税、财产税及其他税金或罚款</h3>
+<p>一律缴给银行。</p>
+<h3>八 监狱进牢</h3>
+<p>（该条款仅适用于 3001 银牌上海滩，若非该款产品请忽略此条例）</p>
+<p>入狱条例有二：</p>
+<ol>
+<li>代表物停在（<strong>进牢</strong>）。
+</li>
+<li>抽到（<strong>进牢</strong>）的卡片。
+</li></ol>
+<p>进牢者请移动至<strong>坐牢</strong>的角落格，仍照常扭动转盘或掷骰。</p>
+<p>出牢条例有二：</p>
+<ol>
+<li>在入狱后的三次转/掷数字中，只要有一次能出现 <strong>10 点或以上</strong>者，即可立即出狱。
+</li>
+<li>使用出狱许可证，即可立即出狱。（可向别人购买，价格自议）。
+</li></ol>
+<h3>九 地产抵押</h3>
+<p>玩家手头拮据时，可随时将地产向银行抵押贷款。贷款金额按照产权所有权证背面所记载之抵押价格，向银行支取现金。已抵押之地产，请将产权所有权证正面向下置于抵押人面前以资识别。（<strong>已抵押之地产不得收取过路费</strong>）。</p>
+<p>抵押所有权人想要赎回地产时，需要向银行缴回抵押所得之贷款金额，并支付贷款金额<strong>百分之十利息</strong>。（赎回抵押可随时为之。）</p>
+<h3>十 地产出售</h3>
+<p>手头拮据时，除了可抵押地产，玩家也可选择向银行出售物业。房屋出售时依照原建筑费取回一半金额。出售旅馆时，可先将旅馆换回五幢（栋）房屋再逐幢（栋）出售。当地产上已无任何房屋，则可按照地价之半价出售予银行。（<strong>抵押中之地产不可出售</strong>。）</p>
+<h3>十一 破产</h3>
+<p>任何人无论何时，当其无力清偿应支付款项时，不论数目多寡即谓之「破产」。宣告破产时，将其剩余之计分券（钱币）全数交由债主，退出游戏。最后一位未退出游戏者即为「大富翁」（游戏的赢家！）。</p>
+<h3>十二 其他</h3>
+<ol>
+<li>担任银行之玩家仅协助办理地产、房屋买卖及抵押等金额点算确认，不可与其他玩家私下互相借贷影响游戏公平。
+</li>
+<li>若游戏时间太长，想要提早结束者，可共同订立一个目标，例如手上现金先达到 <strong>30000 元</strong>或 <strong>50000 元</strong>的玩家，即成为大富翁并赢得游戏胜利。
+</li>
+<li>游戏内附之计分券（钱币）、房屋等配件若有数量不足，可自行选择其他配件取代。
+</li></ol>
+</div>
+</details>
+<details class="fold"><summary>原版地图格子数据（64 格）</summary>
+<div class="md">
+<p>来源：<code>photos/游戏地图.jpg</code>（高清图逐格辨认 + 色带像素采样核对；已于 2026-10-09 用高清图全量复核，64 格全部吻合）<br>轨道方向（用户确认）：<strong>起点(赤道) → 中国 → 底行向左 → 左列向上 → 顶行向右 → 右列向下 → 回起点</strong></p>
+<ul>
+<li>总格数 <strong>64</strong> = 4 角 + 每边 15 格
+</li>
+<li>地产格 <strong>51</strong> 个，机会 ×3、命运 ×3、海洋 ×3（太平洋/印度洋/大西洋）、角 ×4
+</li>
+<li>起点酬金：<strong>$2000</strong>（起点/由此去得酬金）
+</li></ul>
+<h3>完整轨道（按行进顺序）</h3>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>格子</th><th>首都</th><th>价格</th><th>色带</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>赤道（起点）</td><td>—</td><td>得酬金 $2000</td><td>角</td></tr>
+<tr><td>1</td><td>中华人民共和国</td><td>北京</td><td>$4000</td><td>红</td></tr>
+<tr><td>2</td><td>日本</td><td>东京</td><td>$1000</td><td>红</td></tr>
+<tr><td>3</td><td>机会 CHANCE</td><td>—</td><td>—</td><td>特殊</td></tr>
+<tr><td>4</td><td>韩国</td><td>首尔</td><td>$1000</td><td>红</td></tr>
+<tr><td>5</td><td>菲律宾</td><td>马尼拉</td><td>$600</td><td>蓝</td></tr>
+<tr><td>6</td><td>马来西亚</td><td>吉隆坡</td><td>$2600</td><td>蓝</td></tr>
+<tr><td>7</td><td>越南</td><td>河内</td><td>$2800</td><td>蓝</td></tr>
+<tr><td>8</td><td>泰国</td><td>曼谷</td><td>$1600</td><td>蓝</td></tr>
+<tr><td>9</td><td>印度</td><td>新德里</td><td>$1400</td><td>蓝</td></tr>
+<tr><td>10</td><td>太平洋</td><td>—</td><td>—</td><td>海洋</td></tr>
+<tr><td>11</td><td>斯里兰卡</td><td>科伦坡</td><td>$1400</td><td>黄绿</td></tr>
+<tr><td>12</td><td>伊朗</td><td>德黑兰</td><td>$2000</td><td>黄绿</td></tr>
+<tr><td>13</td><td>伊拉克</td><td>巴格达</td><td>$1800</td><td>黄绿</td></tr>
+<tr><td>14</td><td>沙特阿拉伯</td><td>利雅得</td><td>$1800</td><td>黄绿</td></tr>
+<tr><td>15</td><td>叙利亚</td><td>大马士革</td><td>$3500</td><td>黄绿</td></tr>
+<tr><td>16</td><td>地中海</td><td>—</td><td>—</td><td>角</td></tr>
+<tr><td>17</td><td>土耳其</td><td>安卡拉</td><td>$3500</td><td>黄绿</td></tr>
+<tr><td>18</td><td>命运 DESTINY</td><td>—</td><td>—</td><td>特殊</td></tr>
+<tr><td>19</td><td>黎巴嫩</td><td>贝鲁特</td><td>$600</td><td>紫</td></tr>
+<tr><td>20</td><td>以色列</td><td>耶路撒冷</td><td>$2000</td><td>紫</td></tr>
+<tr><td>21</td><td>俄罗斯</td><td>莫斯科</td><td>$1000</td><td>紫</td></tr>
+<tr><td>22</td><td>波兰</td><td>华沙</td><td>$1200</td><td>紫</td></tr>
+<tr><td>23</td><td>德国</td><td>柏林</td><td>$2400</td><td>紫</td></tr>
+<tr><td>24</td><td>印度洋</td><td>—</td><td>—</td><td>海洋</td></tr>
+<tr><td>25</td><td>奥地利</td><td>维也纳</td><td>$3000</td><td>粉</td></tr>
+<tr><td>26</td><td>瑞士</td><td>伯尔尼</td><td>$3200</td><td>粉</td></tr>
+<tr><td>27</td><td>法国</td><td>巴黎</td><td>$3000</td><td>粉</td></tr>
+<tr><td>28</td><td>比利时</td><td>布鲁塞尔</td><td>$2200</td><td>粉</td></tr>
+<tr><td>29</td><td>机会 CHANCE</td><td>—</td><td>—</td><td>特殊</td></tr>
+<tr><td>30</td><td>荷兰</td><td>阿姆斯特丹</td><td>$2400</td><td>深灰</td></tr>
+<tr><td>31</td><td>英国</td><td>伦敦</td><td>$2200</td><td>深灰</td></tr>
+<tr><td>32</td><td>北极</td><td>—</td><td>—</td><td>角</td></tr>
+<tr><td>33</td><td>芬兰</td><td>赫尔辛基</td><td>$2600</td><td>深灰</td></tr>
+<tr><td>34</td><td>瑞典</td><td>斯德哥尔摩</td><td>$2600</td><td>深灰</td></tr>
+<tr><td>35</td><td>丹麦</td><td>哥本哈根</td><td>$2800</td><td>深灰</td></tr>
+<tr><td>36</td><td>希腊</td><td>雅典</td><td>$1600</td><td>蓝</td></tr>
+<tr><td>37</td><td>意大利</td><td>罗马</td><td>$1400</td><td>蓝</td></tr>
+<tr><td>38</td><td>命运 DESTINY</td><td>—</td><td>—</td><td>特殊</td></tr>
+<tr><td>39</td><td>西班牙</td><td>马德里</td><td>$1400</td><td>蓝</td></tr>
+<tr><td>40</td><td>葡萄牙</td><td>里斯本</td><td>$2000</td><td>蓝</td></tr>
+<tr><td>41</td><td>埃及</td><td>开罗</td><td>$1800</td><td>绿</td></tr>
+<tr><td>42</td><td>摩洛哥</td><td>拉巴特</td><td>$1800</td><td>绿</td></tr>
+<tr><td>43</td><td>赞比亚</td><td>卢萨卡</td><td>$600</td><td>绿</td></tr>
+<tr><td>44</td><td>机会 CHANCE</td><td>—</td><td>—</td><td>特殊</td></tr>
+<tr><td>45</td><td>南非共和国</td><td>比勒陀利亚</td><td>$600</td><td>绿</td></tr>
+<tr><td>46</td><td>加拿大</td><td>渥太华</td><td>$3500</td><td>浅灰(卡其)</td></tr>
+<tr><td>47</td><td>美国</td><td>华盛顿</td><td>$3500</td><td>浅灰(卡其)</td></tr>
+<tr><td>48</td><td>夏威夷</td><td>—</td><td>—</td><td>角</td></tr>
+<tr><td>49</td><td>墨西哥</td><td>墨西哥城</td><td>$1000</td><td>灰</td></tr>
+<tr><td>50</td><td>洪都拉斯</td><td>特古西加尔巴</td><td>$1200</td><td>灰</td></tr>
+<tr><td>51</td><td>尼加拉瓜</td><td>马那瓜</td><td>$3000</td><td>粉红</td></tr>
+<tr><td>52</td><td>哥斯达黎加</td><td>圣何塞</td><td>$1000</td><td>粉红</td></tr>
+<tr><td>53</td><td>命运 DESTINY</td><td>—</td><td>—</td><td>特殊</td></tr>
+<tr><td>54</td><td>巴拿马</td><td>巴拿马城</td><td>$3200</td><td>粉红</td></tr>
+<tr><td>55</td><td>古巴</td><td>哈瓦那</td><td>$3000</td><td>粉红</td></tr>
+<tr><td>56</td><td>哥伦比亚</td><td>波哥大</td><td>$1800</td><td>绿</td></tr>
+<tr><td>57</td><td>玻利维亚</td><td>苏克雷·拉巴斯</td><td>$1200</td><td>绿</td></tr>
+<tr><td>58</td><td>巴西</td><td>巴西利亚</td><td>$2600</td><td>绿</td></tr>
+<tr><td>59</td><td>大西洋</td><td>—</td><td>—</td><td>海洋</td></tr>
+<tr><td>60</td><td>阿根廷</td><td>布宜诺斯艾利斯</td><td>$1000</td><td>绿</td></tr>
+<tr><td>61</td><td>智利</td><td>圣地亚哥</td><td>$3500</td><td>绿</td></tr>
+<tr><td>62</td><td>澳大利亚</td><td>堪培拉</td><td>$3200</td><td>红</td></tr>
+<tr><td>63</td><td>新西兰</td><td>惠灵顿</td><td>$3500</td><td>红</td></tr>
+</tbody></table></div>
+<h3>价格统计</h3>
+<ul>
+<li>地产格 <strong>51</strong> 个；总地价 <strong>$107,600</strong>；均价 <strong>$2,110</strong>；中位数 <strong>$2,000</strong>
+</li>
+<li><strong>最贵：中华人民共和国 $4000</strong>（全盘唯一，起点后第一格）
+</li>
+<li><strong>并列第二贵 $3500（6 个）</strong>：叙利亚、土耳其、加拿大、美国、智利、新西兰
+</li>
+<li><strong>最便宜 $600（4 个）</strong>：菲律宾、黎巴嫩、赞比亚、南非共和国
+</li>
+<li><strong>次便宜 $1000（6 个）</strong>：日本、韩国、俄罗斯、墨西哥、哥斯达黎加、阿根廷
+</li>
+<li>最高 : 最低 = <strong>4000 : 600 ≈ 6.67 : 1</strong>，与经典大富翁（Boardwalk 400 : Mediterranean 60）完全一致
+</li>
+<li>起点酬金 $2000 = 最贵地价的一半，比例同样与经典大富翁（GO 200 : Boardwalk 400）一致
+</li>
+<li>所有价格均为 $100 的整数倍
+</li></ul>
+<h4>价位分布</h4>
+<div class="tw"><table>
+<thead><tr><th>价格</th><th>数量</th><th>国家</th></tr></thead>
+<tbody>
+<tr><td>$4000</td><td>1</td><td>中国</td></tr>
+<tr><td>$3500</td><td>6</td><td>土耳其、叙利亚、美国、加拿大、智利、新西兰</td></tr>
+<tr><td>$3200</td><td>3</td><td>瑞士、巴拿马、澳大利亚</td></tr>
+<tr><td>$3000</td><td>4</td><td>奥地利、法国、尼加拉瓜、古巴</td></tr>
+<tr><td>$2800</td><td>2</td><td>越南、丹麦</td></tr>
+<tr><td>$2600</td><td>4</td><td>马来西亚、芬兰、瑞典、巴西</td></tr>
+<tr><td>$2400</td><td>2</td><td>德国、荷兰</td></tr>
+<tr><td>$2200</td><td>2</td><td>比利时、英国</td></tr>
+<tr><td>$2000</td><td>3</td><td>伊朗、以色列、葡萄牙</td></tr>
+<tr><td>$1800</td><td>5</td><td>伊拉克、沙特阿拉伯、埃及、摩洛哥、哥伦比亚</td></tr>
+<tr><td>$1600</td><td>2</td><td>泰国、希腊</td></tr>
+<tr><td>$1400</td><td>4</td><td>印度、斯里兰卡、意大利、西班牙</td></tr>
+<tr><td>$1200</td><td>3</td><td>波兰、洪都拉斯、玻利维亚</td></tr>
+<tr><td>$1000</td><td>6</td><td>日本、韩国、俄罗斯、墨西哥、哥斯达黎加、阿根廷</td></tr>
+<tr><td>$600</td><td>4</td><td>菲律宾、黎巴嫩、赞比亚、南非共和国</td></tr>
+</tbody></table></div>
+<h4>角落对称性观察</h4>
+<div class="tw"><table>
+<thead><tr><th>角</th><th>两侧格子及价格</th></tr></thead>
+<tbody>
+<tr><td>地中海</td><td>土耳其 $3500 ｜ 叙利亚 $3500（对称高价）</td></tr>
+<tr><td>赤道（起点）</td><td>中国 $4000 ｜ 新西兰 $3500</td></tr>
+<tr><td>北极</td><td>英国 $2200 ｜ 芬兰 $2600</td></tr>
+<tr><td>夏威夷</td><td>美国 $3500 ｜ 墨西哥 $1000</td></tr>
+</tbody></table></div>
+<h3>颜色分组（待确认口径）</h3>
+<p>9 种色带颜色，共 51 格：</p>
+<div class="tw"><table>
+<thead><tr><th>颜色</th><th>数量</th><th>格子</th></tr></thead>
+<tbody>
+<tr><td>黄绿</td><td>6</td><td>斯里兰卡、伊朗、伊拉克、沙特阿拉伯、叙利亚、土耳其</td></tr>
+<tr><td>紫</td><td>5</td><td>黎巴嫩、以色列、俄罗斯、波兰、德国</td></tr>
+<tr><td>粉</td><td>4</td><td>奥地利、瑞士、法国、比利时</td></tr>
+<tr><td>深灰</td><td>5</td><td>荷兰、英国、芬兰、瑞典、丹麦</td></tr>
+<tr><td>蓝</td><td>9</td><td>印度、泰国、越南、马来西亚、菲律宾、希腊、意大利、西班牙、葡萄牙</td></tr>
+<tr><td>绿</td><td>9</td><td>埃及、摩洛哥、赞比亚、南非、哥伦比亚、玻利维亚、巴西、阿根廷、智利</td></tr>
+<tr><td>浅灰(卡其)</td><td>2</td><td>加拿大、美国</td></tr>
+<tr><td>灰</td><td>2</td><td>墨西哥、洪都拉斯</td></tr>
+<tr><td>粉红</td><td>4</td><td>尼加拉瓜、哥斯达黎加、巴拿马、古巴</td></tr>
+<tr><td>红</td><td>5</td><td>韩国、日本、中国、澳大利亚、新西兰</td></tr>
+</tbody></table></div>
+<p>两种分组口径（待用户拍板）：</p>
+<ul>
+<li><strong>口径 A · 按颜色</strong>：同色即同组 → 9 组
+</li>
+<li><strong>口径 B · 按连续段</strong>：被机会/命运/海洋/角落隔开即断组 → 20 组（同段价格更接近，更贴近经典大富翁逻辑）
+</li></ul>
+</div>
+</details>
+<!-- ORIGINAL:END -->
+  </div>
+</details>
+
 <footer>
   <a href="print.html">打印页</a>
   <a href="docs/rules.md">规则源文件</a>
-  <a href="docs/map-tiles.md">地图格子数据</a>
+  <a href="original/map-tiles.md">地图格子数据</a>
   <a href="docs/csv-fields.md">卡牌字段说明</a>
   <a href="docs/card-diff.md">与原版卡差异</a>
   <span>CC BY-NC 4.0</span>

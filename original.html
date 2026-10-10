@@ -82,7 +82,8 @@
 <header>
   <h1>原版资料 · 实体《大富翁》</h1>
   <p>实体《大富翁》（世界之旅）的电子化存档：原版命运牌与机会牌全文、说明书转录、地图 64 格数据。
-     放在这里是为了跟改版对照——改了什么、没改什么，一眼能看出来。</p>
+     放在这里是为了跟改版对照——改了什么、没改什么，一眼能看出来。
+     地图部分有两份：《使用指南》讲怎么看数据、怎么组套，《格子数据》是 64 格的原始全表。</p>
   <p class="notice">这是<strong>原版</strong>内容，不是本站的改版玩法。实体照片体积太大没有上传，下面是文字转录；
      改版规则与自制卡牌见<a href="index.html">首页</a>。</p>
   <p class="nav"><a href="index.html">← 返回首页</a><a href="print.html">打印自制卡牌</a><a href="docs/card-diff.md">改版 vs 原版差异</a></p>
@@ -207,6 +208,156 @@
 </li>
 <li>游戏内附之计分券（钱币）、房屋等配件若有数量不足，可自行选择其他配件取代。
 </li></ol>
+</div>
+</details>
+<details class="blk"><summary><h2>地图数据使用指南（速览 · 投资建议 · FAQ）</h2><span class="tog"></span></summary>
+<div class="md">
+<blockquote>分组口径：口径 A · 按颜色分组（11 组）<br>数据版本：v1.0（已校验，64 格全部正确）<br>适用场景：游戏开发、策略分析、数据参考</blockquote>
+<h3>📖 快速导航</h3>
+<div class="tw"><table>
+<thead><tr><th>你想找什么</th><th>去哪里看</th></tr></thead>
+<tbody>
+<tr><td>某个格子的价格/颜色/位置</td><td>「附录：完整轨道」按格号查，或「颜色分组」按颜色查</td></tr>
+<tr><td>某颜色组有哪些国家</td><td>「二、颜色分组」11 个颜色组逐一列出</td></tr>
+<tr><td>哪个颜色组最贵/最便宜</td><td>「三、颜色组汇总表」按均价排序</td></tr>
+<tr><td>总共有多少格/多少钱</td><td>「一、整体概览」速查</td></tr>
+<tr><td>特殊格子在几号位</td><td>「四、特殊格子速查」</td></tr>
+<tr><td>走一圈经过哪些格子</td><td>「附录：完整轨道」按行进顺序</td></tr>
+</tbody></table></div>
+<h3>一、基础概念</h3>
+<h4>1.1 轨道方向</h4>
+<p><code>`</code><br>起点(赤道 #0)<br>↓ 底行向左（#1 → #16）<br>地中海(#16)<br>↓ 左行向上（#17 → #32）<br>北极(#32)<br>↓ 顶行向右（#33 → #48）<br>夏威夷(#48)<br>↓ 右行向下（#49 → #63）<br>回到赤道(#0) ✕<br><code>`</code></p>
+<h4>1.2 格子类型</h4>
+<div class="tw"><table>
+<thead><tr><th>类型</th><th>数量</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>🏠 地产格</td><td>51</td><td>可购买、收租的国家格子</td></tr>
+<tr><td>🔴 角</td><td>4</td><td>赤道(起点)、地中海、北极、夏威夷</td></tr>
+<tr><td>❓ 机会 CHANCE</td><td>3</td><td>抽取机会卡</td></tr>
+<tr><td>💫 命运 DESTINY</td><td>3</td><td>抽取命运卡</td></tr>
+<tr><td>🌊 海洋</td><td>3</td><td>太平洋、印度洋、大西洋</td></tr>
+</tbody></table></div>
+<h4>1.3 颜色组规则</h4>
+<ul>
+<li><strong>同色即同组</strong>：颜色相同的格子属于同一组
+</li>
+<li><strong>集齐一组</strong>：拥有同一颜色的全部地产格后，可以建房子/收高额租金
+</li>
+<li>⚠️ 注意：同色格子不一定连续（如红色组分散在 3 处），集齐难度不同
+</li></ul>
+<h3>二、11 个颜色组速览</h3>
+<h4>按均价从高到低</h4>
+<div class="tw"><table>
+<thead><tr><th>排名</th><th>颜色</th><th>格数</th><th>均价</th><th>集齐难度</th><th>特点</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>🔴 红</td><td>5</td><td>$2,740</td><td>⭐⭐⭐⭐⭐ 最难</td><td>分散在 3 处，含最贵中国 $4000</td></tr>
+<tr><td>2</td><td>🌸 粉</td><td>4</td><td>$2,850</td><td>⭐ 最易</td><td>4 格连续，均价极高</td></tr>
+<tr><td>3</td><td>💗 粉红</td><td>4</td><td>$2,550</td><td>⭐⭐</td><td>被命运格隔为 2 段</td></tr>
+<tr><td>4</td><td>⬛ 深灰</td><td>5</td><td>$2,520</td><td>⭐⭐</td><td>被北极隔为 2 段</td></tr>
+<tr><td>5</td><td>💛 黄绿</td><td>6</td><td>$2,333</td><td>⭐⭐</td><td>最大一组，被地中海隔开</td></tr>
+<tr><td>6</td><td>🟫 浅灰(卡其)</td><td>4</td><td>$2,300</td><td>⭐⭐</td><td>被夏威夷隔开，价格落差大</td></tr>
+<tr><td>7</td><td>🟩 绿</td><td>5</td><td>$2,020</td><td>⭐⭐</td><td>被大西洋隔为 2 段</td></tr>
+<tr><td>8</td><td>🔵 浅蓝</td><td>5</td><td>$1,800</td><td>⭐ 易</td><td>5 格全部连续</td></tr>
+<tr><td>9</td><td>🔷 深蓝</td><td>4</td><td>$1,600</td><td>⭐⭐</td><td>被命运格隔为 2 段</td></tr>
+<tr><td>10</td><td>💜 紫</td><td>5</td><td>$1,440</td><td>⭐ 易</td><td>5 格全部连续</td></tr>
+<tr><td>11</td><td>🟢 浅绿</td><td>4</td><td>$1,200</td><td>⭐⭐</td><td>均价最低，被机会格隔开</td></tr>
+</tbody></table></div>
+<h3>三、特殊格子速查</h3>
+<h4>3.1 角落格（4 个）</h4>
+<div class="tw"><table>
+<thead><tr><th>格号</th><th>名称</th><th>功能</th></tr></thead>
+<tbody>
+<tr><td>#0</td><td>赤道（起点）</td><td>起点/经过得酬金 $2000</td></tr>
+<tr><td>#16</td><td>地中海</td><td>角落（两侧对称高价 $3500）</td></tr>
+<tr><td>#32</td><td>北极</td><td>角落</td></tr>
+<tr><td>#48</td><td>夏威夷</td><td>角落（两侧价格落差大）</td></tr>
+</tbody></table></div>
+<h4>3.2 机会格（3 个）</h4>
+<div class="tw"><table>
+<thead><tr><th>格号</th><th>位置</th><th>前后格子</th></tr></thead>
+<tbody>
+<tr><td>#3</td><td>底行</td><td>日本(#2) / 韩国(#4)</td></tr>
+<tr><td>#29</td><td>左行</td><td>比利时(#28) / 荷兰(#30)</td></tr>
+<tr><td>#44</td><td>顶行</td><td>赞比亚(#43) / 南非(#45)</td></tr>
+</tbody></table></div>
+<h4>3.3 命运格（3 个）</h4>
+<div class="tw"><table>
+<thead><tr><th>格号</th><th>位置</th><th>前后格子</th></tr></thead>
+<tbody>
+<tr><td>#18</td><td>左行</td><td>土耳其(#17) / 黎巴嫩(#19)</td></tr>
+<tr><td>#38</td><td>顶行</td><td>意大利(#37) / 西班牙(#39)</td></tr>
+<tr><td>#53</td><td>右行</td><td>哥斯达黎加(#52) / 巴拿马(#54)</td></tr>
+</tbody></table></div>
+<h4>3.4 海洋格（3 个）</h4>
+<div class="tw"><table>
+<thead><tr><th>格号</th><th>名称</th><th>位置</th><th>前后格子</th></tr></thead>
+<tbody>
+<tr><td>#10</td><td>太平洋</td><td>底行</td><td>印度(#9) / 斯里兰卡(#11)</td></tr>
+<tr><td>#24</td><td>印度洋</td><td>左行</td><td>德国(#23) / 奥地利(#25)</td></tr>
+<tr><td>#59</td><td>大西洋</td><td>右行</td><td>巴西(#58) / 阿根廷(#60)</td></tr>
+</tbody></table></div>
+<h3>四、价格体系</h3>
+<h4>4.1 价格范围</h4>
+<ul>
+<li><strong>最高价</strong>：$4000（中国，唯一）
+</li>
+<li><strong>最低价</strong>：$600（4 个国家）
+</li>
+<li><strong>最高 : 最低</strong> = 6.67 : 1（与经典大富翁比例一致）
+</li>
+<li><strong>起点酬金 $2000</strong> = 最贵地价的一半（与经典大富翁比例一致）
+</li></ul>
+<h4>4.2 价位分布</h4>
+<div class="tw"><table>
+<thead><tr><th>价格档</th><th>数量</th><th>代表国家</th></tr></thead>
+<tbody>
+<tr><td>$3500+</td><td>7</td><td>中国 $4000、土耳其、叙利亚、加拿大、美国、智利、新西兰 $3500</td></tr>
+<tr><td>$3000 ~ $3200</td><td>7</td><td>瑞士、澳大利亚、巴拿马 $3200；奥地利、法国、尼加拉瓜、古巴 $3000</td></tr>
+<tr><td>$2000 ~ $2800</td><td>17</td><td>中等价位主力</td></tr>
+<tr><td>$1000 ~ $1800</td><td>19</td><td>低价主力</td></tr>
+<tr><td>$600</td><td>4</td><td>菲律宾、黎巴嫩、赞比亚、南非</td></tr>
+</tbody></table></div>
+<h4>4.3 投资建议（仅供参考）</h4>
+<div class="tw"><table>
+<thead><tr><th>策略</th><th>推荐颜色组</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td>高风险高回报</td><td>🔴 红</td><td>均价最高，但最难集齐</td></tr>
+<tr><td>稳健首选</td><td>🌸 粉</td><td>均价第 2，4 格连续，集齐容易</td></tr>
+<tr><td>性价比之王</td><td>⬛ 深灰</td><td>均价 $2520，2 段共 5 格</td></tr>
+<tr><td>低价起步</td><td>💜 紫 / 🔵 浅蓝</td><td>均价低，5 格连续，容易集齐先占地</td></tr>
+<tr><td>捡漏</td><td>🟫 浅灰(卡其)</td><td>加拿大美国 $3500 高价 + 墨西哥洪都拉斯 $1000+ 低价，成本不均</td></tr>
+</tbody></table></div>
+<h3>五、常见问题 FAQ</h3>
+<h4>Q1：怎么判断有没有集齐一组？</h4>
+<p>集齐同一颜色的<strong>所有</strong>地产格即可。例如红色组有 5 个国家（中国、日本、韩国、澳大利亚、新西兰），必须全部拥有才算集齐。</p>
+<h4>Q2：同色但不连续也算一组吗？</h4>
+<p>算。大富翁的规则是<strong>按颜色分组</strong>，跟位置无关。即使红色组分散在三个位置，只要颜色都是红色，就是同一组。</p>
+<h4>Q3：为什么有的颜色组有 5 格、有的只有 4 格？</h4>
+<p>这是地图本身的设计。经典大富翁里也是 2~3 格不等，这里最多 6 格（黄绿），最少 4 格（粉、深蓝、浅绿、浅灰、粉红）。</p>
+<h4>Q4：海洋格有什么用？</h4>
+<p>类似于经典大富翁的「社区福利」或「税务」格子，具体效果看游戏规则设定。本数据中标记为「海洋」类型的特殊格子。</p>
+<h4>Q5：格号是怎么编的？</h4>
+<p>从起点（赤道 #0）开始，按行进方向顺时针编号：底行 → 左行 → 顶行 → 右行，回到起点。四个角落分别是 #0（赤道）、#16（地中海）、#32（北极）、#48（夏威夷）。</p>
+<h4>Q6：「浅蓝」和「深蓝」、「浅绿」和「绿」、「粉红」和「粉」有什么区别？</h4>
+<p>是<strong>完全不同的颜色组</strong>。色带深浅有明显区别，属于各自独立的颜色组，不能互相替代。</p>
+<h4>Q7：为什么红色组有 5 格但分散在 3 个地方？</h4>
+<p>这是这张「世界之旅」地图的设计特点——红色国家（中国、日本、韩国、澳大利亚、新西兰）地理上都在亚太地区，但在棋盘上因为布局原因被机会格和右行终点隔开了。游戏规则上它们仍属于同一颜色组。</p>
+<h3>六、开发参考</h3>
+<h4>6.1 数据结构示例</h4>
+<p><code>`</code>javascript<br>// 格子数据结构<br>const tile = {<br>id: 1,                    // 格号 0-63<br>name: &quot;中华人民共和国&quot;,    // 格子名称<br>capital: &quot;北京&quot;,          // 首都（地产格有，特殊格无）<br>price: 4000,              // 价格（地产格有，特殊格无）<br>color: &quot;红&quot;,              // 色带颜色<br>type: &quot;property&quot;,         // 类型：property/corner/chance/destiny/ocean<br>side: &quot;bottom&quot;,           // 所在边：bottom/left/top/right<br>};<br><code>`</code></p>
+<h4>6.2 颜色组数据结构</h4>
+<p><code>`</code>javascript<br>const colorGroups = {<br>&quot;红&quot;: {<br>count: 5,<br>avgPrice: 2740,<br>tiles: [1, 2, 4, 62, 63],  // 格号数组<br>segments: 3,               // 连续段数<br>},<br>// ... 其他颜色组<br>};<br><code>`</code></p>
+<h4>6.3 常用计算</h4>
+<div class="tw"><table>
+<thead><tr><th>计算项</th><th>公式</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>总地价</td><td>51 个地产格价格相加</td><td>$107,600</td></tr>
+<tr><td>均价</td><td>总地价 ÷ 51</td><td>$2,110</td></tr>
+<tr><td>中位数</td><td>排序后第 26 个</td><td>$2,000</td></tr>
+<tr><td>一圈总格数</td><td>4 角 + 4边×15格</td><td>64</td></tr>
+<tr><td>走一圈得起点酬金次数</td><td>每经过起点 1 次</td><td>$2000</td></tr>
+</tbody></table></div>
+<p>*指南版本：v1.0*</p>
 </div>
 </details>
 <details class="blk"><summary><h2>原版地图格子数据（64 格 · 11 个颜色组）</h2><span class="tog"></span></summary>
@@ -520,7 +671,8 @@
   <a href="print.html">打印页</a>
   <a href="original/cards.md">原版卡牌 md</a>
   <a href="original/manual.md">原版说明书 md</a>
-  <a href="original/map-tiles.md">地图数据 md</a>
+  <a href="original/map-data-guide.md">地图指南 md</a>
+  <a href="original/map-tiles.md">格子数据 md</a>
   <span>原版内容权利归原发行方，仅作对照研究</span>
 </footer>
 </div>

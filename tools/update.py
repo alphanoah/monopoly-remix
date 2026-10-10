@@ -29,6 +29,7 @@ ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 ORIGINAL_DOCS = [
     ('cards.md', '原版命运牌 & 机会牌（20 + 20 张）', True),
     ('manual.md', '原版说明书（银牌）', True),
+    ('map-data-guide.md', '地图数据使用指南（速览 · 投资建议 · FAQ）', False),
     ('map-tiles.md', '原版地图格子数据（64 格 · 11 个颜色组）', False),
 ]
 

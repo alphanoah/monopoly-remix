@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>大富翁改版 · 规则与自制卡牌</title>
-<meta name="description" content="基于实体《大富翁》改的一套玩法：骰子、资金、房子、过路费、监狱、拍卖规则全部改过，机会牌与命运牌 40 张重写，附原版资料对照与卡牌打印页。">
+<meta name="description" content="七个熟人玩了四个小时还没打完，于是把大富翁重做了一遍：十六面骰、19580 起始资金，房子、过路费、监狱、拍卖规则全改，机会牌与命运牌 40 张重写。含完整规则、卡牌全文、原版资料与打印页。">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -63,6 +63,10 @@
 
   .tips { margin: 12px 0 18px; padding-left: 20px; font-size: 14px; color: #55534e; }
   .tips li { margin: 4px 0; }
+
+  .story { margin: 14px 0 0; padding-left: 22px; font-size: 14.5px; color: #55534e; }
+  .story li { margin: 9px 0; }
+  .story strong { color: #2c2c2a; }
 
   .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   select, .seg button {
@@ -125,12 +129,30 @@
 <div class="wrap">
 <header>
   <h1>大富翁改版 · 规则与自制卡牌</h1>
-  <p>在实体《大富翁》基础上重做的一套玩法——<strong>规则改了，卡牌也改了</strong>：单个十六面骰、19580 起始资金，
-     房子、过路费、监狱、拍卖规则全部重写，机会牌与命运牌 40 张也换成自制的。</p>
+  <p>七个熟人凑一桌，六个第一次摸牌，从天黑打到半夜——<strong>整整四个小时</strong>，最贵那块地还空着，
+     最后靠「每轮每人扣 2000」的跑毒才勉强收场。</p>
+  <p>于是有了这一版：<strong>把节奏拧快，把运气放大，把熟人局才有的乐子写进牌里</strong>。
+     一颗十六面骰代替两颗六面骰，起始资金 19580，房子、过路费、监狱、拍卖规则全部重算，
+     机会牌与命运牌 40 张换成自制的——举报同桌的海外账户、给对手的咖啡里下泻药、
+     跟西西里黑手党猜拳、把全部身家押上蒙特卡洛的轮盘。</p>
   <p class="notice">下面的「游戏规则」是<strong>改版后的新规则</strong>，跟原版说明书不是一回事。
      想对照原版，<a href="original.html">看原版资料</a>（原版卡牌、说明书、地图数据）。</p>
-  <p class="nav"><a href="#rules">游戏规则</a><a href="#cards">卡牌全文</a><a href="#print">打印</a><a href="original.html">原版资料</a></p>
+  <p class="nav"><a href="#why">为什么改版</a><a href="#rules">游戏规则</a><a href="#cards">卡牌全文</a><a href="#print">打印</a><a href="original.html">原版资料</a></p>
 </header>
+
+<section class="blk" id="why">
+  <h2>为什么要改这一版</h2>
+  <ol class="story">
+    <li><strong>开局</strong>：7 个非常熟的朋友凑一桌玩大富翁，大部分人是第一次玩。</li>
+    <li><strong>第一次玩</strong>：晚上开局，四个小时还没打完。最后实在太晚，临时加了一条「跑毒」——
+        每一轮结束每个玩家各扣 2000，才把结局逼出来。</li>
+    <li><strong>发现的问题</strong>：钱和过路费确实在指数增长，但<strong>节奏太慢</strong>。
+        四个小时过去了，没人盖起后期的高级房子，最好玩的那一段一直玩不到。</li>
+    <li><strong>这一版想做的</strong>：把节奏拧快。十六面骰拉大每一步的跨度、起始资金一次给足到 19580、
+        过路费和房子等级重算，让后期的高级房子更早登场；卡牌顺势改成
+        <strong>损人利己 + 押注博弈</strong>，7 个人的熟人局才玩得出味道。</li>
+  </ol>
+</section>
 
 <details class="blk" id="rules" open>
   <summary><h2>游戏规则</h2><span class="tog"></span></summary>

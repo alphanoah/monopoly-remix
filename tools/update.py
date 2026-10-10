@@ -24,11 +24,12 @@ INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
 RULES_PATH = os.path.join(ROOT, 'docs', 'rules.md')
 ORIGINAL_DIR = os.path.join(ROOT, 'original')
-# 原版实体资料：文件名 → 首页折叠标题（按这个顺序展示）
+ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
+# 原版实体资料：文件名 → 页面上的区块标题 → 是否默认展开（按这个顺序展示）
 ORIGINAL_DOCS = [
-    ('cards.md', '原版命运牌 & 机会牌（20 + 20）'),
-    ('manual.md', '原版说明书（银牌）'),
-    ('map-tiles.md', '原版地图格子数据（64 格）'),
+    ('cards.md', '原版命运牌 & 机会牌（20 + 20 张）', True),
+    ('manual.md', '原版说明书（银牌）', True),
+    ('map-tiles.md', '原版地图格子数据（64 格 · 11 个颜色组）', False),
 ]
 
 DEFAULT_VERSION = 'v6'
@@ -180,6 +181,11 @@ def md_to_html(md, prefix='docs/'):
             out.append(tbl)
             continue
 
+        # 水平分隔线 --- / ***（首页用标题间距就够，直接跳过）
+        if re.match(r'^(-{3,}|\*{3,}|_{3,})$', s):
+            i += 1
+            continue
+
         # 列表
         if re.match(r'^([-*+]|\d+[.)])\s+', s):
             items = []
@@ -203,7 +209,7 @@ def md_to_html(md, prefix='docs/'):
             while i < len(lines) and lines[i].strip().startswith('>'):
                 buf.append(lines[i].strip().lstrip('>').strip())
                 i += 1
-            out.append('<blockquote>%s</blockquote>' % inline(' '.join(buf), prefix))
+            out.append('<blockquote>%s</blockquote>' % '<br>'.join(inline(x, prefix) for x in buf))
             continue
 
         # 普通段落（连续行合并）
@@ -221,17 +227,18 @@ def md_to_html(md, prefix='docs/'):
 
 
 def build_original():
-    """把 original/ 下的原版实体资料转成首页用的折叠块。"""
+    """把 original/ 下的原版实体资料转成 original.html 的正文区块。"""
     parts = []
-    for fn, label in ORIGINAL_DOCS:
+    for fn, label, opened in ORIGINAL_DOCS:
         path = os.path.join(ORIGINAL_DIR, fn)
         if not os.path.exists(path):
             print('  跳过：未找到 original/%s' % fn)
             continue
         with open(path, encoding='utf-8') as f:
             body = md_to_html(f.read(), prefix='original/')
-        parts.append('<details class="fold"><summary>%s</summary>\n<div class="md">\n%s\n</div>\n</details>'
-                     % (html.escape(label), body))
+        parts.append('<details class="blk"%s><summary><h2>%s</h2><span class="tog"></span></summary>\n'
+                     '<div class="md">\n%s\n</div>\n</details>'
+                     % (' open' if opened else '', html.escape(label), body))
     return '\n'.join(parts)
 
 
@@ -267,7 +274,15 @@ def write_json(data):
     print('  cards.json（%d 个版本，默认 %s）' % (len(data['versions']), data['default']))
 
 
-def write_index(data, rules_html, original_html):
+def write_original(original_html):
+    if swap(ORIGINAL_PATH,
+            r'<!-- ORIGINAL:START -->.*?<!-- ORIGINAL:END -->',
+            '<!-- ORIGINAL:START -->\n' + original_html + '\n<!-- ORIGINAL:END -->',
+            '原版资料区块'):
+        print('  original.html（%d 字符）' % len(original_html))
+
+
+def write_index(data, rules_html):
     js = 'const DECKS = ' + json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';'
     ok1 = swap(INDEX_PATH,
                r'/\* CARDS:START \*/.*?/\* CARDS:END \*/',
@@ -277,14 +292,10 @@ def write_index(data, rules_html, original_html):
                r'<!-- RULES:START -->.*?<!-- RULES:END -->',
                '<!-- RULES:START -->\n' + rules_html + '\n<!-- RULES:END -->',
                '规则区')
-    ok3 = swap(INDEX_PATH,
-               r'<!-- ORIGINAL:START -->.*?<!-- ORIGINAL:END -->',
-               '<!-- ORIGINAL:START -->\n' + original_html + '\n<!-- ORIGINAL:END -->',
-               '原版资料区')
     if ok1 and ok2:
         total = sum(len(data['versions'][v]['cards']) for v in data['order'])
-        print('  index.html（%d 个版本共 %d 张 + 规则区 %d 字符 + 原版资料 %d 字符）'
-              % (len(data['order']), total, len(rules_html), len(original_html)))
+        print('  index.html（%d 个版本共 %d 张 + 规则区 %d 字符）'
+              % (len(data['order']), total, len(rules_html)))
 
 
 def write_print_fallback(data):
@@ -317,7 +328,8 @@ def main():
 
     print('写入：')
     write_json(data)
-    write_index(data, rules_html, original_html)
+    write_index(data, rules_html)
+    write_original(original_html)
     write_print_fallback(data)
     print('完成。')
 

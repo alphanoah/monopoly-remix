@@ -24,10 +24,41 @@
   }
   .btn:hover { background: #96597A; }
 
-  section { padding: 34px 0; border-bottom: 1px solid #e8e5df; }
-  h2 { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+  .blk { padding: 32px 0; border-bottom: 1px solid #e8e5df; }
+  h2 { font-size: 18px; font-weight: 500; margin: 0; }
 
-  .sec-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  /* 可折叠区块（原生 details，无 JS 也能用） */
+  details.blk > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px;
+    padding: 0 0 14px; user-select: none;
+  }
+  details.blk > summary::-webkit-details-marker { display: none; }
+  details.blk > summary::before {
+    content: ''; flex: none; width: 7px; height: 7px;
+    border-right: 1.6px solid #b3afa6; border-bottom: 1.6px solid #b3afa6;
+    transform: rotate(45deg); margin-bottom: 3px; transition: transform .15s ease;
+  }
+  details.blk:not([open]) > summary::before { transform: rotate(-45deg); margin-bottom: 0; }
+  details.blk > summary:hover h2 { color: #96597A; }
+  .tog { margin-left: auto; font-size: 12.5px; color: #a8a49c; }
+  details.blk[open] > summary .tog::after { content: '收起'; }
+  details.blk:not([open]) > summary .tog::after { content: '展开'; }
+
+  /* 规则区里的「初版卡牌」存档折叠 */
+  .fold { margin: 16px 0 4px; }
+  .fold > summary { list-style: none; cursor: pointer; font-size: 14px; color: #6b6a66; padding: 5px 0; }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary::before { content: '▸ '; color: #b3afa6; }
+  .fold[open] > summary::before { content: '▾ '; }
+  .fold > summary:hover { color: #96597A; }
+
+  .tips { margin: 12px 0 18px; padding-left: 20px; font-size: 14px; color: #55534e; }
+  .tips li { margin: 4px 0; }
+
   .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   select, .seg button {
     font-family: inherit; font-size: 13px; background: #fff; color: #2c2c2a;
@@ -85,28 +116,12 @@
 <header>
   <h1>大富翁 · 自制机会 / 命运卡牌</h1>
   <p>在实体《大富翁》基础上改的一套玩法：单个十六面骰、19580 起始资金，机会牌与命运牌全部重写。
-     下面是卡牌全文与完整规则，要打印的话走打印页。</p>
-  <a class="btn" href="print.html">去打印页 →</a>
+     规则在最上面，卡牌全文和打印入口在下面。</p>
+  <p class="nav"><a href="#rules">游戏规则</a><a href="#cards">卡牌全文</a><a href="#print">打印</a></p>
 </header>
 
-<section id="cards">
-  <div class="sec-head">
-    <h2>卡牌</h2>
-    <div class="ctrl">
-      <select id="verSel" title="卡牌版本"></select>
-      <div class="seg" id="deckSeg">
-        <button data-deck="all" class="on">全部</button>
-        <button data-deck="chance">机会</button>
-        <button data-deck="fate">命运</button>
-      </div>
-    </div>
-  </div>
-  <p class="meta" id="cardMeta"></p>
-  <div class="grid" id="grid"></div>
-</section>
-
-<section id="rules">
-  <h2>游戏规则</h2>
+<details class="blk" id="rules" open>
+  <summary><h2>游戏规则</h2><span class="tog"></span></summary>
   <div class="md">
 <!-- RULES:START -->
 <h3>基本规则：</h3>
@@ -169,7 +184,8 @@
 <p>在 <strong><code>cards.csv</code></strong>，打印页读的就是它。要改卡牌内容请改这个文件，<br>字段怎么填见 <a href="docs/csv-fields.md">csv-fields.md</a>。</p>
 <h4>历史版本</h4>
 <p><code>cards/v1.md</code> … <code>cards/v6.md</code>。当前内容来自 <strong>v6（邪恶版·世界之旅）</strong>。</p>
-<h4>初版卡牌（2026-10-08，机会 16 + 命运 16）</h4>
+<details class="fold"><summary>初版卡牌（2026-10-08，机会 16 + 命运 16）</summary>
+
 <p>最早写在 Word 文档里的版本，此处存档备查，实际游戏已不使用。</p>
 <p><strong>机会牌</strong></p>
 <ol>
@@ -240,8 +256,35 @@
 <li>你在墨西哥走私显卡：+2000
 </li></ol>
 <blockquote><code>N</code> = 存活玩家人数（含自己）</blockquote>
+</details>
 <!-- RULES:END -->
   </div>
+</details>
+
+<details class="blk" id="cards" open>
+  <summary><h2>卡牌全文</h2><span class="tog"></span></summary>
+  <div class="ctrl">
+    <select id="verSel" title="卡牌版本"></select>
+    <div class="seg" id="deckSeg">
+      <button data-deck="all" class="on">全部</button>
+      <button data-deck="chance">机会</button>
+      <button data-deck="fate">命运</button>
+    </div>
+  </div>
+  <p class="meta" id="cardMeta"></p>
+  <div class="grid" id="grid"></div>
+</details>
+
+<section class="blk" id="print">
+  <h2>打印</h2>
+  <p class="meta">要实体卡就走打印页：选纸张、版式、正反面，然后直接 ⌘/Ctrl + P。</p>
+  <ul class="tips">
+    <li>默认 <strong>6 寸相片纸</strong> 4 张/页，也能切 A4（8 张或 10 张/页）。</li>
+    <li>可以只打正面、只打背面，或按花色分开打；会混色时背面会自动锁成按花色分页。</li>
+    <li>打印设置里边距选「无」、缩放 100%，并勾上「背景图形」，否则底色打不出来。</li>
+    <li>建议先过塑再裁切，每张边缘留 1.5–2mm。</li>
+  </ul>
+  <a class="btn" href="print.html">去打印页 →</a>
 </section>
 
 <footer>

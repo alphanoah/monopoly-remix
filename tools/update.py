@@ -190,6 +190,15 @@ def md_to_html(md):
     return '\n'.join(out)
 
 
+def fold_archive(rules_html):
+    """把 rules.md 末尾那段「初版卡牌」存档折进 <details>（原生折叠，不依赖 JS）。"""
+    m = re.search(r'<h4>([^<]*初版卡牌[^<]*)</h4>', rules_html)
+    if not m:
+        return rules_html
+    return ('%s<details class="fold"><summary>%s</summary>\n%s\n</details>'
+            % (rules_html[:m.start()], m.group(1), rules_html[m.end():]))
+
+
 # ---------- 写入 ----------
 def swap(path, pattern, block, label):
     if not os.path.exists(path):
@@ -253,7 +262,7 @@ def main():
     data = build(rows)
 
     with open(RULES_PATH, encoding='utf-8') as f:
-        rules_html = md_to_html(f.read())
+        rules_html = fold_archive(md_to_html(f.read()))
 
     print('写入：')
     write_json(data)

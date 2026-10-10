@@ -606,7 +606,7 @@ function render() {
     const tag = document.createElement('div');
     tag.className = 'page-tag';
     tag.style.width = P.w + 'mm';
-    const kinds = [...new Set(pageItems.map(x => DECK_NAME[x.card.c]))].join(' + ');
+    const kinds = [...new Set(pageItems.map(x => DECK_NAME[x.card.deck]))].join(' + ');
     tag.textContent = '第 ' + (pi + 1) + ' 页 / 共 ' + pages.length + ' 页 · ' + kinds + '牌' +
       (side === 'back' ? ' · 背面（对背打印，先印正面再翻面印本页）' : '');
     wrap.appendChild(tag);
@@ -627,7 +627,7 @@ function render() {
     sheet.style.setProperty('--nfs', L.nfs + 'px');
     sheet.style.setProperty('--wms', L.wms + 'mm');
 
-    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.c) : cardNode(x.card, x.i, x.n)));
+    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.deck) : cardNode(x.card, x.i, x.n)));
     for (let k = pageItems.length; k < L.per; k++) {
       const b = document.createElement('div');
       b.className = 'blank';

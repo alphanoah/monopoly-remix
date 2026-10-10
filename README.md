@@ -127,7 +127,7 @@ richer/
 │   └── card-diff.md        新版 vs 原版差异对照
 ├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
 │   ├── cards.md            原版命运牌 & 机会牌（20 + 20）转录
-│   ├── manual.md           原版说明书（银牌）转录
+│   ├── manual.md           原版《大富翁世界之旅（银牌）》说明书转录
 │   ├── map-data-guide.md   地图数据使用指南（速览 / 投资建议 / FAQ）
 │   └── map-tiles.md        原版地图 64 格原始数据
 ├── cards/                  自制卡牌历史版本存档 v1–v6.md

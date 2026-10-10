@@ -25,10 +25,10 @@ PRINT_PATH = os.path.join(ROOT, 'print.html')
 RULES_PATH = os.path.join(ROOT, 'docs', 'rules.md')
 ORIGINAL_DIR = os.path.join(ROOT, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
-# 原版实体资料：文件名 → 页面上的区块标题 → 是否默认展开（按这个顺序展示）
+# 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
 ORIGINAL_DOCS = [
     ('cards.md', '原版命运牌 & 机会牌（20 + 20 张）', True),
-    ('manual.md', '原版说明书（银牌）', True),
+    ('manual.md', None, True),
     ('map-data-guide.md', '地图数据使用指南（速览 · 投资建议 · FAQ）', False),
     ('map-tiles.md', '原版地图格子数据（64 格 · 11 个颜色组）', False),
 ]
@@ -227,6 +227,12 @@ def md_to_html(md, prefix='docs/'):
     return '\n'.join(out)
 
 
+def md_title(md):
+    """取 md 的一级标题，没有就返回空字符串。"""
+    m = re.search(r'^#\s+(.+?)\s*$', md, re.M)
+    return m.group(1).strip() if m else ''
+
+
 def build_original():
     """把 original/ 下的原版实体资料转成 original.html 的正文区块。"""
     parts = []
@@ -236,10 +242,12 @@ def build_original():
             print('  跳过：未找到 original/%s' % fn)
             continue
         with open(path, encoding='utf-8') as f:
-            body = md_to_html(f.read(), prefix='original/')
+            text = f.read()
+        if label is None:                      # 没写死标题就跟 md 的一级标题走
+            label = md_title(text) or fn
         parts.append('<details class="blk"%s><summary><h2>%s</h2><span class="tog"></span></summary>\n'
                      '<div class="md">\n%s\n</div>\n</details>'
-                     % (' open' if opened else '', html.escape(label), body))
+                     % (' open' if opened else '', html.escape(label), md_to_html(text, prefix='original/')))
     return '\n'.join(parts)
 
 

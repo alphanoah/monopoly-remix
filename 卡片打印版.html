@@ -51,7 +51,6 @@
   .wm {
     position: absolute; top: 0; right: 0; bottom: 0;
     display: flex; align-items: center; justify-content: flex-end;
-    margin-right: -0.26em;
     font-size: var(--wms); line-height: 1; font-weight: 700;
     pointer-events: none; z-index: 0;
   }
@@ -113,7 +112,7 @@
   .back-face .w { font-size: calc(var(--cw) * 0.185); font-weight: 700; line-height: 1; }
   .back-face .sym { font-size: calc(var(--cw) * 0.30); font-weight: 700; line-height: 1; opacity: .5; }
   .back-en {
-    position: absolute; left: 0; right: 0; top: 63%;
+    position: absolute; left: 0; right: 0; top: 70%;
     font-size: calc(var(--cw) * 0.055); letter-spacing: .45em; text-indent: .45em;
     text-align: center; opacity: .7;
   }
@@ -121,15 +120,15 @@
   .card.back.fate { color: #2C3E6B; }
   .back-stamp {
     position: absolute;
-    top: calc(var(--ch) * 0.19 - var(--cw) * 0.1);
+    top: calc(var(--ch) * 0.07);
     left: calc(var(--cw) * 0.04);
-    width: calc(var(--cw) * 0.2); height: calc(var(--cw) * 0.2);
+    width: calc(var(--cw) * 0.24); height: calc(var(--cw) * 0.16);
     transform: rotate(-12deg);
     opacity: .85;
     pointer-events: none;
   }
-  .back-stamp circle {
-    fill: none; stroke: currentColor; stroke-width: 4;
+  .back-stamp circle, .back-stamp ellipse {
+    fill: none; stroke: currentColor; stroke-width: 2;
     stroke-dasharray: 6 5; opacity: .88;
   }
   .back-stamp text {
@@ -141,6 +140,11 @@
     position: absolute; right: 5.5%; bottom: 5.5%;
     font-size: calc(var(--cw) * 0.058); letter-spacing: .18em;
     opacity: .82; pointer-events: none;
+    display: flex; align-items: center; gap: calc(var(--cw) * 0.012);
+  }
+  .devil {
+    width: calc(var(--cw) * 0.10); height: auto; flex: none;
+    fill: currentColor;
   }
 
   @media print {
@@ -284,7 +288,7 @@ function cardNode(card, idxInDeck) {
   const el = document.createElement('div');
   el.className = 'card ' + card.c;
   el.innerHTML =
-    '<div class="wm">' + (card.c === 'chance' ? '？' : '！') + '</div>' +
+    '<div class="wm">' + (card.c === 'chance' ? '?' : '!') + '</div>' +
     '<div class="num">' + (idxInDeck + 1) + '-20</div>' +
     '<div class="title">' + DECK_NAME[card.c] + '</div>' +
     '<div class="txt">' + inner + '</div>';
@@ -294,24 +298,31 @@ function deckList(kind) {
   return CARDS.filter(c => c.c === kind).map((c, i) => ({ card: c, i }));
 }
 
-// ===== 卡牌背面：同色底 + 双线内框 + 「机？会/命！运」中央构图 + 斜章 + 邪恶版 =====
+// ===== 卡牌背面：同色底 + 双线内框 + 「机?会/命!运」中央构图 + 斜章 + 邪恶版 =====
 function backNode(kind) {
   const isChance = kind === 'chance';
   const w1 = isChance ? '机' : '命';
   const w2 = isChance ? '会' : '运';
-  const sym = isChance ? '？' : '！';
+  const sym = isChance ? '?' : '!';
   const en = isChance ? 'CHANCE' : 'FATE';
   const el = document.createElement('div');
   el.className = 'card back ' + kind;
   el.innerHTML =
     '<div class="back-frame"></div>' +
-    '<div class="back-stamp"><svg viewBox="0 0 40 40">' +
-      '<circle cx="20" cy="20" r="17.5"/>' +
-      '<text x="20" y="20">大富翁</text>' +
+    '<div class="back-stamp"><svg viewBox="0 0 48 32">' +
+      '<ellipse cx="24" cy="16" rx="22" ry="14"/>' +
+      '<text x="24" y="16">大富翁</text>' +
     '</svg></div>' +
     '<div class="back-face"><span class="w">' + w1 + '</span><span class="sym">' + sym + '</span><span class="w">' + w2 + '</span></div>' +
     '<div class="back-en">' + en + '</div>' +
-    '<div class="back-ver">邪恶版</div>';
+    '<div class="back-ver"><svg class="devil" viewBox="0 0 40 36">' +
+      '<path d="M8 8 Q6 2 11 0 Q10 6 14 8 Z"/>' +
+      '<path d="M32 8 Q34 2 29 0 Q30 6 26 8 Z"/>' +
+      '<path d="M20 6 C11 6 5 12 5 19 C5 26 11 30 20 30 C29 30 35 26 35 19 C35 12 29 6 20 6 Z"/>' +
+      '<path d="M12 17 Q15 14 18 17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+      '<path d="M22 17 Q25 14 28 17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+      '<path d="M13 21 Q20 27 27 21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '</svg></div>';
   return el;
 }
 

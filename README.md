@@ -52,7 +52,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 
 | 列 | 说明 |
 |---|---|
-| `version` | 版本号，如 `v6`。加新版本就新增一批行 |
+| `version` | 版本号，如 `v7`。加新版本就新增一批行 |
 | `deck` | `chance`（机会）或 `fate`（命运） |
 | `seq` | 牌面编号，从 1 开始 |
 | `face` | 机会牌专用：`smile` 奖励 / `frown` 惩罚（决定卡面表情） |
@@ -82,7 +82,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 |---|---|---|
 | 内容 | 脚本静态写入，离线可看 | 线上 `fetch('cards.json')` |
 | 本地双击 | 正常（内容已写死在页面里） | 正常（fetch 被 CORS 拦 → 回退内置兜底） |
-| 版本切换 | 有，v4 / v5 / v6 | 有（需线上 JSON） |
+| 版本切换 | 有，v4 / v5 / v6 / v7（默认 v7） | 有（需线上 JSON） |
 
 打印页保留双轨是因为本地 `file://` 打开时浏览器会拦截 fetch，内置兜底是必需品而不是摆设；
 首页不需要，内容直接由脚本写进 HTML，本地线上都一样。

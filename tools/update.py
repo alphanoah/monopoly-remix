@@ -33,11 +33,12 @@ ORIGINAL_DOCS = [
     ('map-tiles.md', '原版地图格子数据（64 格 · 11 个颜色组）', False),
 ]
 
-DEFAULT_VERSION = 'v6'
+DEFAULT_VERSION = 'v7'
 VERSION_LABELS = {
     'v4': 'v4 · 主线常规版',
     'v5': 'v5 · 邪恶版 · 魔幻',
     'v6': 'v6 · 邪恶版 · 世界之旅',
+    'v7': 'v7 · 邪恶版 · 世界之旅（修订）',
 }
 KEEP = ['deck', 'face', 'event', 'effect', 'cond', 'win', 'lose', 'rate']
 # 金额字段：Excel / Numbers 存 CSV 时会把「+3000」当数值，正号被丢掉，这里补回来

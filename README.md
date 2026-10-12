@@ -160,6 +160,7 @@ richer/
 ├── map-svg.html            电子地图：64 格 SVG 棋盘，一键切换「加厚环（手机好读）/ 原版」，可导出 PNG，图例可点击筛选（手写页，脚本不动）
 │                           · 两种布局：`thick` 加厚环（340×340 正方，边格 12×80，手机可读）/ `classic` 原版（76×100 竖长格，1310×1718）
 │                           · 两档结构相同（每边 16 格、角格在四角、顺时针），只有画法不同；改加厚环的环厚只动常量 RING_T（1~8）
+│                           · 加厚环视图固定（不缩放不平移，手指滑到棋盘上照常滚页面）；原版布局才可缩放拖动
 ├── cards.csv               卡牌数据真源
 ├── cards.json              由 cards.csv 生成，供打印页读取
 ├── update.command          macOS 双击运行 update.py
@@ -167,7 +168,6 @@ richer/
 ├── LICENSE.md              CC BY-NC 4.0
 ├── docs/                   规则 / 道具 / 字段说明 / 地图数据 / 卡牌差异（详见下表）
 ├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
-├── cards/                  自制卡牌历史版本存档 v1–v6.md
 ├── tools/
 │   ├── update.py           一键更新：CSV → JSON + 首页 + 原版页 + 打印页
 │   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv

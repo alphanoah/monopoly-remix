@@ -169,8 +169,7 @@ richer/
 ├── docs/                   规则 / 道具 / 字段说明 / 地图数据 / 卡牌差异（详见下表）
 ├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
 ├── tools/
-│   ├── update.py           一键更新：CSV → JSON + 首页 + 原版页 + 打印页
-│   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
+│   └── update.py           一键更新：CSV → JSON + 首页 + 原版页 + 打印页
 └── .github/workflows/      cards.csv / docs 规则 / original/ 变更时自动重生成
 ```
 

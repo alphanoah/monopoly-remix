@@ -6,6 +6,7 @@
   "board": {
     "size": 1800,
     "printMM": 800,
+    "goBonus": 2000,
     "trackWidth": 190,
     "band": 38,
     "tilesPerSide": 15,
@@ -85,104 +86,120 @@
       "key": "red",
       "name": "红",
       "nameEn": "Red",
-      "hex": "#E03A3A"
+      "hex": "#E03A3A",
+      "icon": "🔴"
     },
     {
       "id": 2,
       "key": "light-blue",
       "name": "浅蓝",
       "nameEn": "Light Blue",
-      "hex": "#2FA3DC"
+      "hex": "#2FA3DC",
+      "icon": "🔵"
     },
     {
       "id": 3,
       "key": "yellow-green",
       "name": "黄绿",
       "nameEn": "Yellow Green",
-      "hex": "#A8C43C"
+      "hex": "#A8C43C",
+      "icon": "💛"
     },
     {
       "id": 4,
       "key": "purple",
       "name": "紫",
       "nameEn": "Purple",
-      "hex": "#9B59B6"
+      "hex": "#9B59B6",
+      "icon": "💜"
     },
     {
       "id": 5,
       "key": "pink",
       "name": "粉",
       "nameEn": "Pink",
-      "hex": "#EE6FA8"
+      "hex": "#EE6FA8",
+      "icon": "🌸"
     },
     {
       "id": 6,
       "key": "dark-gray",
       "name": "深灰",
       "nameEn": "Dark Gray",
-      "hex": "#5D6D7E"
+      "hex": "#5D6D7E",
+      "icon": "⬛"
     },
     {
       "id": 7,
       "key": "dark-blue",
       "name": "深蓝",
       "nameEn": "Dark Blue",
-      "hex": "#4A68B0"
+      "hex": "#4A68B0",
+      "icon": "🔷"
     },
     {
       "id": 8,
       "key": "light-green",
       "name": "浅绿",
       "nameEn": "Light Green",
-      "hex": "#3FBF6E"
+      "hex": "#3FBF6E",
+      "icon": "🟢"
     },
     {
       "id": 9,
       "key": "khaki",
       "name": "浅灰(卡其)",
       "nameEn": "Khaki",
-      "hex": "#BFC5CC"
+      "hex": "#BFC5CC",
+      "icon": "🟫"
     },
     {
       "id": 10,
       "key": "hot-pink",
       "name": "粉红",
       "nameEn": "Hot Pink",
-      "hex": "#A962B0"
+      "hex": "#A962B0",
+      "icon": "💗"
     },
     {
       "id": 11,
       "key": "green",
       "name": "绿",
       "nameEn": "Green",
-      "hex": "#2E9E4F"
+      "hex": "#2E9E4F",
+      "icon": "🟩"
     }
   ],
   "tileTypes": {
     "property": {
       "name": "地产",
       "nameEn": "Property",
-      "legend": false
+      "legend": false,
+      "desc": "可购买、收租的国家格子"
     },
     "chance": {
       "name": "机会",
       "nameEn": "Chance",
-      "deck": "chance"
+      "deck": "chance",
+      "desc": "抽取机会卡"
     },
     "destiny": {
       "name": "命运",
       "nameEn": "Destiny",
-      "deck": "fate"
+      "deck": "fate",
+      "desc": "抽取命运卡"
     },
     "ocean": {
       "name": "海洋",
       "nameEn": "Ocean",
-      "hex": "#9BB6C4"
+      "hex": "#9BB6C4",
+      "desc": "太平洋、印度洋、大西洋"
     },
     "corner": {
       "name": "角落",
       "nameEn": "Corner",
-      "hex": "#b3afa6"
+      "hex": "#b3afa6",
+      "desc": "赤道(起点)、地中海、北极、夏威夷"
     }
   },
   "tiles": [

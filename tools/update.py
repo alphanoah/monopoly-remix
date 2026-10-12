@@ -35,6 +35,9 @@ MAP_DATA_PATH = os.path.join(CONTENT_DIR, 'map-print-data.json')
 MAP_PRINT_PATH = os.path.join(ROOT, 'map-print.html')       # 80cm 打印页
 MAP_SVG_PRINT_PATH = os.path.join(ROOT, 'map-print-svg.html')  # 电子地图（打印版数据）
 READMED_PATH = os.path.join(ROOT, 'README.md')
+MAP_DATA = None        # main() 读好的棋盘数据，资料页的表格生成器从这里取
+
+
 def title_for_cards(text):
     """原版卡牌区块标题：张数按 md 表格的实际行数算（改了表格，标题自动跟着变）。"""
     fate = chance = 0
@@ -55,7 +58,10 @@ def title_for_cards(text):
 
 
 def title_for_tiles(text):
-    """原版地图区块标题：格数与颜色组数从 md 的「整体概览」表读（改了 md，标题自动跟着变）。"""
+    """原版地图区块标题：格数与颜色组数由棋盘 JSON 现算（没有数据时回退到 md 的概览表）。"""
+    if MAP_DATA:
+        s = map_summary(MAP_DATA)
+        return '原版地图格子数据（%d 格 · %d 个颜色组）' % (s['total'], s['groups'])
     found = {}
     for line in text.split('\n'):
         if not line.startswith('|') or '---' in line:
@@ -390,7 +396,11 @@ def write_props(props):
 
 
 def build_original():
-    """把 content/original/ 下的原版实体资料转成 original.html 的正文区块。"""
+    """把 content/original/ 下的原版实体资料转成 original.html 的正文区块。
+
+    /md 里可以写 `{{STATS:xxx}}` 占位符，渲染时换成从 content/map-print-data.json
+    遍历出来的表格——地图那两篇的统计就不再是手抄的。
+    """
     parts = []
     for fn, label, opened in ORIGINAL_DOCS:
         path = os.path.join(ORIGINAL_DIR, fn)
@@ -403,10 +413,261 @@ def build_original():
             label = label(text)
         elif label is None:                    # 没写标题就跟 md 的一级标题走
             label = md_title(text) or fn
+        body = md_to_html(text, prefix='content/original/')
+        body = render_map_stats(body)
         parts.append('<details class="blk"%s><summary><h2>%s</h2><span class="tog"></span></summary>\n'
                      '<div class="md">\n%s\n</div>\n</details>'
-                     % (' open' if opened else '', html.escape(label), md_to_html(text, prefix='content/original/')))
+                     % (' open' if opened else '', html.escape(label), body))
     return '\n'.join(parts)
+
+
+# ---------- 地图资料页的表格：全部从 map-print-data.json 遍历出来 ----------
+# md 里写 {{STATS:key}}，下面的生成器负责把它换成一张现算的表；改数据改 JSON，跑一次脚本就同步。
+SIDE_CN = {'bottom': '底行', 'left': '左行', 'top': '顶行', 'right': '右行'}
+EDGES = [('bottom', 0, 16), ('left', 16, 32), ('top', 32, 48), ('right', 48, 0)]   # 四条边：起点角 → 终点角
+
+
+def md_table(head, rows):
+    """生成跟 md_to_html 同款结构的表格（外层 .tw 负责窄屏幕横向滚动）。"""
+    out = ['<div class="tw"><table>',
+           '<thead><tr>' + ''.join('<th>%s</th>' % h for h in head) + '</tr></thead>', '<tbody>']
+    for r in rows:
+        out.append('<tr>' + ''.join('<td>%s</td>' % html.escape(str(c)) for c in r) + '</tr>')
+    out.append('</tbody></table></div>')
+    return '\n'.join(out)
+
+
+def money(n):
+    return '$%s' % format(int(n), ',')
+
+
+def type_counts(data):
+    return collections.Counter((t.get('type') or 'property') for t in data['tiles'])
+
+
+def group_members(data, gid):
+    return sorted([t for t in data['tiles'] if t.get('colorId') == gid], key=lambda t: t['id'])
+
+
+def segments(ids):
+    """连续段数：同组的格子在轨道上被别的格子切成几段（1 段 = 全都挨着）。"""
+    n, prev = 0, None
+    for i in ids:
+        if prev is None or i != prev + 1:
+            n += 1
+        prev = i
+    return n
+
+
+def property_tiles(data):
+    return [t for t in data['tiles'] if (t.get('type') or 'property') == 'property' and t.get('price')]
+
+
+def edge_ends(data, side):
+    """一条边两端的角格名字（编号就是行进顺序，四个角天然排在 0/16/32/48）。"""
+    order = sorted([t for t in data['tiles'] if t.get('type') == 'corner'], key=lambda t: t['id'])
+    a, b = {'bottom': (0, 1), 'left': (1, 2), 'top': (2, 3), 'right': (3, 0)}[side]
+    return order[a]['name'], order[b]['name']
+
+
+def tile_position(t, start_name, end_name):
+    """格子落在边上的哪个位置；只有贴着角落时才额外标注，其余只写「X行」。"""
+    side = t.get('side')
+    i = None
+    if side == 'bottom':
+        i = 16 - t['col']
+    elif side == 'left':
+        i = 16 - t['row']
+    elif side == 'top':
+        i = t['col']
+    elif side == 'right':
+        i = t['row']
+    if i is None:
+        return ''
+    label = SIDE_CN[side]
+    if i <= 2:
+        return '%s（%s后第 %d 格）' % (label, start_name, i)
+    if 16 - i <= 2:
+        return '%s（%s前第 %d 格）' % (label, end_name, 16 - i)
+    return label
+
+
+def edge_tiles(by_id, a, b):
+    n = len(by_id)
+    ids = list(range(a, b + 1)) if b > a else list(range(a, n)) + [0]
+    return [by_id[i] for i in ids]
+
+
+def band_label(t, data, gkey):
+    if t.get('colorId') and t['colorId'] in gkey:
+        return gkey[t['colorId']]['name']
+    return {'corner': '角', 'ocean': '海洋'}.get(t.get('type'), '特殊')
+
+
+def stats_type_table(data):
+    counts = type_counts(data)
+    rows = []
+    for k, meta in data['tileTypes'].items():
+        rows.append([meta['name'], counts.get(k, 0), meta.get('desc', '')])
+    return md_table(['类型', '数量', '说明'], rows)
+
+
+def stats_overview(data):
+    counts = type_counts(data)
+    rows = [['总格数', len(data['tiles'])], ['地产格', '%d 个' % counts.get('property', 0)]]
+    for k, meta in data['tileTypes'].items():
+        if k == 'property':
+            continue
+        members = [t['name'] for t in data['tiles'] if (t.get('type') or 'property') == k]
+        cell = '%d 个' % len(members)
+        if len(set(members)) > 1:                       # 成员各有名字才列举（机会/命运全同名就不列）
+            cell += '（%s）' % '、'.join(members)
+        rows.append(['%s %s' % (meta['name'], meta.get('nameEn', '').upper()), cell])
+    props = property_tiles(data)
+    prices = [t['price'] for t in props]
+    lo, hi = min(prices), max(prices)
+    lo_names = '、'.join(t['name'] for t in props if t['price'] == lo)
+    hi_names = '、'.join(t['name'] for t in props if t['price'] == hi)
+    s = map_summary(data)
+    rows += [['起点酬金', money(data['board'].get('goBonus', 2000))],
+             ['总地价', money(sum(prices))],
+             ['均价', money(s['avg'])],
+             ['最高价', '%s（%s）' % (money(hi), hi_names)],
+             ['最低价', '%s（%s）' % (money(lo), lo_names)]]
+    return md_table(['项目', '数值'], rows)
+
+
+def stats_groups(data):
+    out = []
+    for g in data['colorGroups']:
+        ms = group_members(data, g['id'])
+        prices = [t['price'] for t in ms]
+        avg = int(round(sum(prices) / len(prices)))
+        seg = segments([t['id'] for t in ms])
+        out.append('<h4>%s %s组（%d 格）</h4>' % (g.get('icon', ''), g['name'], len(ms)))
+        out.append('<p>均价 <strong>%s</strong> · 价格区间 %s ~ %s</p>'
+                   % (money(avg), money(min(prices)), money(max(prices))))
+        rows = []
+        for t in ms:
+            start, end = edge_ends(data, t['side'])
+            rows.append([t['id'], t['name'], t.get('capital', '—'),
+                         money(t['price']), tile_position(t, start, end)])
+        out.append(md_table(['格号', '国家', '首都', '价格', '位置'], rows))
+        out.append('<blockquote>💡 这 %d 格在轨道上被切成 %d 段%s。</blockquote>'
+                   % (len(ms), seg, '，段数越多越难集齐' if seg > 1 else '（全部连在一起）'))
+    return '\n'.join(out)
+
+
+def stats_group_rank(data):
+    info = []
+    for g in data['colorGroups']:
+        ms = group_members(data, g['id'])
+        prices = [t['price'] for t in ms]
+        info.append((int(round(sum(prices) / len(prices))), g, len(ms),
+                     min(prices), max(prices), segments([t['id'] for t in ms])))
+    info.sort(key=lambda x: -x[0])
+    rows = [[i, '%s %s' % (g.get('icon', ''), g['name']), n, money(avg),
+             '%s ~ %s' % (money(mn), money(mx)), '%d 段' % seg]
+            for i, (avg, g, n, mn, mx, seg) in enumerate(info, 1)]
+    return md_table(['排序', '颜色', '格数', '均价', '价格区间', '连续段数'], rows)
+
+
+def stats_price_dist(data):
+    buckets = collections.OrderedDict()
+    for t in sorted(property_tiles(data), key=lambda x: -x['price']):
+        buckets.setdefault(t['price'], []).append(t['name'])
+    return md_table(['价格', '数量', '国家'],
+                    [[money(p), len(v), '、'.join(v)] for p, v in buckets.items()])
+
+
+def stats_key_numbers(data):
+    props = property_tiles(data)
+    prices = sorted(t['price'] for t in props)
+    median = prices[len(prices) // 2]
+    lo, hi = prices[0], prices[-1]
+    names_at = lambda p: '、'.join(t['name'] for t in props if t['price'] == p)
+    go = data['board'].get('goBonus', 2000)
+    items = [
+        '地产格 <strong>%d</strong> 个；总地价 <strong>%s</strong>；均价 <strong>%s</strong>；中位数 <strong>%s</strong>'
+        % (len(prices), money(sum(prices)), money(int(round(sum(prices) / len(prices)))), money(median)),
+        '最贵：<strong>%s %s</strong>（%s）' % (names_at(hi), money(hi),
+                                        '全盘唯一' if prices.count(hi) == 1 else '共 %d 个' % prices.count(hi)),
+        '最便宜 <strong>%s</strong>（%d 个）：%s' % (money(lo), prices.count(lo), names_at(lo)),
+        '最高 : 最低 = %d : %d ≈ <strong>%.2f : 1</strong>' % (hi, lo, hi / float(lo)),
+    ]
+    if hi:
+        items.append('起点酬金 %s %s最贵地价的一半' % (money(go), '正好是' if go * 2 == hi else '约为'))
+    if all(p % 100 == 0 for p in prices):
+        items.append('所有价格均为 $100 的整数倍')
+    return '<ul>' + ''.join('<li>%s</li>' % x for x in items) + '</ul>'
+
+
+def stats_corners(data):
+    by_id = {t['id']: t for t in data['tiles']}
+    n = len(by_id)
+    rows = []
+    for c in sorted([t for t in data['tiles'] if t.get('type') == 'corner'], key=lambda t: t['id']):
+        lft, rgt = by_id[(c['id'] - 1) % n], by_id[(c['id'] + 1) % n]
+        lp, rp = lft.get('price') or 0, rgt.get('price') or 0
+        if lp == rp:
+            judge = '对称高价 ✨'
+        elif abs(lp - rp) <= 400:
+            judge = '接近对称'
+        else:
+            judge = '不对称（落差 %s）' % money(abs(lp - rp))
+        rows.append(['%s（#%d）' % (c['name'], c['id']),
+                     '%s %s' % (lft['name'], money(lp)),
+                     '%s %s' % (rgt['name'], money(rp)),
+                     judge])
+    return md_table(['角', '左侧', '右侧', '对称性'], rows)
+
+
+def stats_track(data):
+    by_id = {t['id']: t for t in data['tiles']}
+    gkey = {g['id']: g for g in data['colorGroups']}
+    out = []
+    for side, a, b in EDGES:
+        ts = edge_tiles(by_id, a, b)
+        out.append('<h4>%s（%s → %s）</h4>' % (SIDE_CN[side], ts[0]['name'], ts[-1]['name']))
+        out.append('<p>按行进顺序排列，两端的角落各出现一次。</p>')
+        rows = []
+        for t in ts:
+            name = t['name'] + '（起点）' if t['id'] == 0 and t.get('type') == 'corner' else t['name']
+            if t.get('price'):
+                price = money(t['price'])
+            elif t['id'] == 0:
+                price = '得酬金 %s' % money(data['board'].get('goBonus', 2000))
+            else:
+                price = '—'
+            rows.append([t['id'], name, t.get('capital', '—'), price, band_label(t, data, gkey)])
+        out.append(md_table(['#', '格子', '首都', '价格', '色带'], rows))
+    return '\n'.join(out)
+
+
+MAP_STATS = collections.OrderedDict([
+    ('typeTable', stats_type_table),
+    ('overview', stats_overview),
+    ('groups', stats_groups),
+    ('groupRank', stats_group_rank),
+    ('priceDist', stats_price_dist),
+    ('keyNumbers', stats_key_numbers),
+    ('corners', stats_corners),
+    ('track', stats_track),
+])
+
+
+def render_map_stats(body):
+    """把 md 里的 {{STATS:key}} 占位符换成从棋盘 JSON 现算的表格（没有数据时给个提示）。"""
+    miss = '<p class="empty">棋盘数据没读到：先跑一次 tools/update.py 生成 map-print-data.json 的兜底。</p>'
+    for key, fn in MAP_STATS.items():
+        marker = '<p>{{STATS:%s}}</p>' % key
+        if marker in body:
+            body = body.replace(marker, fn(MAP_DATA) if MAP_DATA else miss)
+    unknown = sorted(set(re.findall(r'\{\{STATS:([a-zA-Z]+)\}\}', body)))
+    if unknown:
+        print('  !! 资料 md 里有不认识的统计占位符：%s（可用：%s）'
+              % ('、'.join(unknown), '、'.join(MAP_STATS)))
+    return body
 
 
 def strip_tags(s):
@@ -662,8 +923,8 @@ def validate_map(data):
     return errs
 
 
-def write_map_print_fallback():
-    """content/map-print-data.json → map-print.html / map-print-svg.html 的内置兜底块（本地 file:// 打开时用）"""
+def load_map_data():
+    """读 content/map-print-data.json 并跑一遍体检；有错就返回 None（不写任何生成物）。"""
     if not os.path.exists(MAP_DATA_PATH):
         print('  跳过：未找到 map-print-data.json')
         return None
@@ -671,10 +932,17 @@ def write_map_print_fallback():
         data = json.load(f)
     errs = validate_map(data)
     if errs:
-        print('  !! map-print-data.json 校验未通过，未写入兜底：')
+        print('  !! map-print-data.json 校验未通过：')
         for e in errs:
             print('     - ' + e)
         return None
+    return data
+
+
+def write_map_print_fallback(data):
+    """map-print-data.json → map-print.html / map-print-svg.html 的内置兜底块（本地 file:// 打开时用）"""
+    if not data:
+        return
     js = json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c')
     block = ('/* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改\n'
              '%s\n'
@@ -685,7 +953,6 @@ def write_map_print_fallback():
         if swap(path, r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/', block, '棋盘兜底数据'):
             print('  %s 内置兜底（%d 格 / %d 个颜色组）'
                   % (os.path.basename(path), len(data['tiles']), len(data['colorGroups'])))
-    return data
 
 
 def main():
@@ -700,6 +967,8 @@ def main():
     data = build(rows)
 
     print('生成规则区：')
+    global MAP_DATA
+    MAP_DATA = load_map_data()          # 先读棋盘数据：资料页的表格要靠它遍历
     rules_html = build_rules()
     props_html = build_props()
     original_html = build_original()
@@ -711,10 +980,10 @@ def main():
     write_print_fallback(data)
     props = parse_props()
     write_props(props)
-    map_data = write_map_print_fallback()
-    if map_data:
-        write_map_info(map_data)
-        write_readme_stats(map_data, props or {'items': [], 'rules': []}, data)
+    write_map_print_fallback(MAP_DATA)
+    if MAP_DATA:
+        write_map_info(MAP_DATA)
+        write_readme_stats(MAP_DATA, props or {'items': [], 'rules': []}, data)
     print('完成。')
 
 

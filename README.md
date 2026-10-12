@@ -220,8 +220,8 @@ richer/
 |---|---|---|
 | `manual.md` | 原版《大富翁世界之旅（银牌）》说明书的照片转录（准备、骰子、起点、地产、房屋、监狱、抵押、破产……） | `original.html` 的说明书区块；同时是首页「游戏规则」的原版面板 |
 | `cards.md` | 原版命运牌 & 机会牌各 20 张的转录（牌面文字 + 金额） | `original.html` 的卡牌区块 |
-| `map-data-guide.md` | 地图数据的使用指南：速览、投资建议、FAQ | `original.html` 的折叠区块（默认收起） |
-| `map-tiles.md` | 原版地图 64 格原始数据（格名、颜色组、价格、特殊格） | `original.html` 的折叠区块（默认收起） |
+| `map-data-guide.md` | 地图数据的使用指南：怎么读懂格子/分组/轨道、投资建议、FAQ、开发字段说明 | `original.html` 的折叠区块（默认收起）；统计表格由脚本插入 |
+| `map-tiles.md` | 地图 64 格全表：概览、11 个颜色组明细、汇总排序、价位分布、四边轨道 | 同上；**正文只剩说明文字，所有表格由 update.py 从 map-print-data.json 遍历生成** |
 
 > 目录里的 `.DS_Store` 是 macOS 自己生成的，已被 `.gitignore` 排除，不用管。
 

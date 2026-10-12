@@ -17,7 +17,7 @@
 - **首页 `index.html`**：三版规则卡片切换（原版 / v1 / v2）+ 机会/命运卡牌 + 道具清单，卡牌可切换版本浏览（静态页面，双击就能看）
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录
 - **电子地图 `map-svg.html`**：64 格 SVG 棋盘，可拖动缩放、按颜色组筛选、导出 PNG
-- **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印
+- **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印；最左边可切「卡牌 / 道具」
 - **在线地址**：https://alphanoah.github.io/monopoly-remix/
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
 
@@ -37,7 +37,7 @@ python3 tools/update.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底。
+脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `props.md` 生成 `props.json` 并注入打印页道具兜底。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出第几行错在哪。
@@ -81,7 +81,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 | v1 | `docs/rules.md` | 第一次改版（19580 起始资金那一版） |
 | v2 | `docs/new-rule.md` | 最新改版，首页默认打开的就是它 |
 
-道具清单改 `docs/props.md`（首页「道具清单」区由它生成）。
+道具清单改 `docs/props.md`（首页「道具清单」区由它生成，打印页的道具卡也由它生成）。
 `original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
 
 ---
@@ -119,7 +119,7 @@ git push
 默认**只提交到本地**，确认没问题了再 push。
 
 push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同一个脚本，
-把重新生成的 `cards.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
+把重新生成的 `cards.json` / `props.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
 然后 Pages 自动部署，约 1 分钟线上生效。
 
 **即使你忘了跑第 2 步也没关系**——Actions 会自己跑一遍并补提交，本地文件下次 pull 就能同步回来。
@@ -155,7 +155,8 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 richer/
 ├── index.html              首页：规则三版切换（原版/v1/v2）+ 机会/命运卡牌 + 道具清单（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
-├── print.html              打印页：排版打印工具（脚本回写兜底）
+├── print.html              打印页：排版打印工具，可切卡牌/道具（脚本回写兜底）
+├── props.json              道具数据（由 docs/props.md 生成，打印页用）
 ├── map-svg.html            电子地图：64 格 SVG 棋盘，一键切换「加厚环（手机好读）/ 原版」，可导出 PNG，图例可点击筛选（手写页，脚本不动）
 │                           · 两种布局：`thick` 加厚环（340×340 正方，边格 12×80，手机可读）/ `classic` 原版（76×100 竖长格，1310×1718）
 │                           · 两档结构相同（每边 16 格、角格在四角、顺时针），只有画法不同；改加厚环的环厚只动常量 RING_T（1~8）

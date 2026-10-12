@@ -14,7 +14,7 @@ on:
       - '.github/workflows/build-pages.yml'
   workflow_dispatch:
 
-# 需要往回提交生成的 cards.json / index.html / print.html
+# 需要往回提交生成的 cards.json / props.json / index.html / print.html / original.html
 permissions:
   contents: write
 
@@ -35,10 +35,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- cards.json index.html print.html original.html; then
+          if git diff --quiet -- cards.json props.json index.html print.html original.html; then
             echo "没有变化，跳过提交"
             exit 0
           fi
-          git add cards.json index.html print.html original.html
+          git add cards.json props.json index.html print.html original.html
           git commit -m "chore: 由 cards.csv / docs 规则 / original/ 重新生成页面"
           git push

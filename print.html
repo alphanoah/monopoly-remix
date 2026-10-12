@@ -22,6 +22,9 @@
   .sel { background: #32323a; color: #dcdce2; border: 0.5px solid #4a4a52; border-radius: 8px; padding: 7px 9px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
   .sel:disabled { opacity: .55; cursor: default; }
   .sep { width: 1px; height: 18px; background: #4a4a52; }
+  /* 可整组隐藏的按钮组（道具模式下隐藏版本下拉 / 分页 / 表情） */
+  .grp { display: flex; gap: 8px; align-items: center; }
+  .grp[hidden] { display: none; }
   .specs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; color: #9a9aa2; }
   .specs b { color: #e8e8e8; font-weight: 500; }
 
@@ -48,6 +51,8 @@
   }
   .card.chance { background: #B06F88; color: #fff; }
   .card.fate { background: #D9BA8E; color: #2C3E6B; }
+  /* 道具卡：深蓝底米黄字，与命运牌（米黄底深蓝字）互为翻转，一眼可分 */
+  .card.prop { background: #2C3E6B; color: #F3E6C8; }
 
   /* 大号浅色底纹：作为背景顶到最右边缘，文字直接覆盖其上 */
   /* 不用 transform（打印分页时 transform 会导致错位并逃出 overflow 裁剪），
@@ -60,11 +65,13 @@
   }
   .card.chance .wm { color: #CDA3B4; }
   .card.fate .wm { color: #EEE0C4; }
+  .card.prop .wm { color: #42598C; }
 
   /* 编号：左上角 */
   .num { position: absolute; left: 2mm; top: 1.2mm; font-size: var(--nfs); letter-spacing: .5px; font-weight: 500; z-index: 2; }
   .card.chance .num { color: rgba(40,18,28,.8); }
   .card.fate .num { color: rgba(35,30,25,.75); }
+  .card.prop .num { color: rgba(243,230,200,.72); }
 
   .title {
     flex: none; font-size: var(--tfs); font-weight: 700; line-height: 1.15;
@@ -105,7 +112,14 @@
   }
   .card.chance .amt { background: rgba(255,255,255,.94); color: #9B4F6A; }
   .card.fate .amt { background: #2C3E6B; color: #F3E6C8; }
+  .card.prop .amt { background: #F3E6C8; color: #2C3E6B; }
   body.st-new .title { margin-top: -1.4mm; margin-bottom: 1.1mm; }
+
+  /* 道具卡：价格行 + 使用规则卡的编号列表 */
+  .pprice { font-size: var(--effs); font-weight: 600; line-height: 1.35; }
+  .rules { margin: 0; padding-left: 1.15em; width: 100%; text-align: left; }
+  .rules li { font-size: var(--effs); font-weight: 500; line-height: 1.4; }
+  .rules li + li { margin-top: 1mm; }
 
   .blank { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 4px, #f2f2f2 4px, #f2f2f2 8px); border: 1px dashed #ddd; border-radius: 2.6mm; width: var(--cw); height: var(--ch); display: flex; align-items: center; justify-content: center; color: #c4c4c4; font-size: var(--evfs); }
 
@@ -174,24 +188,35 @@
 <div class="chrome">
 <a class="home" href="index.html">← 返回首页</a>
 <h1 id="pageTitle">大富翁卡牌打印版 · 横版</h1>
-<p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。「新版 · 分层」会在事件和结果之间加分隔线，「金额胶囊」把 +3000 这类金额标成反色块，两者可单独开关。</p>
+<p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。「新版 · 分层」会在事件和结果之间加分隔线，「金额胶囊」把 +3000 这类金额标成反色块，两者可单独开关。最左边切「道具」可打印道具卡（每种 1 张，末页附一张使用规则卡）。</p>
   <div class="row">
-    <select id="verSel" class="sel" title="卡牌数据版本"></select>
+    <span class="grp">
+      <button class="btn on" data-kind="card">卡牌</button>
+      <button class="btn" data-kind="prop">道具</button>
+    </span>
     <span class="sep"></span>
+    <span class="grp" id="grp-ver">
+      <select id="verSel" class="sel" title="卡牌数据版本"></select>
+      <span class="sep"></span>
+    </span>
     <button class="btn" data-paper="a4">A4 纸</button>
     <button class="btn on" data-paper="photo6">6 寸相片纸 · 4 张/页</button>
     <span class="sep"></span>
     <button class="btn on" data-layout="standard">标准 · 8 张/页</button>
     <button class="btn" data-layout="compact">紧凑 · 10 张/页</button>
-    <span class="sep"></span>
-    <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
-    <button class="btn" data-mode="split">按花色分页</button>
+    <span class="grp" id="grp-mode">
+      <span class="sep"></span>
+      <button class="btn on" data-mode="flow">连着排 · 机会接命运（省纸）</button>
+      <button class="btn" data-mode="split">按花色分页</button>
+    </span>
     <span class="sep"></span>
     <button class="btn on" data-side="front">正面</button>
     <button class="btn" data-side="back">背面（对背打印）</button>
-    <span class="sep"></span>
-    <button class="btn on" data-face="off">不显示表情</button>
-    <button class="btn" data-face="on">显示笑脸 / 哭脸</button>
+    <span class="grp" id="grp-face">
+      <span class="sep"></span>
+      <button class="btn on" data-face="off">不显示表情</button>
+      <button class="btn" data-face="on">显示笑脸 / 哭脸</button>
+    </span>
     <span class="sep"></span>
     <button class="btn on" data-style="new">新版 · 分层</button>
     <button class="btn" data-style="old">原版 · 平铺</button>
@@ -500,6 +525,107 @@
 };
   /* FALLBACK:END */
 
+// ===== 道具数据 =====
+// 与卡牌同一套路：先 fetch props.json，读不到就用内置兜底（本地 file:// 双击时用得到）。
+// 真源是 docs/props.md，由 tools/update.py 解析生成，改道具请改 props.md。
+  /* PROPS:START */  // 由 tools/update.py 从 docs/props.md 生成，请勿手改
+  const PROPS_FALLBACK = {
+  "rules": [
+    "道具可以指定玩家所在格子的前后 3 格内使用",
+    "玩家进入商店时，随机刷新 3 个道具供购买",
+    "玩家进入商店时，可以半价出售持有的道具"
+  ],
+  "items": [
+    {
+      "name": "乌龟帽",
+      "price": "1000",
+      "effect": "接下来的 3 回合只能前进一格",
+      "qty": "2"
+    },
+    {
+      "name": "工程机器人",
+      "price": "2000",
+      "effect": "升级指定格子的房子",
+      "qty": "2"
+    },
+    {
+      "name": "导弹",
+      "price": "2000",
+      "effect": "降级指定格子的房子",
+      "qty": "2"
+    },
+    {
+      "name": "遥控骰子",
+      "price": "1000",
+      "effect": "你可以前进指定格数（1–16）",
+      "qty": "2"
+    },
+    {
+      "name": "路障",
+      "price": "500",
+      "effect": "任何人撞上去会立即停止（不能放在有玩家的格子）",
+      "qty": "2"
+    },
+    {
+      "name": "嫁祸卡",
+      "price": "1000",
+      "effect": "当你被送进监狱时，指定让另外一名玩家背锅",
+      "qty": "2"
+    },
+    {
+      "name": "免责卡",
+      "price": "1000",
+      "effect": "抵消你一次送进监狱",
+      "qty": "2"
+    },
+    {
+      "name": "汽车",
+      "price": "1000",
+      "effect": "你下一次移动前进双倍格数",
+      "qty": "2"
+    },
+    {
+      "name": "冷冻枪",
+      "price": "1000",
+      "effect": "指定玩家原地停留 1 回合",
+      "qty": "2"
+    },
+    {
+      "name": "抢夺卡",
+      "price": "1000",
+      "effect": "抢夺指定玩家的 1 件道具（盲抽）",
+      "qty": "2"
+    },
+    {
+      "name": "转向卡",
+      "price": "1000",
+      "effect": "让指定玩家掉头",
+      "qty": "2"
+    },
+    {
+      "name": "绿卡",
+      "price": "1500",
+      "effect": "抵消你一次付款",
+      "qty": "2"
+    },
+    {
+      "name": "红卡",
+      "price": "1500",
+      "effect": "让你一次收款翻倍",
+      "qty": "2"
+    },
+    {
+      "name": "拍卖卡",
+      "price": "2000",
+      "effect": "强制拍卖指定房子",
+      "qty": "2"
+    }
+  ]
+};
+  /* PROPS:END */
+
+let PROPS = PROPS_FALLBACK;     // 当前生效的道具数据 { rules, items }
+
 let DATA = FALLBACK;            // 当前生效的版本数据 { version, label, cards }
 let ALL = null;                 // fetch 成功后的全量版本表（null = 只有内置兜底一份）
 let CARDS = FALLBACK.cards;
@@ -526,6 +652,7 @@ let currentPaper = 'photo6';
 let currentLayout = 'standard';
 let pageMode = 'flow';
 let side = 'front';
+let contentType = 'card';   // 'card' = 机会/命运卡牌，'prop' = 道具卡
 let showFace = false;   // 卡面是否画笑脸/哭脸，默认不画
 let newStyle = true;    // 新版分层：事件与结果之间加分隔线，标题上移
 let showAmt = true;     // 金额胶囊：把三位以上的数字包成反色圆角块
@@ -587,13 +714,65 @@ function deckList(kind) {
   return list.map((c, i) => ({ card: c, i, n: list.length }));
 }
 
-// ===== 卡牌背面：同色底 + 双线内框 + 「机?会/命!运」中央构图 + 斜章 + 邪恶版 =====
+// ===== 道具卡 =====
+// 结构对齐卡牌：顶部「道具」+ 编号 n-N → 道具名（最大）→ 分隔线 → 效果 → 售价胶囊
+function propNode(p, idx, total) {
+  const el = document.createElement('div');
+  el.className = 'card prop';
+  el.innerHTML =
+    '<div class="wm">✦</div>' +
+    '<div class="num">' + (idx + 1) + '-' + total + '</div>' +
+    '<div class="title">道具</div>' +
+    '<div class="txt">' +
+      '<div class="ev">' + p.name + '</div>' +
+      (newStyle ? '<i class="cdiv"></i>' : '') +
+      '<div class="line"><span class="ef">' + A(p.effect) + '</span></div>' +
+      '<div class="pprice">售价 ' + A(String(p.price)) + '</div>' +
+    '</div>';
+  return el;
+}
+
+// 末页补一张「使用规则」卡，顺便把最后一页的空位填满
+function ruleNode() {
+  const el = document.createElement('div');
+  el.className = 'card prop rule';
+  el.innerHTML =
+    '<div class="wm">✦</div>' +
+    '<div class="title">道具规则</div>' +
+    '<div class="txt">' +
+      '<div class="ev">使用规则</div>' +
+      (newStyle ? '<i class="cdiv"></i>' : '') +
+      '<ol class="rules">' + (PROPS.rules || []).map(r => '<li class="ef">' + A(r) + '</li>').join('') + '</ol>' +
+    '</div>';
+  return el;
+}
+
+function propList() {
+  const items = PROPS.items || [];
+  const list = items.map((p, i) => ({ kind: 'prop', p: p, i: i }));
+  if ((PROPS.rules || []).length) list.push({ kind: 'rule' });
+  return list;
+}
+
+function frontNode(x) {
+  if (x.kind === 'rule') return ruleNode();
+  if (x.kind === 'prop') return propNode(x.p, x.i, (PROPS.items || []).length);
+  return cardNode(x.card, x.i, x.n);
+}
+function backNodeFor(x) {
+  return backNode(x.kind === 'card' ? x.card.deck : 'prop');
+}
+
+// ===== 卡牌背面：同色底 + 双线内框 + 中央构图 + 斜章 + 右下角小恶魔 =====
+// 三种：机?会 / 命!运 / 道✦具，版式完全一致，只换颜色、字符号、英文
+const BACK_META = {
+  chance: { w1: '机', w2: '会', sym: '?', en: 'CHANCE' },
+  fate:   { w1: '命', w2: '运', sym: '!', en: 'FATE' },
+  prop:   { w1: '道', w2: '具', sym: '✦', en: 'ITEM' },
+};
 function backNode(kind) {
-  const isChance = kind === 'chance';
-  const w1 = isChance ? '机' : '命';
-  const w2 = isChance ? '会' : '运';
-  const sym = isChance ? '?' : '!';
-  const en = isChance ? 'CHANCE' : 'FATE';
+  const m = BACK_META[kind] || BACK_META.chance;
+  const w1 = m.w1, w2 = m.w2, sym = m.sym, en = m.en;
   const el = document.createElement('div');
   el.className = 'card back ' + kind;
   el.innerHTML =
@@ -632,7 +811,10 @@ function render() {
   const P = PAPERS[currentPaper];
   const split = useSplit();
   const pages = [];
-  if (split) {
+  if (contentType === 'prop') {
+    const list = propList();
+    for (let i = 0; i < list.length; i += L.per) pages.push(list.slice(i, i + L.per));
+  } else if (split) {
     ['chance', 'fate'].forEach(kind => {
       const list = deckList(kind);
       for (let i = 0; i < list.length; i += L.per) pages.push(list.slice(i, i + L.per));
@@ -648,7 +830,9 @@ function render() {
     const tag = document.createElement('div');
     tag.className = 'page-tag';
     tag.style.width = P.w + 'mm';
-    const kinds = [...new Set(pageItems.map(x => DECK_NAME[x.card.deck]))].join(' + ');
+    const kinds = contentType === 'prop'
+      ? '道具'
+      : [...new Set(pageItems.map(x => DECK_NAME[x.card.deck]))].join(' + ');
     tag.textContent = '第 ' + (pi + 1) + ' 页 / 共 ' + pages.length + ' 页 · ' + kinds + '牌' +
       (side === 'back' ? ' · 背面（对背打印，先印正面再翻面印本页）' : '');
     wrap.appendChild(tag);
@@ -669,7 +853,7 @@ function render() {
     sheet.style.setProperty('--nfs', L.nfs + 'px');
     sheet.style.setProperty('--wms', L.wms + 'mm');
 
-    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNode(x.card.deck) : cardNode(x.card, x.i, x.n)));
+    pageItems.forEach(x => sheet.appendChild(side === 'back' ? backNodeFor(x) : frontNode(x)));
     for (let k = pageItems.length; k < L.per; k++) {
       const b = document.createElement('div');
       b.className = 'blank';
@@ -685,7 +869,7 @@ function render() {
 // 内容超出正文区（纵向或横向）就整体缩字号，保证不贴边、不溢出
 function autoFit() {
   document.querySelectorAll('.txt').forEach(txt => {
-    const nodes = [...txt.querySelectorAll('.ev, .ef, .cond, .out')];
+    const nodes = [...txt.querySelectorAll('.ev, .ef, .cond, .out, .pprice')];
     if (!nodes.length) return;
     const base = nodes.map(n => parseFloat(getComputedStyle(n).fontSize) || 10);
     let k = 0;
@@ -700,32 +884,60 @@ function updateSpecs(pageCount) {
   const L = activeLayout();
   const P = PAPERS[currentPaper];
   const rows = L.per / L.cols;
-  const modeText = side === 'back'
-    ? (backNeedsSplit()
-        ? '按花色分页（本版式会出混色页，背面自动锁定）'
-        : '连着排（本版式每页刚好整除，天然整页同色）')
-    : (pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）');
+  const isProp = contentType === 'prop';
+  const modeText = isProp
+    ? '顺序排列（末页附一张使用规则卡）'
+    : (side === 'back'
+        ? (backNeedsSplit()
+            ? '按花色分页（本版式会出混色页，背面自动锁定）'
+            : '连着排（本版式每页刚好整除，天然整页同色）')
+        : (pageMode === 'flow' ? '连着排（机会接命运，不留空位）' : '按花色分页（每花色独立分页）'));
+  const total = isProp ? propList().length : CARDS.length;
   document.getElementById('specs').innerHTML =
     '<span>纸张 <b>' + P.name + '（' + P.w + ' × ' + P.h + ' mm）</b></span>' +
     '<span>卡片尺寸 <b>' + L.cw + ' × ' + L.ch + ' mm</b></span>' +
     '<span>版式 <b>' + L.cols + ' 列 × ' + rows + ' 行 = ' + L.per + ' 张/页</b></span>' +
     '<span>分页 <b>' + modeText + '</b></span>' +
-    '<span>共 <b>' + CARDS.length + ' 张 → ' + pageCount + ' 页</b></span>';
+    '<span>共 <b>' + total + ' 张 → ' + pageCount + ' 页</b></span>';
 }
 
 function syncPaperUI() {
   const isPhoto = currentPaper === 'photo6';
+  const isProp = contentType === 'prop';
   document.getElementById('pageStyle').textContent =
     '@page { size: ' + PAPERS[currentPaper].css + '; margin: 0; }';
-  document.getElementById('tip').textContent = side === 'back'
-    ? (backNeedsSplit()
-        ? '背面模式：本版式会出混色页，已自动锁定按花色分页（整页同色，翻面不错格）。'
-        : '背面模式：本版式每页张数刚好整除 20 张，连着排已是整页同色，任意翻法都不会错格。')
-      + '流程 = 先印正面 → 翻面 → 印背面（页数与格子一一对齐）。' + PAPERS[currentPaper].tip
-    : PAPERS[currentPaper].tip;
+  if (isProp) {
+    document.getElementById('tip').textContent =
+      (side === 'back'
+        ? '道具背面：先印正面 → 翻面 → 印背面（页数与格子一一对齐）。'
+        : '道具模式：每种道具印 1 张；规则里每种各有 2 张，需要就把这一组再打一遍。')
+      + PAPERS[currentPaper].tip;
+  } else {
+    document.getElementById('tip').textContent = side === 'back'
+      ? (backNeedsSplit()
+          ? '背面模式：本版式会出混色页，已自动锁定按花色分页（整页同色，翻面不错格）。'
+          : '背面模式：本版式每页张数刚好整除 20 张，连着排已是整页同色，任意翻法都不会错格。')
+        + '流程 = 先印正面 → 翻面 → 印背面（页数与格子一一对齐）。' + PAPERS[currentPaper].tip
+      : PAPERS[currentPaper].tip;
+  }
   document.querySelectorAll('.btn[data-layout]').forEach(b => b.classList.toggle('off', isPhoto));
   // 仅当本版式真的会出现混色页时才锁定分页按钮
   document.querySelectorAll('.btn[data-mode]').forEach(b => b.classList.toggle('off', side === 'back' && backNeedsSplit()));
+}
+
+// 道具模式下藏掉对道具没意义的开关：版本下拉（道具无版本）、分页方式、表情
+function syncKindUI() {
+  const isProp = contentType === 'prop';
+  document.getElementById('grp-ver').hidden = isProp;
+  document.getElementById('grp-mode').hidden = isProp;
+  document.getElementById('grp-face').hidden = isProp;
+  refreshTitle();
+}
+
+function refreshTitle() {
+  document.getElementById('pageTitle').textContent = contentType === 'prop'
+    ? '大富翁道具打印版 · 横版'
+    : '大富翁卡牌打印版 · 横版 · ' + DATA.label + (ALL ? '' : '（内置兜底）');
 }
 
 // 四组开关按钮共用一个互斥绑定（.off 的按钮带 pointer-events:none，点了也不会触发）
@@ -743,6 +955,12 @@ bindGroup('.btn[data-style]', b => {
   render();
 });
 bindGroup('.btn[data-amt]', b => { showAmt = b.dataset.amt === 'on'; render(); });
+bindGroup('.btn[data-kind]', b => {
+  contentType = b.dataset.kind;
+  syncKindUI();
+  syncPaperUI();
+  render();
+});
 bindGroup('.btn[data-paper]', b => { currentPaper = b.dataset.paper; syncPaperUI(); render(); });
 bindGroup('.btn[data-layout]', b => { currentLayout = b.dataset.layout; syncPaperUI(); render(); });
 bindGroup('.btn[data-mode]', b => { pageMode = b.dataset.mode; render(); });
@@ -759,7 +977,7 @@ function applyVersion(id) {
   currentId = id;
   DATA = v;
   CARDS = v.cards;
-  document.getElementById('pageTitle').textContent = '大富翁卡牌打印版 · 横版 · ' + v.label;
+  refreshTitle();
   fillVerSel();
   syncPaperUI();
   render();
@@ -794,10 +1012,20 @@ fetch('cards.json', { cache: 'no-store' })
   .catch(() => {
     ALL = null;
     fillVerSel();
-    document.getElementById('pageTitle').textContent =
-      '大富翁卡牌打印版 · 横版 · ' + FALLBACK.label + '（内置兜底）';
+    refreshTitle();
   });
 
+// 道具数据：同样优先线上 props.json，读不到就用内置兜底
+fetch('props.json', { cache: 'no-store' })
+  .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+  .then(d => {
+    if (!d || !d.items || !d.items.length) throw new Error('props.json 格式不对');
+    PROPS = d;
+    if (contentType === 'prop') render();
+  })
+  .catch(() => { PROPS = PROPS_FALLBACK; });
+
+syncKindUI();
 syncPaperUI();
 fillVerSel();
 render();

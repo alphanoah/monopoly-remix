@@ -21,6 +21,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CSV_PATH = os.path.join(ROOT, 'cards.csv')
 JSON_PATH = os.path.join(ROOT, 'cards.json')
+PROPS_JSON_PATH = os.path.join(ROOT, 'props.json')
 INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
 PROPS_PATH = os.path.join(ROOT, 'docs', 'props.md')
@@ -279,6 +280,56 @@ def build_props():
         return md_to_html(f.read(), prefix='docs/')
 
 
+def parse_props():
+    """从 docs/props.md 里抽出结构化道具数据：使用规则 + 道具列表（用于打印页）。
+
+    真源仍然是 props.md（首页道具清单也由它生成），这里只是把 md 里的表格和
+    编号列表读成 dict，给打印页做道具卡用。改道具请改 props.md，别改 props.json。
+    """
+    if not os.path.exists(PROPS_PATH):
+        print('  跳过：未找到 docs/props.md')
+        return None
+    rules, items, section = [], [], None
+    with open(PROPS_PATH, encoding='utf-8') as f:
+        for raw in f:
+            line = raw.strip()
+            if line.startswith('## '):
+                section = line[3:].strip()
+                continue
+            if section == '使用规则':
+                m = re.match(r'^\d+\.\s+(.+)$', line)
+                if m:
+                    rules.append(m.group(1).strip())
+            elif section == '道具列表':
+                if not line.startswith('|') or '---' in line:
+                    continue
+                cells = [c.strip() for c in line.strip('|').split('|')]
+                if len(cells) < 4 or not cells[0] or cells[0] == '道具':
+                    continue
+                items.append({'name': cells[0], 'price': cells[1],
+                              'effect': cells[2], 'qty': cells[3]})
+    if not items:
+        print('  跳过：docs/props.md 里没解析到道具表格')
+        return None
+    return {'rules': rules, 'items': items}
+
+
+def write_props(props):
+    if not props:
+        return
+    with open(PROPS_JSON_PATH, 'w', encoding='utf-8') as f:
+        json.dump(props, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    js = ('const PROPS_FALLBACK = ' +
+          json.dumps(props, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';')
+    block = ('  /* PROPS:START */  // 由 tools/update.py 从 docs/props.md 生成，请勿手改\n'
+             '  %s\n'
+             '  /* PROPS:END */' % js)
+    if swap(PRINT_PATH, r'[ \t]*\/\* PROPS:START \*\/.*?\/\* PROPS:END \*\/', block, '道具兜底数据'):
+        print('  props.json + print.html 内置道具兜底（%d 件道具，%d 条规则）'
+              % (len(props['items']), len(props['rules'])))
+
+
 def build_original():
     """把 original/ 下的原版实体资料转成 original.html 的正文区块。"""
     parts = []
@@ -449,6 +500,7 @@ def main():
     write_index(data, rules_html, props_html)
     write_original(original_html)
     write_print_fallback(data)
+    write_props(parse_props())
     print('完成。')
 
 

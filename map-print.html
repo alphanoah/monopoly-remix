@@ -70,9 +70,10 @@ const COLORS = {
   "green":        "#2E9E4F"   // 哥伦比亚 玻利维亚 巴西 阿根廷 智利
 };
 // 牌堆配色（与 print.html 卡牌背面一致）
+// fg = 卡面（深色底）上的字色；ink = 白底跑道格上用的深色版（机会卡 fg 是白色，白底上看不见）
 const DECK = {
-  chance: { bg:"#B06F88", fg:"#ffffff", w1:"机", w2:"会", sym:"?", en:"CHANCE" },
-  fate:   { bg:"#D9BA8E", fg:"#2C3E6B", w1:"命", w2:"运", sym:"!", en:"FATE" }
+  chance: { bg:"#B06F88", fg:"#ffffff", ink:"#8E4F6C", w1:"机", w2:"会", sym:"?", en:"CHANCE" },
+  fate:   { bg:"#D9BA8E", fg:"#2C3E6B", ink:"#2C3E6B", w1:"命", w2:"运", sym:"!", en:"FATE" }
 };
 
 // ===== 国旗 emoji =====
@@ -95,7 +96,7 @@ const FLAGS = {
 const TILES = [
   // 底行（右→左）row=16
   [ 0,16,16,"corner-br","corner","赤道","EQUATOR"],
-  [ 1,15,16,"bottom",null,"中华人民共和国","CHINA","北京",4000,"red"],
+  [ 1,15,16,"bottom",null,"中国","CHINA","北京",4000,"red"],
   [ 2,14,16,"bottom",null,"日本","JAPAN","东京",1000,"red"],
   [ 3,13,16,"bottom","chance","机会","CHANCE"],
   [ 4,12,16,"bottom",null,"韩国","KOREA","首尔",1000,"red"],
@@ -244,29 +245,36 @@ svg.appendChild(bubble(900, 900, "大富翁", 168, { fill:"url(#silver)", dark:"
 function cardBack(x, y, w, h, kind, rot) {
   const m = DECK[kind];
   const g = el("g", { transform:`translate(${x},${y}) rotate(${rot})` });
+  // 下面垫两张，做出「牌堆」的厚度感
+  [[16, 14], [8, 7]].forEach(([ox, oy], i) => {
+    g.appendChild(el("rect", { x:-w/2+ox, y:-h/2+oy, width:w, height:h, rx:10,
+      fill:m.bg, stroke:"rgba(0,0,0,.22)", "stroke-width":2, opacity: i ? 0.75 : 0.55 }));
+  });
   // 卡面
   g.appendChild(el("rect", { x:-w/2, y:-h/2, width:w, height:h, rx:10, fill:m.bg, stroke:"rgba(0,0,0,.22)", "stroke-width":2 }));
-  // 内框（inset 3mm ≈ 宽度的 4.8%）
-  const ins = w * 0.048;
+  // 尺寸基准 = 短边（横版也能保持和竖版一致的视觉比例）
+  const u = Math.min(w, h);
+  // 内框（inset 3mm ≈ 短边的 4.8%）
+  const ins = u * 0.048;
   g.appendChild(el("rect", { x:-w/2+ins, y:-h/2+ins, width:w-2*ins, height:h-2*ins, rx:6,
     fill:"none", stroke:m.fg, "stroke-width":3, opacity:0.72 }));
   // 面：字 + 大号符号 + 字
-  const fs = w * 0.185, ss = w * 0.30, gap = w * 0.075;
+  const fs = u * 0.185, ss = u * 0.30, gap = u * 0.075;
   const total = fs + gap + ss + gap + fs, x0 = -total/2;
   g.appendChild(txt(x0 + fs/2, -h*0.05, m.w1, fs, { weight:"bold", fill:m.fg }));
   g.appendChild(txt(x0 + fs + gap + ss/2, -h*0.05, m.sym, ss, { weight:"bold", fill:m.fg, opacity:0.5 }));
   g.appendChild(txt(x0 + fs + gap + ss + gap + fs/2, -h*0.05, m.w2, fs, { weight:"bold", fill:m.fg }));
   // 英文行（70% 处）
-  g.appendChild(txt(0, h*0.22, m.en, w*0.055, { weight:"bold", fill:m.fg, ls:w*0.024, opacity:0.72 }));
+  g.appendChild(txt(0, h*0.22, m.en, u*0.055, { weight:"bold", fill:m.fg, ls:u*0.024, opacity:0.72 }));
   // 左上角「大富翁」椭圆印章（rotate -12°）
-  const st = el("g", { transform:`translate(${-w/2 + w*0.16},${-h/2 + h*0.13}) rotate(-12)` });
-  st.appendChild(el("ellipse", { cx:0, cy:0, rx:w*0.115, ry:w*0.076, fill:"none",
+  const st = el("g", { transform:`translate(${-w/2 + u*0.16},${-h/2 + u*0.13}) rotate(-12)` });
+  st.appendChild(el("ellipse", { cx:0, cy:0, rx:u*0.115, ry:u*0.076, fill:"none",
     stroke:m.fg, "stroke-width":2.5, "stroke-dasharray":"6 5", opacity:0.88 }));
-  st.appendChild(txt(0, 1, "大富翁", w*0.048, { weight:"bold", fill:m.fg }));
+  st.appendChild(txt(0, 1, "大富翁", u*0.048, { weight:"bold", fill:m.fg }));
   g.appendChild(st);
   // 右下角小恶魔标（同 print.html 背面）
-  const s = w * 0.10 / 40;
-  const dv = el("g", { transform:`translate(${w/2 - w*0.115},${h/2 - h*0.075}) scale(${s}) translate(-20,-18)` });
+  const s = u * 0.10 / 40;
+  const dv = el("g", { transform:`translate(${w/2 - u*0.115},${h/2 - u*0.075}) scale(${s}) translate(-20,-18)` });
   dv.appendChild(el("path", { d:"M8 8 Q6 2 11 0 Q10 6 14 8 Z", fill:m.fg }));
   dv.appendChild(el("path", { d:"M32 8 Q34 2 29 0 Q30 6 26 8 Z", fill:m.fg }));
   dv.appendChild(el("path", { d:"M20 6 C11 6 5 12 5 19 C5 26 11 30 20 30 C29 30 35 26 35 19 C35 12 29 6 20 6 Z", fill:m.fg }));
@@ -276,8 +284,9 @@ function cardBack(x, y, w, h, kind, rot) {
   g.appendChild(dv);
   return g;
 }
-svg.appendChild(cardBack(455, 505, 268, 374, "fate", -16));    // 命运牌堆（左上）
-svg.appendChild(cardBack(1348, 1298, 268, 374, "chance", -16)); // 机会牌堆（右下）
+// 横版卡：宽 > 高（与实物牌堆平放的朝向一致）
+svg.appendChild(cardBack(465, 500, 430, 296, "fate", -14));     // 命运牌堆（左上）
+svg.appendChild(cardBack(1335, 1305, 430, 296, "chance", -14)); // 机会牌堆（右下）
 
 // ===== 跑道格子 =====
 // 四边同一套设计：色带在靠圆心一侧，内容依次 编号→国名→英文→国旗→$价格→首都，
@@ -298,7 +307,7 @@ function tileGroup(col, row, side) {
 function propertyContent(g, id, name, nameEn, capital, price, color) {
   g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:BAND, fill:COLORS[color] }));
   g.appendChild(idTag(0, -TH + BAND/2, id, true));
-  if (name.length >= 6) {  // 中华人民共和国 → 两行
+  if (name.length >= 6) {  // 国名过长（≥6 字）自动拆两行
     g.appendChild(txt(0, -44, name.slice(0, 4), 13, { weight:"bold", fill:"#111" }));
     g.appendChild(txt(0, -28, name.slice(4), 13, { weight:"bold", fill:"#111" }));
     g.appendChild(txt(0, -12, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
@@ -316,8 +325,8 @@ function deckContent(g, id, name, nameEn, kind) {
   const m = DECK[kind];
   g.appendChild(idTag(0, -74, id, false));
   g.appendChild(txt(0, -48, name, 24, { weight:"bold", fill:"#111" }));
-  g.appendChild(txt(0, -31, nameEn, 11, { weight:"bold", fill:m.fg, ls:2 }));
-  g.appendChild(txt(0, 14, m.sym, 66, { weight:"bold", fill:m.fg, opacity:0.5 }));
+  g.appendChild(txt(0, -31, nameEn, 11, { weight:"bold", fill:m.ink, ls:2 }));
+  g.appendChild(txt(0, 14, m.sym, 66, { weight:"bold", fill:m.ink, opacity:0.7 }));
   g.appendChild(txt(0, 58, "抽取", 11, { fill:"#222" }));
   g.appendChild(txt(0, 72, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill:"#222" }));
 }
@@ -331,10 +340,11 @@ function oceanContent(g, id, name) {
     g.appendChild(txt(0, y+1, c, 22, { weight:"bold", fill:"#fff" }));
   });
 }
-// 角格图案（画在朝外那个角）
-function cornerIcon(side) {
-  const pos = side === "corner-tr" ? [52, -52] : [-52, 52];
-  const g = el("g", { transform:`translate(${pos[0]},${pos[1]}) scale(1.12)` });
+// 角格图案（画在朝外那个角；朝向与文字一致 —— 图案「头顶」也朝圆心）
+function cornerIcon(side, rot) {
+  // 朝外的角：地中海(左下) -37,+37｜北极(左上) -37,-37｜夏威夷(右上) +37,-37
+  const pos = side === "corner-tr" ? [37, -37] : (side === "corner-tl" ? [-37, -37] : [-37, 37]);
+  const g = el("g", { transform:`translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(0.85)` });
   if (side === "corner-bl") {           // 地中海：帆船
     g.appendChild(el("path", { d:"M-15,18 Q2,28 20,18 L15,10 L-9,10 Z", fill:"#2a4a8a" }));
     g.appendChild(el("polygon", { points:"1,-26 1,6 -14,6", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
@@ -377,9 +387,9 @@ TILES.forEach(t => {
       // 地中海(左下) 45°｜北极(左上) 135°｜夏威夷(右上) -135°
       const rot = side === "corner-bl" ? 45 : (side === "corner-tl" ? 135 : -135);
       const gg = el("g", { transform:`rotate(${rot})` });
-      gg.appendChild(bubble(0, 0, name, 44, {}));
+      gg.appendChild(bubble(0, -14, name, 44, {}));  // 文字往圆心侧让一点，给朝外的图案留空间
       g.appendChild(gg);
-      g.appendChild(cornerIcon(side));
+      g.appendChild(cornerIcon(side, rot));
       g.appendChild(idTag(side === "corner-bl" ? 50 : (side === "corner-tl" ? 50 : -50),
                           side === "corner-bl" ? -50 : 50, id, false));
     }

@@ -89,6 +89,7 @@
     gap: 1.6mm; text-align: center; overflow: hidden;
   }
   .ev { font-size: var(--evfs); font-weight: 700; line-height: 1.3; }
+  .seg { white-space: nowrap; }
   .ef { font-size: var(--effs); font-weight: 500; line-height: 1.4; }
   .sub { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
   .cond { font-size: calc(var(--effs) - 0.5px); font-weight: 500; line-height: 1.35; opacity: .88; }
@@ -685,20 +686,38 @@ function amtHtml(s) {
 }
 const A = s => (showAmt ? amtHtml(s) : s);
 
+// 断行控制：标点之间的一段尽量不断开，换行优先发生在逗号/顿号/破折号后面
+// （中文没有空格，浏览器默认会按字乱断，出现「句读被拆到两行」的情况）
+// 片段太长就不锁，交给浏览器正常断行，免得横向溢出。
+const BRK_CHARS = '，、；：。！？—';        // 断行允许点
+const SEG_MAX = 18;                        // 超过这个字数就不锁不换行
+function brk(s) {
+  const re = new RegExp('([' + BRK_CHARS + '])');
+  return String(s).split(re).map(part => {
+    if (!part) return '';
+    if (part.length === 1 && BRK_CHARS.indexOf(part) >= 0) return part;   // 标点留在上一段末尾
+    const plain = part.replace(/<[^>]*>/g, '');                            // 不算 HTML 标签的长度
+    return plain.length && plain.length <= SEG_MAX
+      ? '<span class="seg">' + part + '</span>'
+      : part;
+  }).join('');
+}
+const AB = s => brk(A(s));
+
 function cardNode(card, idxInDeck, total) {
   let inner;
   if (card.cond) {
-    inner = '<div class="ev">' + A(card.event) + '</div>' +
+    inner = '<div class="ev">' + AB(card.event) + '</div>' +
       (newStyle ? '<i class="cdiv"></i>' : '') +
       '<div class="sub">' +
-      '<div class="cond">摇骰 · ' + card.cond + '</div>' +
-'<div class="line">' + faceSpan('smile', 'out win') + '<span class="out win">' + A(card.win) + '</span></div>' +
-'<div class="line">' + faceSpan('frown', 'out lose') + '<span class="out lose">' + A(card.lose) + '</span></div>' +
+      '<div class="cond">摇骰 · ' + AB(card.cond) + '</div>' +
+'<div class="line">' + faceSpan('smile', 'out win') + '<span class="out win">' + AB(card.win) + '</span></div>' +
+'<div class="line">' + faceSpan('frown', 'out lose') + '<span class="out lose">' + AB(card.lose) + '</span></div>' +
       '</div>';
   } else {
-    inner = '<div class="ev">' + A(card.event) + '</div>' +
+    inner = '<div class="ev">' + AB(card.event) + '</div>' +
       (newStyle ? '<i class="cdiv"></i>' : '') +
-      (card.effect ? '<div class="line">' + faceSpan(card.face || 'smile', 'ef') + '<span class="ef">' + A(card.effect) + '</span></div>' : '');
+      (card.effect ? '<div class="line">' + faceSpan(card.face || 'smile', 'ef') + '<span class="ef">' + AB(card.effect) + '</span></div>' : '');
   }
   const el = document.createElement('div');
   el.className = 'card ' + card.deck;
@@ -724,10 +743,10 @@ function propNode(p, idx, total) {
     '<div class="num">' + (idx + 1) + '-' + total + '</div>' +
     '<div class="title">道具</div>' +
     '<div class="txt">' +
-      '<div class="ev">' + p.name + '</div>' +
+      '<div class="ev">' + AB(p.name) + '</div>' +
       (newStyle ? '<i class="cdiv"></i>' : '') +
-      '<div class="line"><span class="ef">' + A(p.effect) + '</span></div>' +
-      '<div class="pprice">售价 ' + A(String(p.price)) + '</div>' +
+      '<div class="line"><span class="ef">' + AB(p.effect) + '</span></div>' +
+      '<div class="pprice">售价 ' + AB(String(p.price)) + '</div>' +
     '</div>';
   return el;
 }
@@ -742,7 +761,7 @@ function ruleNode() {
     '<div class="txt">' +
       '<div class="ev">使用规则</div>' +
       (newStyle ? '<i class="cdiv"></i>' : '') +
-      '<ol class="rules">' + (PROPS.rules || []).map(r => '<li class="ef">' + A(r) + '</li>').join('') + '</ol>' +
+      '<ol class="rules">' + (PROPS.rules || []).map(r => '<li class="ef">' + AB(r) + '</li>').join('') + '</ol>' +
     '</div>';
   return el;
 }

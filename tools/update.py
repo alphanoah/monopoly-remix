@@ -11,6 +11,7 @@
 #   5. 重写 original.html 的原版资料区        —— 原版资料页
 #
 # 校验不通过就不写任何文件。GitHub Actions 跑的是同一个脚本。
+import collections
 import csv
 import html
 import json
@@ -33,12 +34,50 @@ ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 MAP_DATA_PATH = os.path.join(CONTENT_DIR, 'map-print-data.json')
 MAP_PRINT_PATH = os.path.join(ROOT, 'map-print.html')       # 80cm 打印页
 MAP_SVG_PRINT_PATH = os.path.join(ROOT, 'map-print-svg.html')  # 电子地图（打印版数据）
-# 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
+READMED_PATH = os.path.join(ROOT, 'README.md')
+def title_for_cards(text):
+    """原版卡牌区块标题：张数按 md 表格的实际行数算（改了表格，标题自动跟着变）。"""
+    fate = chance = 0
+    sec = ''
+    for line in text.split('\n'):
+        if line.startswith('## '):
+            sec = line[3:].strip()
+            continue
+        if not line.startswith('|') or '---' in line or line.startswith('| 编号'):
+            continue
+        if sec.startswith('命运牌'):
+            fate += 1
+        elif sec.startswith('机会牌'):
+            chance += 1
+    if not (fate or chance):
+        return '原版命运牌 & 机会牌'
+    return '原版命运牌 & 机会牌（%d + %d 张）' % (fate, chance)
+
+
+def title_for_tiles(text):
+    """原版地图区块标题：格数与颜色组数从 md 的「整体概览」表读（改了 md，标题自动跟着变）。"""
+    found = {}
+    for line in text.split('\n'):
+        if not line.startswith('|') or '---' in line:
+            continue
+        cells = [c.strip() for c in line.strip('|').split('|')]
+        if len(cells) == 2 and cells[0] in ('总格数', '颜色组数'):
+            found[cells[0]] = cells[1]
+    n = re.match(r'\d+', found.get('总格数', ''))
+    g = re.match(r'\d+', found.get('颜色组数', ''))
+    if n and g:
+        return '原版地图格子数据（%s 格 · %s 个颜色组）' % (n.group(), g.group())
+    return '原版地图格子数据'
+
+
+# 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题；函数 = 从 md 内容现算）
+#       → 是否默认展开
+#   标题里的张数 / 格数不写死：改了 md 表格，区块标题自动跟着变
 ORIGINAL_DOCS = [
-    ('cards.md', '原版命运牌 & 机会牌（20 + 20 张）', True),
+    ('cards.md', title_for_cards, True),
     ('manual.md', None, True),
     ('map-data-guide.md', '地图数据使用指南（速览 · 投资建议 · FAQ）', False),
-    ('map-tiles.md', '原版地图格子数据（64 格 · 11 个颜色组）', False),
+    ('map-tiles.md', title_for_tiles, False),
 ]
 
 # 首页「游戏规则」区：三版并列，点卡片切换
@@ -360,7 +399,9 @@ def build_original():
             continue
         with open(path, encoding='utf-8') as f:
             text = f.read()
-        if label is None:                      # 没写死标题就跟 md 的一级标题走
+        if callable(label):                    # 给了个函数 = 按 md 内容现算的标题（张数/格数不写死）
+            label = label(text)
+        elif label is None:                    # 没写标题就跟 md 的一级标题走
             label = md_title(text) or fn
         parts.append('<details class="blk"%s><summary><h2>%s</h2><span class="tog"></span></summary>\n'
                      '<div class="md">\n%s\n</div>\n</details>'
@@ -499,25 +540,141 @@ def write_print_fallback(data):
         print('  print.html 内置兜底（%s，%d 张）' % (vid, len(cards)))
 
 
-def write_map_print_fallback():
-    """content/map-print-data.json → map-print.html 的内置兜底块（本地 file:// 打开时用）"""
-    if not os.path.exists(MAP_DATA_PATH):
-        print('  跳过：未找到 map-print-data.json')
-        return
-    with open(MAP_DATA_PATH, encoding='utf-8') as f:
-        data = json.load(f)
+# ---------- 棋盘：统计、校验、注入 ----------
+def map_counts(data):
+    """按 tileTypes 定义的类型统计格子数，返回 [{'key','name','count'}, ...]（保持 JSON 里的顺序）。"""
+    types = data.get('tileTypes') or {}
+    counter = collections.Counter((t.get('type') or 'property') for t in data['tiles'])
+    out = []
+    for k, meta in types.items():
+        if counter.get(k):
+            out.append({'key': k, 'name': meta.get('name', k), 'count': counter[k]})
+    for k, n in counter.items():               # 数据里有、tileTypes 没定义的类型也别漏
+        if k not in types:
+            out.append({'key': k, 'name': k, 'count': n})
+    return out
+
+
+def map_summary(data):
+    """给首页 / README 用的棋盘速览。数字全部从 JSON 现算，不写死。"""
+    tiles = data['tiles']
+    counts = map_counts(data)
+    prices = [t['price'] for t in tiles if t.get('price')]
+    avg = int(round(sum(prices) / len(prices))) if prices else 0
+    cheapest = min(prices) if prices else 0
+    dearest = max(prices) if prices else 0
+    board = data.get('board') or {}
+    mm = board.get('printMM') or 800
+    cm = ('%g' % (mm / 10.0))
+    return {
+        'total': len(tiles),
+        'detail': ' · '.join('%d %s' % (c['count'], c['name']) for c in counts),
+        'groups': len(data.get('colorGroups') or []),
+        'prices': len(prices),
+        'avg': avg,
+        'min': cheapest,
+        'max': dearest,
+        'mm': mm,
+        'cm': cm,
+    }
+
+
+def write_map_info(data):
+    """首页「电子地图」区的说明文字：格子数、各类格子、颜色组数、成品尺寸全部从 JSON 现算。"""
+    s = map_summary(data)
+    html_block = (
+        '  <p class="meta">电子版「世界之旅」棋盘：<strong>{total}</strong> 格全图'
+        '（{detail}，{groups} 个颜色组），地产均价 ${avg:,}。'
+        '鼠标拖动平移、滚轮缩放、双击放大，手机上也能单指拖、双指捏合。<br>'
+        '要实体棋盘就走打印版：<strong>{cm}×{cm}cm</strong> 见方（{mm}×{mm}mm）、边距无，'
+        '正方形棋盘居中，直接 ⌘/Ctrl + P。</p>'
+    ).format(**s)
+    if swap(INDEX_PATH,
+            r'<!-- MAPINFO:START -->.*?<!-- MAPINFO:END -->',
+            '<!-- MAPINFO:START -->\n' + html_block + '\n  <!-- MAPINFO:END -->',
+            '电子地图区说明'):
+        print('  index.html 电子地图区（%d 格 / %d 组 / %scm）' % (s['total'], s['groups'], s['cm']))
+
+
+def write_readme_stats(data, props, cards):
+    """README 的「数据速览」表格：卡牌、道具、棋盘三个来源的数字全部现算，避免文档写死后不同步。"""
+    s = map_summary(data)
+    versions = cards['order']
+    vline = '、'.join(versions)
+    detail = []
+    for v in versions:
+        cs = cards['versions'][v]['cards']
+        c = collections.Counter(x['deck'] for x in cs)
+        detail.append('%s %d+%d' % (v, c['chance'], c['fate']))
+    rows = [
+        ('卡牌', '%d 个版本（%s），默认 <code>%s</code><br>%s'
+         % (len(versions), vline, cards['default'], ' · '.join(detail))),
+        ('道具', '%d 件，使用规则 %d 条' % (len(props['items']), len(props['rules']))),
+        ('棋盘格子', '%d 格<br>%s' % (s['total'], s['detail'])),
+        ('颜色组', '%d 组' % s['groups']),
+        ('地价', '共 %d 块地产，均价 $%s（$%s ~ $%s）'
+         % (s['prices'], '{:,}'.format(s['avg']), '{:,}'.format(s['min']), '{:,}'.format(s['max']))),
+        ('实物尺寸', '%s×%s cm 软垫（%s×%s mm，2mm 厚 / 3mm 锁边）' % (s['cm'], s['cm'], s['mm'], s['mm'])),
+    ]
+    body = '\n'.join('| %s | %s |' % (a, b) for a, b in rows)
+    table = ('| 项目 | 数量 |\n|------|------|\n' + body)
+    note = ('> 这一节由 <code>tools/update.py</code> 从各真源统计后写入，'
+            '改了 CSV / md / JSON 跑一次脚本就会同步，**不要手改**。')
+    if swap(READMED_PATH,
+            r'<!-- STATS:START -->.*?<!-- STATS:END -->',
+            '<!-- STATS:START -->\n' + note + '\n\n' + table + '\n<!-- STATS:END -->',
+            'README 数据速览'):
+        print('  README.md 数据速览（%d 版卡牌 / %d 件道具 / %d 格）'
+              % (len(versions), len(props['items']), s['total']))
+
+
+def validate_map(data):
+    """棋盘 JSON 的体检清单：数量、编号连续性、颜色分组引用、类型表覆盖。"""
     errs = []
-    if len(data.get('tiles', [])) != data.get('board', {}).get('tileCount', 64):
-        errs.append('tiles 数量与 board.tileCount 不符')
-    ids = {g['id'] for g in data.get('colorGroups', [])}
-    for t in data.get('tiles', []):
+    tiles = data.get('tiles') or []
+    board = data.get('board') or {}
+    if tiles:
+        ids = [t['id'] for t in tiles]
+        if ids != list(range(len(ids))):
+            errs.append('格子 id 不是从 0 连续的（%s…%s）' % (ids[0], ids[-1]))
+    n_expect = board.get('tilesPerSide', 15) * 4 + board.get('corners', 4)   # 四边各 15 格 + 4 个角格
+    if tiles and len(tiles) != n_expect:
+        errs.append('格子总数 %d ≠ 四边 %s×4 + %s 个角格 = %d'
+                    % (len(tiles), board.get('tilesPerSide', 15), board.get('corners', 4), n_expect))
+    if not board.get('printMM'):
+        errs.append('board.printMM（成品边长 mm）没填，打印尺寸没法算')
+
+    ids = {g['id'] for g in data.get('colorGroups') or []}
+    for t in tiles:
         if 'colorId' in t and t['colorId'] not in ids:
             errs.append('格子 #%s 的 colorId=%s 在 colorGroups 里找不到' % (t['id'], t['colorId']))
+        if t.get('price') is not None and t.get('colorId') is None:
+            errs.append('格子 #%s（%s）有价格却没 colorId' % (t['id'], t.get('name')))
+
+    types = data.get('tileTypes') or {}
+    decks = data.get('decks') or {}
+    used = {(t.get('type') or 'property') for t in tiles}
+    for k in sorted(used - set(types)):
+        errs.append('格子类型 "%s" 在 tileTypes 里没定义（图例会漏）' % k)
+    for k, meta in types.items():
+        if meta.get('deck') and meta['deck'] not in decks:
+            errs.append('tileTypes.%s.deck = "%s"，decks 里没有这个牌堆' % (k, meta['deck']))
+    return errs
+
+
+def write_map_print_fallback():
+    """content/map-print-data.json → map-print.html / map-print-svg.html 的内置兜底块（本地 file:// 打开时用）"""
+    if not os.path.exists(MAP_DATA_PATH):
+        print('  跳过：未找到 map-print-data.json')
+        return None
+    with open(MAP_DATA_PATH, encoding='utf-8') as f:
+        data = json.load(f)
+    errs = validate_map(data)
     if errs:
         print('  !! map-print-data.json 校验未通过，未写入兜底：')
         for e in errs:
             print('     - ' + e)
-        return
+        return None
     js = json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c')
     block = ('/* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改\n'
              '%s\n'
@@ -528,6 +685,7 @@ def write_map_print_fallback():
         if swap(path, r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/', block, '棋盘兜底数据'):
             print('  %s 内置兜底（%d 格 / %d 个颜色组）'
                   % (os.path.basename(path), len(data['tiles']), len(data['colorGroups'])))
+    return data
 
 
 def main():
@@ -551,8 +709,12 @@ def main():
     write_index(data, rules_html, props_html)
     write_original(original_html)
     write_print_fallback(data)
-    write_props(parse_props())
-    write_map_print_fallback()
+    props = parse_props()
+    write_props(props)
+    map_data = write_map_print_fallback()
+    if map_data:
+        write_map_info(map_data)
+        write_readme_stats(map_data, props or {'items': [], 'rules': []}, data)
     print('完成。')
 
 

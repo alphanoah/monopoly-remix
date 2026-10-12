@@ -16,7 +16,9 @@
 
 - **首页 `index.html`**：三版规则卡片切换（原版 / v1 / v2）+ 机会/命运卡牌 + 道具清单，卡牌可切换版本浏览（静态页面，双击就能看）
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录
-- **电子地图 `map-svg.html`**：64 格 SVG 棋盘，可拖动缩放、按颜色组筛选、导出 PNG
+- **电子地图 `map-print-svg.html`**：棋盘 SVG，可拖动缩放、按颜色组筛选、导出 PNG
+- **打印棋盘 `map-print.html`**：80×80cm 软垫打印页，⌘/Ctrl + P →「存储为 PDF」把 PDF 交给商家
+- **打印 / 电子地图共用一份真源**：`content/map-print-data.json`
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印；最左边可切「卡牌 / 道具」
 - **在线地址**：https://alphanoah.github.io/monopoly-remix/
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
@@ -37,7 +39,7 @@ python3 tools/update.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 CSV → 生成 `data/cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `content/props.md` 生成 `data/props.json` 并注入打印页道具兜底。
+脚本会：校验 CSV → 生成 `data/cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `content/props.md` 生成 `data/props.json` 并注入打印页道具兜底 → **校验 `content/map-print-data.json` 并把它的兜底写进两个地图页** → **按真源刷新首页「电子地图」区和 README 的「数据速览」**。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出第几行错在哪。
@@ -92,10 +94,36 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 |---|---|---|
 | 内容 | 脚本静态写入，离线可看 | 线上 `fetch('data/cards.json')` |
 | 本地双击 | 正常（内容已写死在页面里） | 正常（fetch 被 CORS 拦 → 回退内置兜底） |
-| 版本切换 | 有，v4 / v5 / v6 / v7（默认 v7） | 有（需线上 JSON） |
+| 版本切换 | 有（版本清单见下方「数据速览」） | 有（需线上 JSON） |
 
 打印页保留双轨是因为本地 `file://` 打开时浏览器会拦截 fetch，内置兜底是必需品而不是摆设；
 首页不需要，内容直接由脚本写进 HTML，本地线上都一样。
+
+地图那两个页 fetch 的是同一份 `content/map-print-data.json`（**改棋盘只改这一份**），
+本地双击打开时各自用脚本注入的内置兜底。
+
+打印页保留双轨是因为本地 `file://` 打开时浏览器会拦截 fetch，内置兜底是必需品而不是摆设；
+首页不需要，内容直接由脚本写进 HTML，本地线上都一样。
+
+地图两个页 fetch 的是同一个 `content/map-print-data.json`（**改数据只改这一份**），
+本地双击打开时各自用脚本注入的内置兜底。
+
+---
+
+## 数据速览
+
+<!-- STATS:START -->
+> 这一节由 <code>tools/update.py</code> 从各真源统计后写入，改了 CSV / md / JSON 跑一次脚本就会同步，**不要手改**。
+
+| 项目 | 数量 |
+|------|------|
+| 卡牌 | 4 个版本（v4、v5、v6、v7），默认 <code>v7</code><br>v4 20+20 · v5 20+20 · v6 20+20 · v7 20+20 |
+| 道具 | 14 件，使用规则 3 条 |
+| 棋盘格子 | 64 格<br>51 地产 · 3 机会 · 3 命运 · 3 海洋 · 4 角落 |
+| 颜色组 | 11 组 |
+| 地价 | 共 51 块地产，均价 $2,110（$600 ~ $4,000） |
+| 实物尺寸 | 80×80 cm 软垫（800×800 mm，2mm 厚 / 3mm 锁边） |
+<!-- STATS:END -->
 
 ---
 
@@ -119,7 +147,7 @@ git push
 默认**只提交到本地**，确认没问题了再 push。
 
 push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同一个脚本，
-把重新生成的 `data/cards.json` / `data/props.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
+把重新生成的 `data/cards.json` / `data/props.json` / `README.md` / `index.html` / `original.html` / `print.html` / `map-print.html` / `map-print-svg.html` 自动提交回去，
 然后 Pages 自动部署，约 1 分钟线上生效。
 
 **即使你忘了跑第 2 步也没关系**——Actions 会自己跑一遍并补提交，本地文件下次 pull 就能同步回来。
@@ -156,10 +184,12 @@ richer/
 ├── index.html              首页：规则三版切换（原版/v1/v2）+ 机会/命运卡牌 + 道具清单（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具，可切卡牌/道具（脚本回写兜底）
-├── map-svg.html            电子地图：64 格 SVG 棋盘，一键切换「加厚环（手机好读）/ 原版」，可导出 PNG，图例可点击筛选（手写页，脚本不动）
+├── map-print-svg.html      电子地图：棋盘 SVG，可拖动缩放、按颜色组筛选、导出 PNG（脚本回写兜底）
 │                           · 两种布局：`thick` 加厚环（340×340 正方，边格 12×80，手机可读）/ `classic` 原版（76×100 竖长格，1310×1718）
 │                           · 两档结构相同（每边 16 格、角格在四角、顺时针），只有画法不同；改加厚环的环厚只动常量 RING_T（1~8）
 │                           · 加厚环视图固定（不缩放不平移，手指滑到棋盘上照常滚页面）；原版布局才可缩放拖动
+├── map-print.html          80×80cm 软垫打印页：⌘/Ctrl + P →「存储为 PDF」，把 PDF 交给商家（脚本回写兜底）
+│                           · 页码尺寸是读取的：改 map-print-data.json 的 `board.printMM`，@page、提示条、首页文案一起变
 ├── update.command          macOS 双击运行 update.py
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
@@ -177,11 +207,11 @@ richer/
 
 | 文件 | 是什么 | 谁在用 |
 |---|---|---|
-| `cards.csv` | **卡牌数据真源**（v4–v7 四版，各 20+20 张） | 生成 `data/cards.json`；打印页线上读它 |
+| `cards.csv` | **卡牌数据真源**（当前 v4–v7 四版，每版的张数见下方速览） | 生成 `data/cards.json`；打印页线上读它 |
 | `new-rule.md` | **规则 v2 真源**（最新改版：地图、骰子、资金、地产、监狱、拍卖、道具、机会/命运） | 首页「游戏规则」默认打开的面板，脚本生成 |
 | `rules.md` | **规则 v1 真源**（初版改版，19580 起始资金那一版） | 首页「游戏规则」的 v1 面板，脚本生成 |
-| `props.md` | **道具清单**：14 件道具的价格 / 效果 / 印量，以及商店买卖规则 | 首页「道具清单」区 + `data/props.json`，脚本生成 |
-| `map-data.json` | 电子地图 64 格数据（格名、颜色组、地价） | `map-svg.html` 线上 `fetch`；本地打开时用它内置的同款兜底 |
+| `props.md` | **道具清单**：每件道具的价格 / 效果 / 印量，以及商店买卖规则（件数见下方速览） | 首页「道具清单」区 + `data/props.json`，脚本生成 |
+| `map-print-data.json` | **棋盘唯一真源**：64 格（名字/首都/价格/位置）+ 11 个颜色组（带 id 与照片取色的 hex）+ 版式参数 + 牌堆配色 + 格子类型表 | `map-print.html`（80cm 打印页）与 `map-print-svg.html`（电子地图）共用：线上 `fetch`，本地打开用各自内置的兜底（由 `tools/update.py` 注入） |
 | `original/` | 原版实体《大富翁》的电子化存档（`original.html` 由它生成，见下表） | 脚本生成 |
 
 ### `content/original/` 里都是什么

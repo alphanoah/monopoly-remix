@@ -169,33 +169,29 @@
 
 <script>
 // ===== 颜色映射 =====
-// 色值不写死：取自 content/map-print-data.json 的 colorGroups[].hex（打印版＝按实体棋盘照片的鲜艳色）
-// 格子用 colorId 引用颜色组；老数据（map-data.json 用字符串 color）也能兼容。
-let HEX = {};        // 颜色组 id → 色值
-let HEXBYKEY = {};   // 颜色组 key（如 "red"）→ 色值
+// 色值一律从 map-print-data.json 读：国家色带 = colorGroups[].hex，机会/命运 = decks[].bg，
+// 其余特殊格 = tileTypes[].hex（用 deck 字段指回 decks 时就不重复写同一个颜色）。
+let DATA = null;         // 当前数据（fetch 拿到的真源，或内置兜底）
+let HEX = {};            // 颜色组 id → 色值
+let HEXBYKEY = {};       // 颜色组 key（如 "red"）→ 色值
 function loadPalette(data) {
   HEX = {}; HEXBYKEY = {};
   (data.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; });
 }
-// 格子的色带颜色（地产格取分组色，其余取特殊格色）
+// 地产格：按 colorId（现在的数据）或 color 字符串（没 colorId 的老数据）取所在组的色值
 function tileColor(t) {
-  const c = (t.colorId != null ? HEX[t.colorId] : HEXBYKEY[t.color]);
-  return c || SPECIAL_COLORS[t.type] || "#b3afa6";
+  return (t.colorId != null ? HEX[t.colorId] : HEXBYKEY[t.color]) || specialColor(t.type);
 }
-// 打印版数据里地产格也有 type:"property"，判断「是不是特殊格」要排除它
+// 特殊格（非地产）的色值：tileTypes 里要么直接给 hex，要么用 deck 指回 decks
+function specialColor(type) {
+  const tt = ((DATA && DATA.tileTypes) || {})[type] || {};
+  if (tt.deck && DATA.decks && DATA.decks[tt.deck]) return DATA.decks[tt.deck].bg;
+  return tt.hex || "#b3afa6";
+}
+// 数据的地产格也带 type:"property"，判断「是不是特殊格」得排除它
 function isSpecial(t) { return !!t.type && t.type !== "property"; }
-// 某颜色组有多少格（图例用；打印版 JSON 不带 count，现算）
-function countOf(data, colorId) {
-  return data.tiles.filter(x => x.colorId === colorId).length;
-}
-
-// 特殊格（非地产）的图例色，跟首页配色对应
-const SPECIAL_COLORS = {
-  "corner": "#b3afa6",
-  "chance": "#B06F88",
-  "destiny": "#D9BA8E",
-  "ocean": "#9BB6C4"
-};
+// 有几格（图例用；JSON 不存这些派生数字，全部现算）
+function countOf(pred) { return DATA.tiles.filter(pred).length; }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -251,12 +247,12 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版专用数据（按实体棋盘照片 map.jpg 一比一还原）。与 content/map-data.json（电子地图用）的区别：①颜色分组带数字 id，格子用 colorId 引用，②hex 为照片取色的鲜艳版（电子地图那套是压低饱和的淡色版），③地产格显式 type=\"property\"，④含 board/layout 版式参数。map-print.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底数据。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。",
   "board": {
     "size": 1800,
+    "printMM": 800,
     "trackWidth": 190,
     "band": 38,
-    "tileCount": 64,
     "tilesPerSide": 15,
     "corners": 4
   },
@@ -407,6 +403,33 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "hex": "#2E9E4F"
     }
   ],
+  "tileTypes": {
+    "property": {
+      "name": "地产",
+      "nameEn": "Property",
+      "legend": false
+    },
+    "chance": {
+      "name": "机会",
+      "nameEn": "Chance",
+      "deck": "chance"
+    },
+    "destiny": {
+      "name": "命运",
+      "nameEn": "Destiny",
+      "deck": "fate"
+    },
+    "ocean": {
+      "name": "海洋",
+      "nameEn": "Ocean",
+      "hex": "#9BB6C4"
+    },
+    "corner": {
+      "name": "角落",
+      "nameEn": "Corner",
+      "hex": "#b3afa6"
+    }
+  },
   "tiles": [
     {
       "id": 0,
@@ -1316,6 +1339,7 @@ function tileGroup(t, x, y) {
 // ===== 渲染地图 =====
 function renderMap(data) {
   mapData = data;
+  DATA = data;
   loadPalette(data);
   const svg = document.getElementById("map");
   const bs = boardSize();
@@ -1555,60 +1579,44 @@ function renderLegend(data) {
     return item;
   }
 
-  // 第一行：全部 + 国家前半（前 6 组）
-  const row1 = document.createElement("div");
-  row1.className = "legend-row";
-  const label1 = document.createElement("span");
-  label1.className = "legend-label";
-  label1.textContent = "国家";
-  row1.appendChild(label1);
-  row1.appendChild(makeChip({ key: "all", name: "全部", count: data.tiles.length, color: null }));
-  data.colorGroups.slice(0, 6).forEach(g => {
-    row1.appendChild(makeChip({
-      key: "color:" + g.key, name: g.name, count: countOf(data, g.id), color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
-    }));
+  // 国家：颜色组多就分两行，“全部”挂在第一行开头
+  const groups = data.colorGroups || [];
+  const half = Math.ceil(groups.length / 2);
+  [groups.slice(0, half), groups.slice(half)].forEach((gs, ri) => {
+    const row = document.createElement("div");
+    row.className = "legend-row";
+    const label = document.createElement("span");
+    label.className = "legend-label";
+    label.textContent = ri === 0 ? "国家" : "";
+    row.appendChild(label);
+    if (ri === 0) row.appendChild(makeChip({ key: "all", name: "全部", count: data.tiles.length, color: null }));
+    gs.forEach(g => {
+      row.appendChild(makeChip({
+        key: "color:" + g.key, name: g.name, count: countOf(x => x.colorId === g.id),
+        color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
+      }));
+    });
+    legend.appendChild(row);
   });
-  legend.appendChild(row1);
 
-  // 第二行：国家后半（后 5 组）
-  const row1b = document.createElement("div");
-  row1b.className = "legend-row";
-  const label1b = document.createElement("span");
-  label1b.className = "legend-label";
-  label1b.textContent = "";
-  row1b.appendChild(label1b);
-  data.colorGroups.slice(6).forEach(g => {
-    row1b.appendChild(makeChip({
-      key: "color:" + g.key, name: g.name, count: countOf(data, g.id), color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
-    }));
-  });
-  legend.appendChild(row1b);
-
-  // 第二行：机会 / 命运
-  const row2 = document.createElement("div");
-  row2.className = "legend-row";
-  const label2 = document.createElement("span");
-  label2.className = "legend-label";
-  label2.textContent = "机会/命运";
-  row2.appendChild(label2);
-  [["chance", "机会"], ["destiny", "命运"]].forEach(pair => {
-    const n = data.tiles.filter(x => x.type === pair[0]).length;
-    if (n) row2.appendChild(makeChip({ key: "special:" + pair[0], name: pair[1], count: n, color: SPECIAL_COLORS[pair[0]] }));
-  });
-  legend.appendChild(row2);
-
-  // 第三行：海洋 / 角落
-  const row3 = document.createElement("div");
-  row3.className = "legend-row";
-  const label3 = document.createElement("span");
-  label3.className = "legend-label";
-  label3.textContent = "海洋/角落";
-  row3.appendChild(label3);
-  [["ocean", "海洋"], ["corner", "角落"]].forEach(pair => {
-    const n = data.tiles.filter(x => x.type === pair[0]).length;
-    if (n) row3.appendChild(makeChip({ key: "special:" + pair[0], name: pair[1], count: n, color: SPECIAL_COLORS[pair[0]] }));
-  });
-  legend.appendChild(row3);
+  // 特殊格：按 tileTypes 里定义的类型自动生成，两两一行（机会/命运 · 海洋/角落）
+  const types = Object.keys(data.tileTypes || {}).filter(k => k !== "property");
+  for (let i = 0; i < types.length; i += 2) {
+    const pair = types.slice(i, i + 2);
+    const row = document.createElement("div");
+    row.className = "legend-row";
+    const label = document.createElement("span");
+    label.className = "legend-label";
+    label.textContent = pair.map(k => data.tileTypes[k].name).join("/");
+    row.appendChild(label);
+    pair.forEach(k => {
+      const n = countOf(x => x.type === k);
+      if (n) row.appendChild(makeChip({
+        key: "special:" + k, name: data.tileTypes[k].name, count: n, color: specialColor(k)
+      }));
+    });
+    legend.appendChild(row);
+  }
 
   // 初始化 viewport（事件只绑一次，避免切换布局时重复叠加）
 }

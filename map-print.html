@@ -2,9 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>大富翁 世界之旅 · 80cm 软垫打印版</title>
+<title>大富翁 世界之旅 · 软垫打印版</title>
 <style>
-  /* ===== 成品：80×80cm 软垫（2mm 厚 / 3mm 精装锁边），无边距 ===== */
+  /* ===== 成品：80×80cm 软垫（2mm 厚 / 3mm 精装锁边），无边距 =====
+     这里的 800mm 只是「没跑到 JS」时的兜底；实际值取自 map-print-data.json 的 board.printMM，
+     由 applyPrintSize() 覆盖。要改尺寸改 JSON 那个数就行。 */
   @page {
     size: 800mm 800mm;
     margin: 0;
@@ -46,7 +48,7 @@
 <body>
 
 <div class="screen-hint">
-  80×80cm 软垫：打印→目的地选「存储为 PDF」→纸张方向 800×800mm、边距无、关闭页眉页脚，把 PDF 交给商家
+  <span id="hint-text">打印→目的地选「存储为 PDF」→纸张大小按 JSON 的 board.printMM、边距无、关闭页眉页脚，把 PDF 交给商家</span>
   <button onclick="window.print()">打印 / 存为 PDF</button>
 </div>
 
@@ -64,12 +66,12 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版专用数据（按实体棋盘照片 map.jpg 一比一还原）。与 content/map-data.json（电子地图用）的区别：①颜色分组带数字 id，格子用 colorId 引用，②hex 为照片取色的鲜艳版（电子地图那套是压低饱和的淡色版），③地产格显式 type=\"property\"，④含 board/layout 版式参数。map-print.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底数据。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。",
   "board": {
     "size": 1800,
+    "printMM": 800,
     "trackWidth": 190,
     "band": 38,
-    "tileCount": 64,
     "tilesPerSide": 15,
     "corners": 4
   },
@@ -220,6 +222,33 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "hex": "#2E9E4F"
     }
   ],
+  "tileTypes": {
+    "property": {
+      "name": "地产",
+      "nameEn": "Property",
+      "legend": false
+    },
+    "chance": {
+      "name": "机会",
+      "nameEn": "Chance",
+      "deck": "chance"
+    },
+    "destiny": {
+      "name": "命运",
+      "nameEn": "Destiny",
+      "deck": "fate"
+    },
+    "ocean": {
+      "name": "海洋",
+      "nameEn": "Ocean",
+      "hex": "#9BB6C4"
+    },
+    "corner": {
+      "name": "角落",
+      "nameEn": "Corner",
+      "hex": "#b3afa6"
+    }
+  },
   "tiles": [
     {
       "id": 0,
@@ -1082,6 +1111,22 @@ function idTag(x, y, id) {
   });
 }
 
+// ===== 打印尺寸 =====
+// 成品边长取自 JSON 的 board.printMM（80cm 软垫 = 800）。改那一个数，
+// @page 纸张、打印时的画布尺寸、屏幕提示条、SVG viewBox 全部跟着变。
+function applyPrintSize(printMM) {
+  const mm = printMM || 800, cm = +(mm / 10).toFixed(1).replace(/\.0$/, "");
+  const st = document.createElement("style");
+  st.textContent =
+    `@page { size: ${mm}mm ${mm}mm; margin: 0; }\n` +
+    `@media print { .page { width: ${mm}mm !important; height: ${mm}mm !important; margin: 0 !important; } }`;
+  document.head.appendChild(st);
+  document.title = `大富翁 世界之旅 · ${cm}cm 软垫打印版`;
+  document.getElementById("hint-text").textContent =
+    `${cm}×${cm}cm 软垫：打印 → 目的地选「存储为 PDF」→ 纸张 ${mm}×${mm}mm、边距无、关闭页眉页脚，把 PDF 交给商家`;
+  svg.setAttribute("viewBox", `0 0 ${L} ${L}`);
+}
+
 // ===== 渲染：整块棋盘都按 renderBoard(DATA) 画一遍 =====
 function renderBoard(DATA) {
   // —— 参数全部取自 JSON ——
@@ -1090,6 +1135,7 @@ function renderBoard(DATA) {
   B = bd.trackWidth || 190;
   W = (L - 2*B) / (bd.tilesPerSide || 15);
   TW = W / 2; TH = B / 2; BAND = bd.band || 38;
+  applyPrintSize(bd.printMM);
   HEX = {}; HEXBYKEY = {};
   (DATA.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; });
   DECKS = DATA.decks || {};

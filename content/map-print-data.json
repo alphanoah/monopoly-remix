@@ -2,12 +2,12 @@
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版专用数据（按实体棋盘照片 map.jpg 一比一还原）。与 content/map-data.json（电子地图用）的区别：①颜色分组带数字 id，格子用 colorId 引用，②hex 为照片取色的鲜艳版（电子地图那套是压低饱和的淡色版），③地产格显式 type=\"property\"，④含 board/layout 版式参数。map-print.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底数据。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。",
   "board": {
     "size": 1800,
+    "printMM": 800,
     "trackWidth": 190,
     "band": 38,
-    "tileCount": 64,
     "tilesPerSide": 15,
     "corners": 4
   },
@@ -158,6 +158,33 @@
       "hex": "#2E9E4F"
     }
   ],
+  "tileTypes": {
+    "property": {
+      "name": "地产",
+      "nameEn": "Property",
+      "legend": false
+    },
+    "chance": {
+      "name": "机会",
+      "nameEn": "Chance",
+      "deck": "chance"
+    },
+    "destiny": {
+      "name": "命运",
+      "nameEn": "Destiny",
+      "deck": "fate"
+    },
+    "ocean": {
+      "name": "海洋",
+      "nameEn": "Ocean",
+      "hex": "#9BB6C4"
+    },
+    "corner": {
+      "name": "角落",
+      "nameEn": "Corner",
+      "hex": "#b3afa6"
+    }
+  },
   "tiles": [
     {
       "id": 0,

@@ -55,26 +55,955 @@
 </div>
 
 <script>
-// ===== 颜色组（按原版照片取色；map-data.json 只有分组名没有色值，故以此为准）=====
-const COLORS = {
-  "red":          "#E03A3A",  // 中国 日本 韩国 / 澳大利亚 新西兰
-  "light-blue":   "#2FA3DC",  // 菲律宾 马来西亚 越南 泰国 印度
-  "yellow-green": "#A8C43C",  // 斯里兰卡 伊朗 伊拉克 沙特 叙利亚 土耳其
-  "purple":       "#9B59B6",  // 黎巴嫩 以色列 俄罗斯 波兰 德国
-  "pink":         "#EE6FA8",  // 奥地利 瑞士 法国 比利时
-  "dark-gray":    "#5D6D7E",  // 荷兰 英国 芬兰 瑞典 丹麦
-  "dark-blue":    "#4A68B0",  // 希腊 意大利 西班牙 葡萄牙
-  "light-green":  "#3FBF6E",  // 埃及 摩洛哥 赞比亚 南非共和国
-  "khaki":        "#BFC5CC",  // 加拿大 美国
-  "hot-pink":     "#A962B0",  // 尼加拉瓜 哥斯达黎加 巴拿马 古巴
-  "green":        "#2E9E4F"   // 哥伦比亚 玻利维亚 巴西 阿根廷 智利
-};
-// 牌堆配色（与 print.html 卡牌背面一致）
-// fg = 卡面（深色底）上的字色；ink = 白底跑道格上用的深色版（机会卡 fg 是白色，白底上看不见）
-const DECK = {
-  chance: { bg:"#B06F88", fg:"#ffffff", ink:"#8E4F6C", w1:"机", w2:"会", sym:"?", en:"CHANCE" },
-  fate:   { bg:"#D9BA8E", fg:"#2C3E6B", ink:"#2C3E6B", w1:"命", w2:"运", sym:"!", en:"FATE" }
-};
+// ===== 数据来源 =====
+// 真源：content/map-print-data.json（打印版棋盘数据：64 格 + 带 id 的颜色组 + hex 色值 + 版式参数）
+//   线上（Pages）走 fetch；本地 file:// 直接打开时 fetch 会被浏览器拦掉，就用下面的内置兜底。
+// 兜底块由 tools/update.py 从该 JSON 生成，勿手改 —— 改数据请改 content/map-print-data.json 后跑 python3 tools/update.py
+const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改
+{
+  "version": "1.0",
+  "name": "大富翁「世界之旅」· 打印版棋盘",
+  "nameEn": "World Tour Monopoly · Print Board",
+  "note": "80×80cm 软垫打印版专用数据（按实体棋盘照片 map.jpg 一比一还原）。与 content/map-data.json（电子地图用）的区别：①颜色分组带数字 id，格子用 colorId 引用，②hex 为照片取色的鲜艳版（电子地图那套是压低饱和的淡色版），③地产格显式 type=\"property\"，④含 board/layout 版式参数。map-print.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底数据。",
+  "board": {
+    "size": 1800,
+    "trackWidth": 190,
+    "band": 38,
+    "tileCount": 64,
+    "tilesPerSide": 15,
+    "corners": 4
+  },
+  "layout": {
+    "property": {
+      "nameY": -36,
+      "nameEnY": -18,
+      "flagY": 26,
+      "flagSize": 30,
+      "priceY": 58,
+      "priceSize": 18,
+      "capitalY": 80,
+      "capitalSize": 12,
+      "nameSize": {
+        "le3": 19,
+        "eq4": 16,
+        "ge5": 13
+      },
+      "longNameY": [
+        -40,
+        -24,
+        -8
+      ]
+    },
+    "deck": {
+      "nameY": -50,
+      "enY": -32,
+      "symY": 20,
+      "symSize": 66,
+      "line1Y": 62,
+      "line2Y": 80
+    },
+    "ocean": {
+      "gap": 46,
+      "radius": 20,
+      "offset": 25
+    },
+    "id": {
+      "insetX": 5,
+      "insetY": 6,
+      "size": 11,
+      "opacity": 0.55
+    },
+    "corner": {
+      "iconOffset": 37,
+      "iconScale": 0.85,
+      "textY": -16,
+      "textSize": 46,
+      "idInset": 9
+    }
+  },
+  "decks": {
+    "chance": {
+      "bg": "#B06F88",
+      "fg": "#ffffff",
+      "ink": "#8E4F6C",
+      "w1": "机",
+      "w2": "会",
+      "sym": "?",
+      "en": "CHANCE"
+    },
+    "fate": {
+      "bg": "#D9BA8E",
+      "fg": "#2C3E6B",
+      "ink": "#2C3E6B",
+      "w1": "命",
+      "w2": "运",
+      "sym": "!",
+      "en": "FATE"
+    }
+  },
+  "colorGroups": [
+    {
+      "id": 1,
+      "key": "red",
+      "name": "红",
+      "nameEn": "Red",
+      "hex": "#E03A3A"
+    },
+    {
+      "id": 2,
+      "key": "light-blue",
+      "name": "浅蓝",
+      "nameEn": "Light Blue",
+      "hex": "#2FA3DC"
+    },
+    {
+      "id": 3,
+      "key": "yellow-green",
+      "name": "黄绿",
+      "nameEn": "Yellow Green",
+      "hex": "#A8C43C"
+    },
+    {
+      "id": 4,
+      "key": "purple",
+      "name": "紫",
+      "nameEn": "Purple",
+      "hex": "#9B59B6"
+    },
+    {
+      "id": 5,
+      "key": "pink",
+      "name": "粉",
+      "nameEn": "Pink",
+      "hex": "#EE6FA8"
+    },
+    {
+      "id": 6,
+      "key": "dark-gray",
+      "name": "深灰",
+      "nameEn": "Dark Gray",
+      "hex": "#5D6D7E"
+    },
+    {
+      "id": 7,
+      "key": "dark-blue",
+      "name": "深蓝",
+      "nameEn": "Dark Blue",
+      "hex": "#4A68B0"
+    },
+    {
+      "id": 8,
+      "key": "light-green",
+      "name": "浅绿",
+      "nameEn": "Light Green",
+      "hex": "#3FBF6E"
+    },
+    {
+      "id": 9,
+      "key": "khaki",
+      "name": "浅灰(卡其)",
+      "nameEn": "Khaki",
+      "hex": "#BFC5CC"
+    },
+    {
+      "id": 10,
+      "key": "hot-pink",
+      "name": "粉红",
+      "nameEn": "Hot Pink",
+      "hex": "#A962B0"
+    },
+    {
+      "id": 11,
+      "key": "green",
+      "name": "绿",
+      "nameEn": "Green",
+      "hex": "#2E9E4F"
+    }
+  ],
+  "tiles": [
+    {
+      "id": 0,
+      "type": "corner",
+      "name": "赤道",
+      "nameEn": "EQUATOR",
+      "side": "corner-br",
+      "col": 16,
+      "row": 16
+    },
+    {
+      "id": 1,
+      "type": "property",
+      "name": "中国",
+      "nameEn": "CHINA",
+      "capital": "北京",
+      "price": 4000,
+      "colorId": 1,
+      "color": "red",
+      "side": "bottom",
+      "col": 15,
+      "row": 16
+    },
+    {
+      "id": 2,
+      "type": "property",
+      "name": "日本",
+      "nameEn": "JAPAN",
+      "capital": "东京",
+      "price": 1000,
+      "colorId": 1,
+      "color": "red",
+      "side": "bottom",
+      "col": 14,
+      "row": 16
+    },
+    {
+      "id": 3,
+      "type": "chance",
+      "name": "机会",
+      "nameEn": "CHANCE",
+      "side": "bottom",
+      "col": 13,
+      "row": 16
+    },
+    {
+      "id": 4,
+      "type": "property",
+      "name": "韩国",
+      "nameEn": "KOREA",
+      "capital": "首尔",
+      "price": 1000,
+      "colorId": 1,
+      "color": "red",
+      "side": "bottom",
+      "col": 12,
+      "row": 16
+    },
+    {
+      "id": 5,
+      "type": "property",
+      "name": "菲律宾",
+      "nameEn": "PHILIPPINES",
+      "capital": "马尼拉",
+      "price": 600,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 11,
+      "row": 16
+    },
+    {
+      "id": 6,
+      "type": "property",
+      "name": "马来西亚",
+      "nameEn": "MALAYSIA",
+      "capital": "吉隆坡",
+      "price": 2600,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 10,
+      "row": 16
+    },
+    {
+      "id": 7,
+      "type": "property",
+      "name": "越南",
+      "nameEn": "VIETNAM",
+      "capital": "河内",
+      "price": 2800,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 9,
+      "row": 16
+    },
+    {
+      "id": 8,
+      "type": "property",
+      "name": "泰国",
+      "nameEn": "THAILAND",
+      "capital": "曼谷",
+      "price": 1600,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 8,
+      "row": 16
+    },
+    {
+      "id": 9,
+      "type": "property",
+      "name": "印度",
+      "nameEn": "INDIA",
+      "capital": "新德里",
+      "price": 1400,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 7,
+      "row": 16
+    },
+    {
+      "id": 10,
+      "type": "ocean",
+      "name": "太平洋",
+      "nameEn": "PACIFIC",
+      "side": "bottom",
+      "col": 6,
+      "row": 16
+    },
+    {
+      "id": 11,
+      "type": "property",
+      "name": "斯里兰卡",
+      "nameEn": "SRI LANKA",
+      "capital": "科伦坡",
+      "price": 1400,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 5,
+      "row": 16
+    },
+    {
+      "id": 12,
+      "type": "property",
+      "name": "伊朗",
+      "nameEn": "IRAN",
+      "capital": "德黑兰",
+      "price": 2000,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 4,
+      "row": 16
+    },
+    {
+      "id": 13,
+      "type": "property",
+      "name": "伊拉克",
+      "nameEn": "IRAQ",
+      "capital": "巴格达",
+      "price": 1800,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 3,
+      "row": 16
+    },
+    {
+      "id": 14,
+      "type": "property",
+      "name": "沙特阿拉伯",
+      "nameEn": "SAUDI ARABIA",
+      "capital": "利雅得",
+      "price": 1800,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 2,
+      "row": 16
+    },
+    {
+      "id": 15,
+      "type": "property",
+      "name": "叙利亚",
+      "nameEn": "SYRIA",
+      "capital": "大马士革",
+      "price": 3500,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 1,
+      "row": 16
+    },
+    {
+      "id": 16,
+      "type": "corner",
+      "name": "地中海",
+      "nameEn": "MEDITERRANEAN",
+      "side": "corner-bl",
+      "col": 0,
+      "row": 16
+    },
+    {
+      "id": 17,
+      "type": "property",
+      "name": "土耳其",
+      "nameEn": "TURKEY",
+      "capital": "安卡拉",
+      "price": 3500,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "left",
+      "col": 0,
+      "row": 15
+    },
+    {
+      "id": 18,
+      "type": "destiny",
+      "name": "命运",
+      "nameEn": "DESTINY",
+      "side": "left",
+      "col": 0,
+      "row": 14
+    },
+    {
+      "id": 19,
+      "type": "property",
+      "name": "黎巴嫩",
+      "nameEn": "LEBANON",
+      "capital": "贝鲁特",
+      "price": 600,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 13
+    },
+    {
+      "id": 20,
+      "type": "property",
+      "name": "以色列",
+      "nameEn": "ISRAEL",
+      "capital": "耶路撒冷",
+      "price": 2000,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 12
+    },
+    {
+      "id": 21,
+      "type": "property",
+      "name": "俄罗斯",
+      "nameEn": "RUSSIA",
+      "capital": "莫斯科",
+      "price": 1000,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 11
+    },
+    {
+      "id": 22,
+      "type": "property",
+      "name": "波兰",
+      "nameEn": "POLAND",
+      "capital": "华沙",
+      "price": 1200,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 10
+    },
+    {
+      "id": 23,
+      "type": "property",
+      "name": "德国",
+      "nameEn": "GERMANY",
+      "capital": "柏林",
+      "price": 2400,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 9
+    },
+    {
+      "id": 24,
+      "type": "ocean",
+      "name": "印度洋",
+      "nameEn": "INDIAN OCEAN",
+      "side": "left",
+      "col": 0,
+      "row": 8
+    },
+    {
+      "id": 25,
+      "type": "property",
+      "name": "奥地利",
+      "nameEn": "AUSTRIA",
+      "capital": "维也纳",
+      "price": 3000,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 7
+    },
+    {
+      "id": 26,
+      "type": "property",
+      "name": "瑞士",
+      "nameEn": "SWITZERLAND",
+      "capital": "伯尔尼",
+      "price": 3200,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 6
+    },
+    {
+      "id": 27,
+      "type": "property",
+      "name": "法国",
+      "nameEn": "FRANCE",
+      "capital": "巴黎",
+      "price": 3000,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 5
+    },
+    {
+      "id": 28,
+      "type": "property",
+      "name": "比利时",
+      "nameEn": "BELGIUM",
+      "capital": "布鲁塞尔",
+      "price": 2200,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 4
+    },
+    {
+      "id": 29,
+      "type": "chance",
+      "name": "机会",
+      "nameEn": "CHANCE",
+      "side": "left",
+      "col": 0,
+      "row": 3
+    },
+    {
+      "id": 30,
+      "type": "property",
+      "name": "荷兰",
+      "nameEn": "NETHERLANDS",
+      "capital": "阿姆斯特丹",
+      "price": 2400,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "left",
+      "col": 0,
+      "row": 2
+    },
+    {
+      "id": 31,
+      "type": "property",
+      "name": "英国",
+      "nameEn": "UK",
+      "capital": "伦敦",
+      "price": 2200,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "left",
+      "col": 0,
+      "row": 1
+    },
+    {
+      "id": 32,
+      "type": "corner",
+      "name": "北极",
+      "nameEn": "ARCTIC",
+      "side": "corner-tl",
+      "col": 0,
+      "row": 0
+    },
+    {
+      "id": 33,
+      "type": "property",
+      "name": "芬兰",
+      "nameEn": "FINLAND",
+      "capital": "赫尔辛基",
+      "price": 2600,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "top",
+      "col": 1,
+      "row": 0
+    },
+    {
+      "id": 34,
+      "type": "property",
+      "name": "瑞典",
+      "nameEn": "SWEDEN",
+      "capital": "斯德哥尔摩",
+      "price": 2600,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "top",
+      "col": 2,
+      "row": 0
+    },
+    {
+      "id": 35,
+      "type": "property",
+      "name": "丹麦",
+      "nameEn": "DENMARK",
+      "capital": "哥本哈根",
+      "price": 2800,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "top",
+      "col": 3,
+      "row": 0
+    },
+    {
+      "id": 36,
+      "type": "property",
+      "name": "希腊",
+      "nameEn": "GREECE",
+      "capital": "雅典",
+      "price": 1600,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 4,
+      "row": 0
+    },
+    {
+      "id": 37,
+      "type": "property",
+      "name": "意大利",
+      "nameEn": "ITALY",
+      "capital": "罗马",
+      "price": 1400,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 5,
+      "row": 0
+    },
+    {
+      "id": 38,
+      "type": "destiny",
+      "name": "命运",
+      "nameEn": "DESTINY",
+      "side": "top",
+      "col": 6,
+      "row": 0
+    },
+    {
+      "id": 39,
+      "type": "property",
+      "name": "西班牙",
+      "nameEn": "SPAIN",
+      "capital": "马德里",
+      "price": 1400,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 7,
+      "row": 0
+    },
+    {
+      "id": 40,
+      "type": "property",
+      "name": "葡萄牙",
+      "nameEn": "PORTUGAL",
+      "capital": "里斯本",
+      "price": 2000,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 8,
+      "row": 0
+    },
+    {
+      "id": 41,
+      "type": "property",
+      "name": "埃及",
+      "nameEn": "EGYPT",
+      "capital": "开罗",
+      "price": 1800,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 9,
+      "row": 0
+    },
+    {
+      "id": 42,
+      "type": "property",
+      "name": "摩洛哥",
+      "nameEn": "MOROCCO",
+      "capital": "拉巴特",
+      "price": 1800,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 10,
+      "row": 0
+    },
+    {
+      "id": 43,
+      "type": "property",
+      "name": "赞比亚",
+      "nameEn": "ZAMBIA",
+      "capital": "卢萨卡",
+      "price": 600,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 11,
+      "row": 0
+    },
+    {
+      "id": 44,
+      "type": "chance",
+      "name": "机会",
+      "nameEn": "CHANCE",
+      "side": "top",
+      "col": 12,
+      "row": 0
+    },
+    {
+      "id": 45,
+      "type": "property",
+      "name": "南非共和国",
+      "nameEn": "SOUTH AFRICA",
+      "capital": "比勒陀利亚",
+      "price": 600,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 13,
+      "row": 0
+    },
+    {
+      "id": 46,
+      "type": "property",
+      "name": "加拿大",
+      "nameEn": "CANADA",
+      "capital": "渥太华",
+      "price": 3500,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "top",
+      "col": 14,
+      "row": 0
+    },
+    {
+      "id": 47,
+      "type": "property",
+      "name": "美国",
+      "nameEn": "USA",
+      "capital": "华盛顿",
+      "price": 3500,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "top",
+      "col": 15,
+      "row": 0
+    },
+    {
+      "id": 48,
+      "type": "corner",
+      "name": "夏威夷",
+      "nameEn": "HAWAII",
+      "side": "corner-tr",
+      "col": 16,
+      "row": 0
+    },
+    {
+      "id": 49,
+      "type": "property",
+      "name": "墨西哥",
+      "nameEn": "MEXICO",
+      "capital": "墨西哥城",
+      "price": 1000,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "right",
+      "col": 16,
+      "row": 1
+    },
+    {
+      "id": 50,
+      "type": "property",
+      "name": "洪都拉斯",
+      "nameEn": "HONDURAS",
+      "capital": "特古西加尔巴",
+      "price": 1200,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "right",
+      "col": 16,
+      "row": 2
+    },
+    {
+      "id": 51,
+      "type": "property",
+      "name": "尼加拉瓜",
+      "nameEn": "NICARAGUA",
+      "capital": "马那瓜",
+      "price": 3000,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 3
+    },
+    {
+      "id": 52,
+      "type": "property",
+      "name": "哥斯达黎加",
+      "nameEn": "COSTA RICA",
+      "capital": "圣何塞",
+      "price": 1000,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 4
+    },
+    {
+      "id": 53,
+      "type": "destiny",
+      "name": "命运",
+      "nameEn": "DESTINY",
+      "side": "right",
+      "col": 16,
+      "row": 5
+    },
+    {
+      "id": 54,
+      "type": "property",
+      "name": "巴拿马",
+      "nameEn": "PANAMA",
+      "capital": "巴拿马城",
+      "price": 3200,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 6
+    },
+    {
+      "id": 55,
+      "type": "property",
+      "name": "古巴",
+      "nameEn": "CUBA",
+      "capital": "哈瓦那",
+      "price": 3000,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 7
+    },
+    {
+      "id": 56,
+      "type": "property",
+      "name": "哥伦比亚",
+      "nameEn": "COLOMBIA",
+      "capital": "波哥大",
+      "price": 1800,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 8
+    },
+    {
+      "id": 57,
+      "type": "property",
+      "name": "玻利维亚",
+      "nameEn": "BOLIVIA",
+      "capital": "苏克雷·拉巴斯",
+      "price": 1200,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 9
+    },
+    {
+      "id": 58,
+      "type": "property",
+      "name": "巴西",
+      "nameEn": "BRAZIL",
+      "capital": "巴西利亚",
+      "price": 2600,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 10
+    },
+    {
+      "id": 59,
+      "type": "ocean",
+      "name": "大西洋",
+      "nameEn": "ATLANTIC",
+      "side": "right",
+      "col": 16,
+      "row": 11
+    },
+    {
+      "id": 60,
+      "type": "property",
+      "name": "阿根廷",
+      "nameEn": "ARGENTINA",
+      "capital": "布宜诺斯艾利斯",
+      "price": 1000,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 12
+    },
+    {
+      "id": 61,
+      "type": "property",
+      "name": "智利",
+      "nameEn": "CHILE",
+      "capital": "圣地亚哥",
+      "price": 3500,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 13
+    },
+    {
+      "id": 62,
+      "type": "property",
+      "name": "澳大利亚",
+      "nameEn": "AUSTRALIA",
+      "capital": "堪培拉",
+      "price": 3200,
+      "colorId": 1,
+      "color": "red",
+      "side": "right",
+      "col": 16,
+      "row": 14
+    },
+    {
+      "id": 63,
+      "type": "property",
+      "name": "新西兰",
+      "nameEn": "NEW ZEALAND",
+      "capital": "惠灵顿",
+      "price": 3500,
+      "colorId": 1,
+      "color": "red",
+      "side": "right",
+      "col": 16,
+      "row": 15
+    }
+  ]
+}
+/* MAP_FALLBACK:END */;
 
 // ===== 国旗 emoji =====
 const FLAGS = {
@@ -91,78 +1020,8 @@ const FLAGS = {
   "阿根廷":"🇦🇷","智利":"🇨🇱","澳大利亚":"🇦🇺","新西兰":"🇳🇿"
 };
 
-// ===== 64 格数据：id / col / row / side / type / 名 / 英文 / 首都 / 价格 / 分组 =====
-// id 与 content/map-data.json 完全一致（已脚本核对：仅中国为全称、玻利维亚首都两座城）
-const TILES = [
-  // 底行（右→左）row=16
-  [ 0,16,16,"corner-br","corner","赤道","EQUATOR"],
-  [ 1,15,16,"bottom",null,"中国","CHINA","北京",4000,"red"],
-  [ 2,14,16,"bottom",null,"日本","JAPAN","东京",1000,"red"],
-  [ 3,13,16,"bottom","chance","机会","CHANCE"],
-  [ 4,12,16,"bottom",null,"韩国","KOREA","首尔",1000,"red"],
-  [ 5,11,16,"bottom",null,"菲律宾","PHILIPPINES","马尼拉",600,"light-blue"],
-  [ 6,10,16,"bottom",null,"马来西亚","MALAYSIA","吉隆坡",2600,"light-blue"],
-  [ 7, 9,16,"bottom",null,"越南","VIETNAM","河内",2800,"light-blue"],
-  [ 8, 8,16,"bottom",null,"泰国","THAILAND","曼谷",1600,"light-blue"],
-  [ 9, 7,16,"bottom",null,"印度","INDIA","新德里",1400,"light-blue"],
-  [10, 6,16,"bottom","ocean","太平洋","PACIFIC"],
-  [11, 5,16,"bottom",null,"斯里兰卡","SRI LANKA","科伦坡",1400,"yellow-green"],
-  [12, 4,16,"bottom",null,"伊朗","IRAN","德黑兰",2000,"yellow-green"],
-  [13, 3,16,"bottom",null,"伊拉克","IRAQ","巴格达",1800,"yellow-green"],
-  [14, 2,16,"bottom",null,"沙特阿拉伯","SAUDI ARABIA","利雅得",1800,"yellow-green"],
-  [15, 1,16,"bottom",null,"叙利亚","SYRIA","大马士革",3500,"yellow-green"],
-  [16, 0,16,"corner-bl","corner","地中海","MEDITERRANEAN"],
-  // 左列（下→上）col=0
-  [17, 0,15,"left",null,"土耳其","TURKEY","安卡拉",3500,"yellow-green"],
-  [18, 0,14,"left","destiny","命运","DESTINY"],
-  [19, 0,13,"left",null,"黎巴嫩","LEBANON","贝鲁特",600,"purple"],
-  [20, 0,12,"left",null,"以色列","ISRAEL","耶路撒冷",2000,"purple"],
-  [21, 0,11,"left",null,"俄罗斯","RUSSIA","莫斯科",1000,"purple"],
-  [22, 0,10,"left",null,"波兰","POLAND","华沙",1200,"purple"],
-  [23, 0, 9,"left",null,"德国","GERMANY","柏林",2400,"purple"],
-  [24, 0, 8,"left","ocean","印度洋","INDIAN OCEAN"],
-  [25, 0, 7,"left",null,"奥地利","AUSTRIA","维也纳",3000,"pink"],
-  [26, 0, 6,"left",null,"瑞士","SWITZERLAND","伯尔尼",3200,"pink"],
-  [27, 0, 5,"left",null,"法国","FRANCE","巴黎",3000,"pink"],
-  [28, 0, 4,"left",null,"比利时","BELGIUM","布鲁塞尔",2200,"pink"],
-  [29, 0, 3,"left","chance","机会","CHANCE"],
-  [30, 0, 2,"left",null,"荷兰","NETHERLANDS","阿姆斯特丹",2400,"dark-gray"],
-  [31, 0, 1,"left",null,"英国","UK","伦敦",2200,"dark-gray"],
-  [32, 0, 0,"corner-tl","corner","北极","ARCTIC"],
-  // 顶行（左→右）row=0
-  [33, 1, 0,"top",null,"芬兰","FINLAND","赫尔辛基",2600,"dark-gray"],
-  [34, 2, 0,"top",null,"瑞典","SWEDEN","斯德哥尔摩",2600,"dark-gray"],
-  [35, 3, 0,"top",null,"丹麦","DENMARK","哥本哈根",2800,"dark-gray"],
-  [36, 4, 0,"top",null,"希腊","GREECE","雅典",1600,"dark-blue"],
-  [37, 5, 0,"top",null,"意大利","ITALY","罗马",1400,"dark-blue"],
-  [38, 6, 0,"top","destiny","命运","DESTINY"],
-  [39, 7, 0,"top",null,"西班牙","SPAIN","马德里",1400,"dark-blue"],
-  [40, 8, 0,"top",null,"葡萄牙","PORTUGAL","里斯本",2000,"dark-blue"],
-  [41, 9, 0,"top",null,"埃及","EGYPT","开罗",1800,"light-green"],
-  [42,10, 0,"top",null,"摩洛哥","MOROCCO","拉巴特",1800,"light-green"],
-  [43,11, 0,"top",null,"赞比亚","ZAMBIA","卢萨卡",600,"light-green"],
-  [44,12, 0,"top","chance","机会","CHANCE"],
-  [45,13, 0,"top",null,"南非共和国","SOUTH AFRICA","比勒陀利亚",600,"light-green"],
-  [46,14, 0,"top",null,"加拿大","CANADA","渥太华",3500,"khaki"],
-  [47,15, 0,"top",null,"美国","USA","华盛顿",3500,"khaki"],
-  [48,16, 0,"corner-tr","corner","夏威夷","HAWAII"],
-  // 右列（上→下）col=16
-  [49,16, 1,"right",null,"墨西哥","MEXICO","墨西哥城",1000,"khaki"],
-  [50,16, 2,"right",null,"洪都拉斯","HONDURAS","特古西加尔巴",1200,"khaki"],
-  [51,16, 3,"right",null,"尼加拉瓜","NICARAGUA","马那瓜",3000,"hot-pink"],
-  [52,16, 4,"right",null,"哥斯达黎加","COSTA RICA","圣何塞",1000,"hot-pink"],
-  [53,16, 5,"right","destiny","命运","DESTINY"],
-  [54,16, 6,"right",null,"巴拿马","PANAMA","巴拿马城",3200,"hot-pink"],
-  [55,16, 7,"right",null,"古巴","CUBA","哈瓦那",3000,"hot-pink"],
-  [56,16, 8,"right",null,"哥伦比亚","COLOMBIA","波哥大",1800,"green"],
-  [57,16, 9,"right",null,"玻利维亚","BOLIVIA","苏克雷·拉巴斯",1200,"green"],
-  [58,16,10,"right",null,"巴西","BRAZIL","巴西利亚",2600,"green"],
-  [59,16,11,"right","ocean","大西洋","ATLANTIC"],
-  [60,16,12,"right",null,"阿根廷","ARGENTINA","布宜诺斯艾利斯",1000,"green"],
-  [61,16,13,"right",null,"智利","CHILE","圣地亚哥",3500,"green"],
-  [62,16,14,"right",null,"澳大利亚","AUSTRALIA","堪培拉",3200,"red"],
-  [63,16,15,"right",null,"新西兰","NEW ZEALAND","惠灵顿",3500,"red"]
-];
+// 64 格数据不再写死在这里 —— 见 content/map-print-data.json（字段：
+// id / type(property|corner|chance|destiny|ocean) / name / nameEn / capital / price / colorId / color / side / col / row）
 
 // ===== 输出模式 =====
 // ?export=png → 棋盘铺满窗口，供高清截图导出
@@ -172,13 +1031,13 @@ if (EXPORT_PNG) {
   document.querySelector(".screen-hint").style.display = "none";
 }
 
-// ===== 布局参数（原版：跑道宽=角格边长，格子紧挨无间距；这里跑道加宽、格子更长）=====
-const L = 1800;             // 棋盘边长
-const B = 190;              // 跑道宽（角格边长、横向格高、纵向格宽）
-const W = (L - 2*B) / 15;   // 格宽（横向格宽、纵向格高）≈ 94.67
-const TW = W / 2;           // 半格宽
-const TH = B / 2;           // 半格高（也是角格半边长）
-const BAND = 38;            // 色带宽（靠圆心一侧）
+// ===== 布局参数（取自 JSON 的 board / layout；下面这些由 renderBoard() 赋值）=====
+let L, B, W, TW, TH, BAND;  // 棋盘边长 / 跑道宽 / 格宽 / 半格宽 / 半格高 / 色带宽
+let HEX = {};               // 颜色组 id → 色值（取自 JSON 的 colorGroups[].hex）
+let HEXBYKEY = {};          // 颜色组 key（如 "red"）→ 色值
+let DECKS = {};             // 牌堆配色（取自 JSON 的 decks）
+let LAY = {};               // 版式参数（取自 JSON 的 layout）
+let LP, LD, LO, LI, LC;     // layout 的五个子段：地产 / 机会命运 / 海洋 / 编号 / 角格
 
 const svg = document.getElementById("board");
 const NS = "http://www.w3.org/2000/svg";
@@ -217,19 +1076,36 @@ function bubble(x, y, str, size, opts = {}) {
 }
 // 格子编号：统一放格子右下角（局部坐标），半透明灰字带白晕
 function idTag(x, y, id) {
-  return txt(x, y, "#" + id, 11, {
+  return txt(x, y, "#" + id, LI.size ?? 11, {
     anchor: "end", weight: "bold",
-    fill: "#55606e", stroke: "#ffffff", sw: 2, opacity: 0.55
+    fill: "#55606e", stroke: "#ffffff", sw: 2, opacity: LI.opacity ?? 0.55
   });
 }
 
-// ===== 背景 =====
-svg.appendChild(el("rect", { x:0, y:0, width:L, height:L, fill:"#ffffff" }));
+// ===== 渲染：整块棋盘都按 renderBoard(DATA) 画一遍 =====
+function renderBoard(DATA) {
+  // —— 参数全部取自 JSON ——
+  const bd = DATA.board || {};
+  L = bd.size || 1800;
+  B = bd.trackWidth || 190;
+  W = (L - 2*B) / (bd.tilesPerSide || 15);
+  TW = W / 2; TH = B / 2; BAND = bd.band || 38;
+  HEX = {}; HEXBYKEY = {};
+  (DATA.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; });
+  DECKS = DATA.decks || {};
+  LAY = DATA.layout || {};
+  LP = LAY.property || {}; LD = LAY.deck || {}; LO = LAY.ocean || {};
+  LI = LAY.id || {};       LC = LAY.corner || {};
 
-// ===== 中心区（深蓝底 + 大富翁 + 两张卡堆）=====
-svg.appendChild(el("rect", { x:B, y:B, width:L-2*B, height:L-2*B, fill:"#5B7FC6" }));
-svg.appendChild(el("polygon", { points:`620,170 780,170 990,900 720,900`, fill:"#ffffff", opacity:0.06 }));
-svg.appendChild(el("polygon", { points:`1020,170 1180,170 1090,900 840,900`, fill:"#ffffff", opacity:0.05 }));
+  svg.innerHTML = "";   // 重绘前清空
+
+  // ===== 背景 =====
+  svg.appendChild(el("rect", { x:0, y:0, width:L, height:L, fill:"#ffffff" }));
+
+  // ===== 中心区（深蓝底 + 大富翁 + 两张卡堆）=====
+  svg.appendChild(el("rect", { x:B, y:B, width:L-2*B, height:L-2*B, fill:"#5B7FC6" }));
+  svg.appendChild(el("polygon", { points:`620,${B} 780,${B} 990,900 720,900`, fill:"#ffffff", opacity:0.06 }));
+  svg.appendChild(el("polygon", { points:`1020,${B} 1180,${B} 1090,900 840,900`, fill:"#ffffff", opacity:0.05 }));
 const silver = el("linearGradient", { id:"silver", x1:"0%", y1:"0%", x2:"0%", y2:"100%" });
 silver.appendChild(el("stop", { offset:"0%", "stop-color":"#f4f6fa" }));
 silver.appendChild(el("stop", { offset:"55%", "stop-color":"#c9d2e2" }));
@@ -241,7 +1117,7 @@ svg.appendChild(bubble(900, 900, "大富翁", 168, { fill:"url(#silver)", dark:"
 
 // —— 卡牌背面样式的两个卡堆（样式完全照 print.html 卡牌背面）——
 function cardBack(x, y, w, h, kind, rot) {
-  const m = DECK[kind];
+  const m = DECKS[kind];
   const g = el("g", { transform:`translate(${x},${y}) rotate(${rot})` });
   // 下面垫两张，做出「牌堆」的厚度感
   [[16, 14], [8, 7]].forEach(([ox, oy], i) => {
@@ -302,48 +1178,52 @@ function tileGroup(col, row, side) {
   return el("g", { transform:`translate(${cx},${cy}) rotate(${rot})` });
 }
 // 局部坐标：x∈[-TW,TW]，y∈[-TH,TH]，色带在 y=-TH 一端（即靠圆心一侧）
-function propertyContent(g, id, name, nameEn, capital, price, color) {
-  g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:BAND, fill:COLORS[color] }));
-  g.appendChild(idTag(TW-5, TH-6, id));
+function propertyContent(g, id, name, nameEn, capital, price, colorId) {
+  g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:BAND, fill:HEX[colorId] || "#cccccc" }));
+  g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
+  const ns = LP.nameSize || {};
   if (name.length >= 6) {  // 国名过长（≥6 字）自动拆两行
-    g.appendChild(txt(0, -40, name.slice(0, 4), 13, { weight:"bold", fill:"#111" }));
-    g.appendChild(txt(0, -24, name.slice(4), 13, { weight:"bold", fill:"#111" }));
-    g.appendChild(txt(0, -8, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+    const [y1, y2, y3] = LP.longNameY || [-40, -24, -8];
+    g.appendChild(txt(0, y1, name.slice(0, 4), 13, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, y2, name.slice(4), 13, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, y3, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
   } else {
-    const fs = name.length >= 5 ? 13 : (name.length === 4 ? 16 : 19);
-    g.appendChild(txt(0, -36, name, fs, { weight:"bold", fill:"#111" }));
-    g.appendChild(txt(0, -18, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+    const fs = name.length >= 5 ? (ns.ge5 ?? 13) : (name.length === 4 ? (ns.eq4 ?? 16) : (ns.le3 ?? 19));
+    g.appendChild(txt(0, LP.nameY ?? -36, name, fs, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, LP.nameEnY ?? -18, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
   }
-  g.appendChild(txt(0, 26, FLAGS[name] || "🏳️", 30, {}));
-  g.appendChild(txt(0, 58, "$" + price, 18, { weight:"bold", fill:"#1a55a5" }));
-  g.appendChild(txt(0, 80, capital, 12, { fill:"#222" }));
+  g.appendChild(txt(0, LP.flagY ?? 26, FLAGS[name] || "🏳️", LP.flagSize ?? 30, {}));
+  g.appendChild(txt(0, LP.priceY ?? 58, "$" + price, LP.priceSize ?? 18, { weight:"bold", fill:"#1a55a5" }));
+  g.appendChild(txt(0, LP.capitalY ?? 80, capital, LP.capitalSize ?? 12, { fill:"#222" }));
 }
 // 机会 / 命运格：符号与 print.html 卡牌背面一致（？ / ！）
 function deckContent(g, id, name, nameEn, kind) {
-  const m = DECK[kind];
-  g.appendChild(idTag(TW-5, TH-6, id));
-  g.appendChild(txt(0, -50, name, 24, { weight:"bold", fill:"#111" }));
-  g.appendChild(txt(0, -32, nameEn, 11, { weight:"bold", fill:m.ink, ls:2 }));
-  g.appendChild(txt(0, 20, m.sym, 66, { weight:"bold", fill:m.ink, opacity:0.7 }));
-  g.appendChild(txt(0, 62, "抽取", 11, { fill:"#222" }));
-  g.appendChild(txt(0, 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill:"#222" }));
+  const m = DECKS[kind];
+  g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
+  g.appendChild(txt(0, LD.nameY ?? -50, name, 24, { weight:"bold", fill:"#111" }));
+  g.appendChild(txt(0, LD.enY ?? -32, nameEn, 11, { weight:"bold", fill:m.ink, ls:2 }));
+  g.appendChild(txt(0, LD.symY ?? 20, m.sym, LD.symSize ?? 66, { weight:"bold", fill:m.ink, opacity:0.7 }));
+  g.appendChild(txt(0, LD.line1Y ?? 62, "抽取", 11, { fill:"#222" }));
+  g.appendChild(txt(0, LD.line2Y ?? 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill:"#222" }));
 }
 function oceanContent(g, id, name) {
-  g.appendChild(idTag(TW-5, TH-6, id));
+  g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
   const blues = ["#6a8ad8", "#4a72c8", "#2e56b0"];
   const chars = name.split("");
-  const mid = BAND/2 + 6;  // 内容区（色带以下）垂直居中偏下
+  const mid = LO.offset ?? (BAND/2 + 6);   // 内容区（色带以下）垂直居中偏下
+  const gap = LO.gap ?? 46, r = LO.radius ?? 20;
   chars.forEach((c, i) => {
-    const y = mid + (i - (chars.length-1)/2) * 46;
-    g.appendChild(el("circle", { cx:0, cy:y, r:20, fill:blues[i % 3] }));
+    const y = mid + (i - (chars.length-1)/2) * gap;
+    g.appendChild(el("circle", { cx:0, cy:y, r:r, fill:blues[i % 3] }));
     g.appendChild(txt(0, y+1, c, 22, { weight:"bold", fill:"#fff" }));
   });
 }
 // 角格图案（画在朝外那个角；朝向与文字一致 —— 图案「头顶」也朝圆心）
 function cornerIcon(side, rot) {
-  // 朝外的角：地中海(左下) -37,+37｜北极(左上) -37,-37｜夏威夷(右上) +37,-37
-  const pos = side === "corner-tr" ? [37, -37] : (side === "corner-tl" ? [-37, -37] : [-37, 37]);
-  const g = el("g", { transform:`translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(0.85)` });
+  // 朝外的角：地中海(左下) -o,+o｜北极(左上) -o,-o｜夏威夷(右上) +o,-o
+  const o = LC.iconOffset ?? 37;
+  const pos = side === "corner-tr" ? [o, -o] : (side === "corner-tl" ? [-o, -o] : [-o, o]);
+  const g = el("g", { transform:`translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(${LC.iconScale ?? 0.85})` });
   if (side === "corner-bl") {           // 地中海：帆船
     g.appendChild(el("path", { d:"M-15,18 Q2,28 20,18 L15,10 L-9,10 Z", fill:"#2a4a8a" }));
     g.appendChild(el("polygon", { points:"1,-26 1,6 -14,6", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
@@ -364,8 +1244,10 @@ function cornerIcon(side, rot) {
   return g;
 }
 
-TILES.forEach(t => {
-  const [id, col, row, side, type, name, nameEn, sub, price, color] = t;
+(DATA.tiles || []).forEach(t => {
+  const id = t.id, col = t.col, row = t.row, side = t.side, type = t.type;
+  const name = t.name, nameEn = t.nameEn;
+  const capital = t.capital, price = t.price, colorId = t.colorId;
   const g = tileGroup(col, row, side);
 
   if (type === "corner") {
@@ -387,28 +1269,45 @@ TILES.forEach(t => {
       // 地中海(左下) 45°｜北极(左上) 135°｜夏威夷(右上) -135°
       const rot = side === "corner-bl" ? 45 : (side === "corner-tl" ? 135 : -135);
       const gg = el("g", { transform:`rotate(${rot})` });
-      gg.appendChild(bubble(0, -16, name, 46, {}));  // 文字往圆心侧让一点，给朝外的图案留空间
+      gg.appendChild(bubble(0, LC.textY ?? -16, name, LC.textSize ?? 46, {}));  // 文字往圆心侧让一点，给朝外的图案留空间
       g.appendChild(gg);
       g.appendChild(cornerIcon(side, rot));
-      g.appendChild(idTag(TH-9, TH-7, id));
+      const ci = LC.idInset ?? 9;
+      g.appendChild(idTag(TH-ci, TH-ci-2, id));
     }
   } else {
     g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:B, fill:"#ffffff", stroke:"#1a1a1a", "stroke-width":2 }));
     if (type === "chance") deckContent(g, id, name, nameEn, "chance");
     else if (type === "destiny") deckContent(g, id, name, nameEn, "fate");
     else if (type === "ocean") oceanContent(g, id, name);
-    else propertyContent(g, id, name, nameEn, sub, price, color);
+    else propertyContent(g, id, name, nameEn, capital, price, colorId);
   }
   svg.appendChild(g);
 });
 
-// 外边框
-svg.appendChild(el("rect", {
-  x:1, y:1, width:L-2, height:L-2, rx:2,
-  fill:"none", stroke:"#222", "stroke-width":4
-}));
+  // 外边框
+  svg.appendChild(el("rect", {
+    x:1, y:1, width:L-2, height:L-2, rx:2,
+    fill:"none", stroke:"#222", "stroke-width":4
+  }));
 
-console.log("棋盘渲染完成，共 " + TILES.length + " 格");
+  console.log("[map-print] 棋盘渲染完成，共 " + (DATA.tiles || []).length + " 格");
+}
+
+// ===== 取数：优先 content/map-print-data.json，拿不到就回退内置兜底 =====
+function boot() {
+  fetch("./content/map-print-data.json")
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(d => {
+      console.log("[map-print] 数据来源: content/map-print-data.json");
+      renderBoard(d); fitBoard();
+    })
+    .catch(err => {
+      console.warn("[map-print] fetch 失败，使用内置兜底数据:", err.message);
+      renderBoard(FALLBACK_DATA); fitBoard();
+    });
+}
+boot();
 
 // 屏幕自适应：正方形棋盘居中；export=png 时铺满 100%
 function fitBoard() {

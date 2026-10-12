@@ -29,6 +29,9 @@ PRINT_PATH = os.path.join(ROOT, 'print.html')
 PROPS_PATH = os.path.join(CONTENT_DIR, 'props.md')
 ORIGINAL_DIR = os.path.join(CONTENT_DIR, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
+# 打印版棋盘（80×80cm 软垫）：真源 JSON → map-print.html 的内置兜底块
+MAP_DATA_PATH = os.path.join(CONTENT_DIR, 'map-print-data.json')
+MAP_PRINT_PATH = os.path.join(ROOT, 'map-print.html')
 # 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
 ORIGINAL_DOCS = [
     ('cards.md', '原版命运牌 & 机会牌（20 + 20 张）', True),
@@ -495,6 +498,34 @@ def write_print_fallback(data):
         print('  print.html 内置兜底（%s，%d 张）' % (vid, len(cards)))
 
 
+def write_map_print_fallback():
+    """content/map-print-data.json → map-print.html 的内置兜底块（本地 file:// 打开时用）"""
+    if not os.path.exists(MAP_DATA_PATH):
+        print('  跳过：未找到 map-print-data.json')
+        return
+    with open(MAP_DATA_PATH, encoding='utf-8') as f:
+        data = json.load(f)
+    errs = []
+    if len(data.get('tiles', [])) != data.get('board', {}).get('tileCount', 64):
+        errs.append('tiles 数量与 board.tileCount 不符')
+    ids = {g['id'] for g in data.get('colorGroups', [])}
+    for t in data.get('tiles', []):
+        if 'colorId' in t and t['colorId'] not in ids:
+            errs.append('格子 #%s 的 colorId=%s 在 colorGroups 里找不到' % (t['id'], t['colorId']))
+    if errs:
+        print('  !! map-print-data.json 校验未通过，未写入兜底：')
+        for e in errs:
+            print('     - ' + e)
+        return
+    js = json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c')
+    block = ('/* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改\n'
+             '%s\n'
+             '/* MAP_FALLBACK:END */' % js)
+    if swap(MAP_PRINT_PATH, r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/', block, '棋盘兜底数据'):
+        print('  map-print.html 内置兜底（%d 格 / %d 个颜色组）'
+              % (len(data['tiles']), len(data['colorGroups'])))
+
+
 def main():
     print('读取 %s' % CSV_PATH)
     rows = fix_plus(load_rows())
@@ -517,6 +548,7 @@ def main():
     write_original(original_html)
     write_print_fallback(data)
     write_props(parse_props())
+    write_map_print_fallback()
     print('完成。')
 
 

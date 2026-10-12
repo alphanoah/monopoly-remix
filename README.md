@@ -14,7 +14,7 @@
 所以这一版的核心目标就是**把节奏拧快**：十六面骰拉大每一步的跨度、起始资金一次给足到 19580、
 过路费和房子等级重算，让后期的高级房子更早登场；卡牌顺势改成损人利己 + 押注博弈，熟人局才玩得出味道。
 
-- **首页 `index.html`**：改版规则 + 卡牌全文，可切换版本浏览（静态页面，双击就能看）
+- **首页 `index.html`**：三版规则卡片切换（原版 / v1 / v2）+ 卡牌全文，可切换版本浏览（静态页面，双击就能看）
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印
 - **在线地址**：https://alphanoah.github.io/monopoly-remix/
@@ -27,7 +27,7 @@
 
 ## 改完内容怎么同步
 
-改卡牌改 `cards.csv`，改规则改 `docs/full-rules.md`，改原版资料改 `original/*.md`，然后**跑一次脚本**：
+改卡牌改 `cards.csv`，改规则改对应的规则源文件（见下），改原版资料改 `original/*.md`，然后**跑一次脚本**：
 
 ```bash
 python3 tools/update.py
@@ -35,7 +35,7 @@ python3 tools/update.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与规则 → 重写 `original.html` → 回写打印页内置兜底。
+脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与三版规则切换区 → 重写 `original.html` → 回写打印页内置兜底。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出第几行错在哪。
@@ -71,8 +71,17 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 - 单元格里可以正常写逗号和引号，Excel 保存时会自动加转义。
 - 改完保存 → 跑 `python3 tools/update.py` → push。
 
-规则改 `docs/full-rules.md` 同理，首页规则区是从它生成的，**不要在首页直接改规则**。
+规则文件改哪个，首页就更新哪个，**不要在首页直接改规则**：
+
+| 版本 | 源文件 | 说明 |
+|---|---|---|
+| 原版 | `original/manual.md` | 实体《大富翁世界之旅（银牌）》说明书转录 |
+| v1 | `docs/rules.md` | 第一次改版（19580 起始资金那一版） |
+| v2 | `docs/new-rule.md` | 最新改版，首页默认打开的就是它 |
+
 `original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
+`docs/full-rules.md` 是 v2 之前的「原版 + 新版」合并对照稿，**已归档不再参与页面生成**；
+`docs/props.md` 是道具清单，目前也没有接进页面，要展示时再说。
 
 ---
 
@@ -94,7 +103,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 ```bash
 # 1. 改内容（任选）
 #    卡牌   → cards.csv
-#    规则   → docs/full-rules.md
+#    规则   → docs/new-rule.md（v2）/ docs/rules.md（v1）/ original/manual.md（原版）
 #    原版   → original/*.md
 
 # 2. 本地重新生成（macOS 也可以直接双击 update.command）
@@ -119,7 +128,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 |---|---|
 | Pages | Settings → Pages → Deploy from a branch → `main` / `/ (root)` |
 | Actions 权限 | Settings → Actions → General → Workflow permissions → **Read and write** |
-| Actions 自动触发 | 改了 `cards.csv` / `docs/full-rules.md` / `original/**` / `tools/update.py` 时 |
+| Actions 自动触发 | 改了 `cards.csv` / `docs/rules.md` / `docs/new-rule.md` / `original/**` / `tools/update.py` 时 |
 | 手动触发 | Actions → 重新生成页面 → Run workflow |
 
 > Actions 的写权限是**必须的**：workflow 要把生成的文件提交回仓库，只读权限会失败。
@@ -139,7 +148,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 
 ```
 richer/
-├── index.html              首页：规则 + 卡牌浏览（脚本生成，静态）
+├── index.html              首页：规则三版切换（原版/v1/v2）+ 卡牌浏览（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具（脚本回写兜底）
 ├── map-svg.html            电子地图：64 格 SVG 棋盘，一键切换「加厚环/原版薄环」，可导出 PNG，图例可点击筛选（手写页，脚本不动）
@@ -151,8 +160,10 @@ richer/
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
 ├── docs/
-│   ├── full-rules.md       完整规则真源（首页规则区由它生成，含新旧版本标注）
-│   ├── rules.md            初版规则留档（已被 full-rules.md 取代，不再参与生成）
+│   ├── new-rule.md         规则 v2 真源（最新改版，首页默认显示）
+│   ├── rules.md            规则 v1 真源（初版改版；文末「卡牌」段在首页默认折叠）
+│   ├── props.md            道具清单（v2 的道具商店用，暂未接进页面）
+│   ├── full-rules.md       已归档：v2 之前的「原版 + 新版」合并对照稿，不再参与生成
 │   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
 │   └── map-data.json       电子地图用的 64 格数据（map-svg.html 内置同款兜底）
 │   └── card-diff.md        新版 vs 原版差异对照
@@ -165,7 +176,7 @@ richer/
 ├── tools/
 │   ├── update.py           一键更新：CSV → JSON + 首页 + 打印页
 │   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
-└── .github/workflows/      cards.csv / docs/full-rules.md / original/ 变更时自动重生成
+└── .github/workflows/      cards.csv / docs 规则 / original/ 变更时自动重生成
 ```
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。

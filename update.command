@@ -1,5 +1,5 @@
 #!/bin/bash
-# macOS 双击运行：改完 cards.csv 或 docs/full-rules.md 后跑一次，首页和打印页就都更新了
+# macOS 双击运行：改完 cards.csv 或 docs/ 里的规则（rules.md / new-rule.md）后跑一次，首页和打印页就都更新了
 cd "$(dirname "$0")" || exit 1
 
 PY="$(command -v python3)"

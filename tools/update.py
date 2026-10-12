@@ -6,8 +6,9 @@
 # 做四件事：
 #   1. 校验 cards.csv（结构、必填字段、每版本张数）
 #   2. 生成 cards.json                      —— 打印页线上 fetch 用
-#   3. 重写 index.html 的卡牌数据、规则区、原版资料区 —— 首页内容（静态，离线可看）
+#   3. 重写 index.html 的卡牌数据、规则三版切换区 —— 首页内容（静态，离线可看）
 #   4. 回写 print.html 的内置兜底数据         —— 本地 file:// 打开时用
+#   5. 重写 original.html 的原版资料区        —— 原版资料页
 #
 # 校验不通过就不写任何文件。GitHub Actions 跑的是同一个脚本。
 import csv
@@ -22,7 +23,6 @@ CSV_PATH = os.path.join(ROOT, 'cards.csv')
 JSON_PATH = os.path.join(ROOT, 'cards.json')
 INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
-RULES_PATH = os.path.join(ROOT, 'docs', 'full-rules.md')
 ORIGINAL_DIR = os.path.join(ROOT, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 # 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
@@ -32,6 +32,21 @@ ORIGINAL_DOCS = [
     ('map-data-guide.md', '地图数据使用指南（速览 · 投资建议 · FAQ）', False),
     ('map-tiles.md', '原版地图格子数据（64 格 · 11 个颜色组）', False),
 ]
+
+# 首页「游戏规则」区：三版并列，点卡片切换
+#   (key, 卡片主标题, 卡片副标题, md 路径, 页面里的源文件链接, 链接前缀, 要折叠的小节)
+#   折叠小节 = (标题层级, 标题关键字, 是否折到文末, 折叠后显示的标题 / None = 用原标题)
+RULE_DOCS = [
+    ('original', '原版', '实体说明书',
+     os.path.join(ORIGINAL_DIR, 'manual.md'), 'original/manual.md', 'original/', []),
+    ('v1', 'v1', '初版改版规则',
+     os.path.join(ROOT, 'docs', 'rules.md'), 'docs/rules.md', 'docs/',
+     [(3, '卡牌', True, '卡牌（cards.csv 与历史存档）'),
+      (4, '备选', False, None)]),
+    ('v2', 'v2', '最新改版规则',
+     os.path.join(ROOT, 'docs', 'new-rule.md'), 'docs/new-rule.md', 'docs/', []),
+]
+DEFAULT_RULE = 'v2'
 
 DEFAULT_VERSION = 'v7'
 VERSION_LABELS = {
@@ -122,7 +137,7 @@ def build(rows):
     }
 
 
-# ---------- 简易 markdown → HTML（够 full-rules.md 用：标题/列表/引用/表格/链接/粗体/行内码）----------
+# ---------- 简易 markdown → HTML（够三版规则文档用：标题/列表/引用/表格/链接/粗体/行内码）----------
 def inline(t, prefix='docs/'):
     t = html.escape(t)
     t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
@@ -277,14 +292,14 @@ def strip_tags(s):
     return html.unescape(re.sub(r'<[^>]+>', '', s)).strip()
 
 
-def fold_from(rules_html, keyword, to_end=False):
-    """把标题里带 keyword 的小节折进 <details>，默认收起。
+def fold(rules_html, level, keyword, to_end=False, title=None):
+    """把标题含 keyword 的某一级小节折进 <details>，默认收起（原生折叠，不依赖 JS）。
 
     to_end=False 时只折到下一个同级/上级标题为止（用于「备选：北极监狱」这类可选小节）。
     """
     out = rules_html
     while True:
-        m = re.search(r'<h4>(.*?%s.*?)</h4>' % keyword, out)
+        m = re.search(r'<h%d>(.*?%s.*?)</h%d>' % (level, keyword, level), out)
         if not m:
             return out
         end = len(out)
@@ -292,18 +307,51 @@ def fold_from(rules_html, keyword, to_end=False):
             nxt = re.search(r'<h[34][ >]', out[m.end():])
             if nxt:
                 end = m.end() + nxt.start()
+        summary = title or strip_tags(m.group(1))
         out = ('%s<details class="fold"><summary>%s</summary>\n%s\n</details>\n%s'
-               % (out[:m.start()], strip_tags(m.group(1)), out[m.end():end], out[end:]))
+               % (out[:m.start()], html.escape(summary), out[m.end():end], out[end:]))
 
 
-def fold_archive(rules_html):
-    """把规则末尾那段「初版卡牌」存档整段折进 <details>（原生折叠，不依赖 JS）。"""
-    return fold_from(rules_html, '初版卡牌', to_end=True)
+def build_rules():
+    """生成首页规则区：原版 / v1 / v2 三版并列，点上方的卡片切换（默认 v2）。"""
+    docs = []
+    for key, name, desc, path, rel, prefix, folds in RULE_DOCS:
+        if not os.path.exists(path):
+            print('  跳过：未找到 %s' % rel)
+            continue
+        with open(path, encoding='utf-8') as f:
+            text = f.read()
+        body = md_to_html(text, prefix=prefix)
+        for level, keyword, to_end, title in folds:
+            body = fold(body, level, keyword, to_end, title)
+        docs.append({'key': key, 'name': name, 'desc': desc, 'rel': rel,
+                     'title': md_title(text) or name, 'body': body})
+    if not docs:
+        return '<p class="empty">规则文件都没找到，跑一次 <code>python3 tools/update.py</code>。</p>'
+    default = DEFAULT_RULE if any(d['key'] == DEFAULT_RULE for d in docs) else docs[-1]['key']
 
+    tabs, panes = [], []
+    for d in docs:
+        on = d['key'] == default
+        tabs.append(
+            '<button type="button" class="rtab%s" role="tab" aria-selected="%s" id="rtab-%s" '
+            'aria-controls="rview-%s" data-rule="%s"><span class="rttxt">'
+            '<span class="rt-n">%s</span><span class="rt-d">%s</span></span>%s</button>'
+            % (' on' if on else '', 'true' if on else 'false', d['key'], d['key'], d['key'],
+               d['name'], d['desc'], '<span class="rt-b">默认</span>' if on else ''))
+        panes.append(
+            '<div class="rview%s" role="tabpanel" id="rview-%s" aria-labelledby="rtab-%s" data-rule="%s">\n'
+            '<h3 class="rttl">%s</h3>\n<div class="md">\n%s\n</div>\n'
+            '<p class="rsrc">源文件 <a href="%s">%s</a></p>\n</div>'
+            % (' on' if on else '', d['key'], d['key'], d['key'], html.escape(d['title']),
+               d['body'], d['rel'], d['rel']))
 
-def fold_sections(rules_html, keyword='备选'):
-    """把规则里标题带「备选」的小节（可选玩法）折进 <details>，默认收起。"""
-    return fold_from(rules_html, keyword)
+    note = ('<p class="rnote">规则改过两轮，这里把三版并列放好，点上面的卡片切换。'
+            '<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，'
+            '<strong>v1</strong> = 第一次改版，<strong>v2</strong> = 现在在玩的最新一版。</p>')
+    print('  规则三版：%s（默认 %s）' % (' / '.join(d['name'] for d in docs), default))
+    return (note + '\n<div class="rtabs" role="tablist" aria-label="规则版本">\n' + '\n'.join(tabs) +
+            '\n</div>\n<div class="rviews">\n' + '\n'.join(panes) + '\n</div>')
 
 
 # ---------- 写入 ----------
@@ -349,7 +397,7 @@ def write_index(data, rules_html):
                '规则区')
     if ok1 and ok2:
         total = sum(len(data['versions'][v]['cards']) for v in data['order'])
-        print('  index.html（%d 个版本共 %d 张 + 规则区 %d 字符）'
+        print('  index.html（%d 个卡牌版本共 %d 张 + 规则三版 %d 字符）'
               % (len(data['order']), total, len(rules_html)))
 
 
@@ -377,8 +425,8 @@ def main():
         sys.exit(1)
     data = build(rows)
 
-    with open(RULES_PATH, encoding='utf-8') as f:
-        rules_html = fold_sections(fold_archive(md_to_html(f.read())))
+    print('生成规则区：')
+    rules_html = build_rules()
     original_html = build_original()
 
     print('写入：')

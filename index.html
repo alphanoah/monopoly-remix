@@ -23,6 +23,9 @@
     padding: 9px 18px; border-radius: 8px; font-size: 14px;
   }
   .btn:hover { background: #96597A; }
+  .btn + .btn { margin-left: 10px; }
+  .btn.alt { background: #5F7488; }
+  .btn.alt:hover { background: #4B5E70; }
 
   .blk { padding: 32px 0; border-bottom: 1px solid #e8e5df; }
   h2 { font-size: 18px; font-weight: 500; margin: 0; }
@@ -583,8 +586,9 @@
 
 <section class="blk" id="map">
   <h2>电子地图</h2>
-  <p class="meta">电子版「世界之旅」棋盘：64 格全图，鼠标拖动平移、滚轮缩放、双击放大，手机上也能单指拖、双指捏合。</p>
+  <p class="meta">电子版「世界之旅」棋盘：64 格全图，鼠标拖动平移、滚轮缩放、双击放大，手机上也能单指拖、双指捏合。<br>要实体棋盘就走打印版：A3 横向，正方形棋盘居中，直接 ⌘/Ctrl + P。</p>
   <a class="btn" href="map-svg.html">去看电子地图 →</a>
+  <a class="btn alt" href="map-print.html">去打印棋盘 →</a>
 </section>
 
 <section class="blk" id="original">

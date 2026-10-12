@@ -93,6 +93,20 @@
   .out { font-size: var(--effs); font-weight: 600; line-height: 1.38; }
   .out.lose { font-weight: 500; opacity: .9; }
 
+  /* 分层：事件与结果之间的细分隔线（只在「新版」下出现） */
+  .cdiv {
+    display: block; width: 42%; height: .5mm; margin: .8mm auto 0;
+    background: currentColor; opacity: .26; border-radius: .3mm; flex: none;
+  }
+  /* 金额胶囊：只给左右内边距，避免撑高行盒；字号随父级缩放 */
+  .amt {
+    display: inline-block; padding: 0 .38em; border-radius: .45em;
+    font-size: .94em; font-weight: 600; line-height: inherit; white-space: nowrap;
+  }
+  .card.chance .amt { background: rgba(255,255,255,.94); color: #9B4F6A; }
+  .card.fate .amt { background: #2C3E6B; color: #F3E6C8; }
+  body.st-new .title { margin-top: -1.4mm; margin-bottom: 1.1mm; }
+
   .blank { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 4px, #f2f2f2 4px, #f2f2f2 8px); border: 1px dashed #ddd; border-radius: 2.6mm; width: var(--cw); height: var(--ch); display: flex; align-items: center; justify-content: center; color: #c4c4c4; font-size: var(--evfs); }
 
   /* ===== 卡牌背面：子元素全部绝对定位，故不参与 flex 排版 ===== */
@@ -155,12 +169,12 @@
 </style>
 <style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
 </head>
-<body>
+<body class="st-new">
 
 <div class="chrome">
 <a class="home" href="index.html">← 返回首页</a>
 <h1 id="pageTitle">大富翁卡牌打印版 · 横版</h1>
-<p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。</p>
+<p id="tip">先选纸张，再选版式和分页方式，最后点「打印」。「新版 · 分层」会在事件和结果之间加分隔线，「金额胶囊」把 +3000 这类金额标成反色块，两者可单独开关。</p>
   <div class="row">
     <select id="verSel" class="sel" title="卡牌数据版本"></select>
     <span class="sep"></span>
@@ -178,6 +192,12 @@
     <span class="sep"></span>
     <button class="btn on" data-face="off">不显示表情</button>
     <button class="btn" data-face="on">显示笑脸 / 哭脸</button>
+    <span class="sep"></span>
+    <button class="btn on" data-style="new">新版 · 分层</button>
+    <button class="btn" data-style="old">原版 · 平铺</button>
+    <span class="sep"></span>
+    <button class="btn on" data-amt="on">有金额胶囊</button>
+    <button class="btn" data-amt="off">无金额胶囊</button>
     <button class="btn print" id="doPrint">打印</button>
   </div>
   <div class="specs" id="specs"></div>
@@ -507,6 +527,8 @@ let currentLayout = 'standard';
 let pageMode = 'flow';
 let side = 'front';
 let showFace = false;   // 卡面是否画笑脸/哭脸，默认不画
+let newStyle = true;    // 新版分层：事件与结果之间加分隔线，标题上移
+let showAmt = true;     // 金额胶囊：把三位以上的数字包成反色圆角块
 
 function activeLayout() {
   return currentPaper === 'photo6' ? LAYOUTS.photo4 : LAYOUTS[currentLayout];
@@ -530,18 +552,26 @@ function faceSpan(kind, cls) {
   return showFace ? '<span class="' + cls + '">' + faceSVG(kind) + '</span>' : '';
 }
 
+// 金额高亮：只处理三位及以上，「+1 级」「3 回合」「20%」「14/15/16」都不动
+function amtHtml(s) {
+  return String(s).replace(/([+\-\u2212]?\d{3,})/g, '<span class="amt">$1</span>');
+}
+const A = s => (showAmt ? amtHtml(s) : s);
+
 function cardNode(card, idxInDeck, total) {
   let inner;
   if (card.cond) {
-    inner = '<div class="ev">' + card.event + '</div>' +
+    inner = '<div class="ev">' + A(card.event) + '</div>' +
+      (newStyle ? '<i class="cdiv"></i>' : '') +
       '<div class="sub">' +
       '<div class="cond">摇骰 · ' + card.cond + '</div>' +
-'<div class="line">' + faceSpan('smile', 'out win') + '<span class="out win">' + card.win + '</span></div>' +
-'<div class="line">' + faceSpan('frown', 'out lose') + '<span class="out lose">' + card.lose + '</span></div>' +
+'<div class="line">' + faceSpan('smile', 'out win') + '<span class="out win">' + A(card.win) + '</span></div>' +
+'<div class="line">' + faceSpan('frown', 'out lose') + '<span class="out lose">' + A(card.lose) + '</span></div>' +
       '</div>';
   } else {
-    inner = '<div class="ev">' + card.event + '</div>' +
-      (card.effect ? '<div class="line">' + faceSpan(card.face || 'smile', 'ef') + '<span class="ef">' + card.effect + '</span></div>' : '');
+    inner = '<div class="ev">' + A(card.event) + '</div>' +
+      (newStyle ? '<i class="cdiv"></i>' : '') +
+      (card.effect ? '<div class="line">' + faceSpan(card.face || 'smile', 'ef') + '<span class="ef">' + A(card.effect) + '</span></div>' : '');
   }
   const el = document.createElement('div');
   el.className = 'card ' + card.deck;
@@ -706,6 +736,13 @@ function bindGroup(sel, apply) {
     apply(b);
   }));
 }
+bindGroup('.btn[data-style]', b => {
+  newStyle = b.dataset.style === 'new';
+  document.body.classList.toggle('st-new', newStyle);
+  document.body.classList.toggle('st-old', !newStyle);
+  render();
+});
+bindGroup('.btn[data-amt]', b => { showAmt = b.dataset.amt === 'on'; render(); });
 bindGroup('.btn[data-paper]', b => { currentPaper = b.dataset.paper; syncPaperUI(); render(); });
 bindGroup('.btn[data-layout]', b => { currentLayout = b.dataset.layout; syncPaperUI(); render(); });
 bindGroup('.btn[data-mode]', b => { pageMode = b.dataset.mode; render(); });

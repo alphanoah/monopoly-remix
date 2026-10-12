@@ -132,6 +132,12 @@
   .c-cond { margin-top: 7px; font-size: 12.5px; opacity: .85; }
   .c-win, .c-lose { font-size: 12.5px; }
   .face { width: 15px; height: 15px; flex: none; margin-top: 2px; }
+
+  /* 分层：事件与结果之间的细分隔线；金额胶囊：把三位以上的数字标成反色块 */
+  .cdiv { display: block; width: 44%; height: 1px; margin: 10px auto 0; background: currentColor; opacity: .26; }
+  .amt { display: inline-block; padding: 0 .38em; border-radius: .45em; font-size: .94em; font-weight: 600; line-height: inherit; white-space: nowrap; }
+  .card.chance .amt { background: rgba(255,255,255,.94); color: #9B4F6A; }
+  .card.fate .amt { background: #2C3E6B; color: #F3E6C8; }
   .empty { color: #8a8880; font-size: 13.5px; }
 
   .md { font-size: 14.5px; }
@@ -1765,21 +1771,26 @@ function faceSVG(kind) {
 }
 const DECK_NAME = { chance: '机会', fate: '命运' };
 
+// 金额高亮：只处理三位及以上，「+1 级」「3 回合」「20%」「14/15/16」都不动
+function amtHtml(s) {
+  return String(s).replace(/([+\-\u2212]?\d{3,})/g, '<span class="amt">$1</span>');
+}
+
 function cardHTML(c, seq, total) {
   let body;
   if (c.cond) {
     body = '<div class="c-cond">摇骰 · ' + c.cond + '</div>' +
-'<div class="c-line">' + faceSVG('smile') + '<span class="c-win">' + c.win + '</span></div>' +
-'<div class="c-line">' + faceSVG('frown') + '<span class="c-lose">' + c.lose + '</span></div>';
+'<div class="c-line">' + faceSVG('smile') + '<span class="c-win">' + amtHtml(c.win) + '</span></div>' +
+'<div class="c-line">' + faceSVG('frown') + '<span class="c-lose">' + amtHtml(c.lose) + '</span></div>';
   } else if (c.effect) {
-    body = '<div class="c-line">' + faceSVG(c.face || 'smile') + '<span>' + c.effect + '</span></div>';
+    body = '<div class="c-line">' + faceSVG(c.face || 'smile') + '<span>' + amtHtml(c.effect) + '</span></div>';
   } else {
     body = '';
   }
   return '<div class="card ' + c.deck + '">' +
     '<div class="c-top"><span class="c-title">' + DECK_NAME[c.deck] + '</span>' +
     '<span class="c-num">' + seq + '-' + total + '</span></div>' +
-    '<div class="c-ev">' + (c.event || '') + '</div>' + body +
+    '<div class="c-ev">' + amtHtml(c.event || '') + '<i class="cdiv"></i></div>' + body +
     '</div>';
 }
 

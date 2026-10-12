@@ -334,7 +334,7 @@
 <h3>六、开发参考</h3>
 <h4>6.1 去哪儿拿数据</h4>
 <p><code>content/map-print-data.json</code>，结构如下（字段名照抄，别自己另造一份）：</p>
-<p><code>`</code>javascript<br>const data = {<br>board:    { size, printMM, goBonus, trackWidth, band, tilesPerSide, corners },<br>layout:   { property, deck, ocean, id, corner },      // 版式参数，改这里调留白<br>decks:    { chance: {...}, fate: {...} },             // 机会/命运牌堆的配色与文案<br>colorGroups: [{ id, key, name, nameEn, hex, icon }],  // 地产格用 colorId 引用<br>tileTypes:   { property: {...}, chance: {...}, ... },<br>tiles:    [{ id, type, name, nameEn, capital?, price?, colorId?, color?, side, col, row }],<br>};<br><code>`</code></p>
+<p><code>`</code>javascript<br>const data = {<br>board:    { size, printMM, goBonus, trackWidth, band, tilesPerSide, corners },<br>layout:   { property, deck, ocean, id, corner },      // 版式参数，改这里调留白<br>decks:    { chance: {...}, fate: {...} },             // 机会/命运牌堆的配色与文案<br>colorGroups: [{ id, key, name, nameEn, hex, icon }],  // 地产格用 colorId 引用<br>tileTypes:   { property: {...}, chance: {...}, ... },<br>tiles:    [{ id, type, name, nameEn, flag?, capital?, price?, colorId?, color?, side, col, row }],   // flag：地产格的国旗 emoji，页面直接画<br>};<br><code>`</code></p>
 <p><strong>色值只在 <code>colorGroups[].hex</code> 出现一次</strong>，机会/命运的色通过 <code>tileTypes[].deck</code> 指回 <code>decks</code>，别在别处再写一遍颜色。</p>
 <h4>6.2 常用计算</h4>
 <p>这些不用手算，跑一次 <code>python3 tools/update.py</code>，本页表格、首页「数据速览」都会同步：</p>

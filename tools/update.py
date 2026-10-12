@@ -33,6 +33,7 @@ ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 # 打印版棋盘（80×80cm 软垫）：真源 JSON → map-print.html 的内置兜底块
 MAP_DATA_PATH = os.path.join(CONTENT_DIR, 'map-print-data.json')
 MAP_PRINT_PATH = os.path.join(ROOT, 'map-print.html')       # 80cm 打印页
+MAP_PRINT_FILTER_PATH = os.path.join(ROOT, 'map-print-filter.html')  # 打印版外观 + 色块筛选
 MAP_SVG_PRINT_PATH = os.path.join(ROOT, 'map-print-svg.html')  # 电子地图（打印版数据）
 READMED_PATH = os.path.join(ROOT, 'README.md')
 MAP_DATA = None        # main() 读好的棋盘数据，资料页的表格生成器从这里取
@@ -911,6 +912,8 @@ def validate_map(data):
             errs.append('格子 #%s 的 colorId=%s 在 colorGroups 里找不到' % (t['id'], t['colorId']))
         if t.get('price') is not None and t.get('colorId') is None:
             errs.append('格子 #%s（%s）有价格却没 colorId' % (t['id'], t.get('name')))
+        if (t.get('type') or 'property') == 'property' and not t.get('flag'):
+            errs.append('格子 #%s（%s）缺 flag（国旗 emoji），页面会画成白旗' % (t['id'], t.get('name')))
 
     types = data.get('tileTypes') or {}
     decks = data.get('decks') or {}
@@ -947,7 +950,7 @@ def write_map_print_fallback(data):
     block = ('/* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改\n'
              '%s\n'
              '/* MAP_FALLBACK:END */' % js)
-    for path in (MAP_PRINT_PATH, MAP_SVG_PRINT_PATH):
+    for path in (MAP_PRINT_PATH, MAP_PRINT_FILTER_PATH, MAP_SVG_PRINT_PATH):
         if not os.path.exists(path):
             continue
         if swap(path, r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/', block, '棋盘兜底数据'):

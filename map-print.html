@@ -20,12 +20,16 @@
   .page { margin: 0 auto; }
   svg { display: block; width: 100%; height: 100%; }
 
-  /* 打印时：整页 800×800mm，棋盘铺满 */
+  /* 打印时：整页 800×800mm，棋盘铺满；并声明保留原色，防止个别环境把 SVG 填充当背景丢掉 */
   @media print {
     .page {
       width: 800mm !important;
       height: 800mm !important;
       margin: 0 !important;
+    }
+    svg, svg * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
   }
 
@@ -66,7 +70,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
   "board": {
     "size": 1800,
     "printMM": 800,
@@ -281,6 +285,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "中国",
       "nameEn": "CHINA",
+      "flag": "🇨🇳",
       "capital": "北京",
       "price": 4000,
       "colorId": 1,
@@ -294,6 +299,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "日本",
       "nameEn": "JAPAN",
+      "flag": "🇯🇵",
       "capital": "东京",
       "price": 1000,
       "colorId": 1,
@@ -316,6 +322,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "韩国",
       "nameEn": "KOREA",
+      "flag": "🇰🇷",
       "capital": "首尔",
       "price": 1000,
       "colorId": 1,
@@ -329,6 +336,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "菲律宾",
       "nameEn": "PHILIPPINES",
+      "flag": "🇵🇭",
       "capital": "马尼拉",
       "price": 600,
       "colorId": 2,
@@ -342,6 +350,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "马来西亚",
       "nameEn": "MALAYSIA",
+      "flag": "🇲🇾",
       "capital": "吉隆坡",
       "price": 2600,
       "colorId": 2,
@@ -355,6 +364,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "越南",
       "nameEn": "VIETNAM",
+      "flag": "🇻🇳",
       "capital": "河内",
       "price": 2800,
       "colorId": 2,
@@ -368,6 +378,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "泰国",
       "nameEn": "THAILAND",
+      "flag": "🇹🇭",
       "capital": "曼谷",
       "price": 1600,
       "colorId": 2,
@@ -381,6 +392,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "印度",
       "nameEn": "INDIA",
+      "flag": "🇮🇳",
       "capital": "新德里",
       "price": 1400,
       "colorId": 2,
@@ -403,6 +415,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "斯里兰卡",
       "nameEn": "SRI LANKA",
+      "flag": "🇱🇰",
       "capital": "科伦坡",
       "price": 1400,
       "colorId": 3,
@@ -416,6 +429,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "伊朗",
       "nameEn": "IRAN",
+      "flag": "🇮🇷",
       "capital": "德黑兰",
       "price": 2000,
       "colorId": 3,
@@ -429,6 +443,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "伊拉克",
       "nameEn": "IRAQ",
+      "flag": "🇮🇶",
       "capital": "巴格达",
       "price": 1800,
       "colorId": 3,
@@ -442,6 +457,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "沙特阿拉伯",
       "nameEn": "SAUDI ARABIA",
+      "flag": "🇸🇦",
       "capital": "利雅得",
       "price": 1800,
       "colorId": 3,
@@ -455,6 +471,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "叙利亚",
       "nameEn": "SYRIA",
+      "flag": "🇸🇾",
       "capital": "大马士革",
       "price": 3500,
       "colorId": 3,
@@ -477,6 +494,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "土耳其",
       "nameEn": "TURKEY",
+      "flag": "🇹🇷",
       "capital": "安卡拉",
       "price": 3500,
       "colorId": 3,
@@ -499,6 +517,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "黎巴嫩",
       "nameEn": "LEBANON",
+      "flag": "🇱🇧",
       "capital": "贝鲁特",
       "price": 600,
       "colorId": 4,
@@ -512,6 +531,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "以色列",
       "nameEn": "ISRAEL",
+      "flag": "🇮🇱",
       "capital": "耶路撒冷",
       "price": 2000,
       "colorId": 4,
@@ -525,6 +545,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "俄罗斯",
       "nameEn": "RUSSIA",
+      "flag": "🇷🇺",
       "capital": "莫斯科",
       "price": 1000,
       "colorId": 4,
@@ -538,6 +559,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "波兰",
       "nameEn": "POLAND",
+      "flag": "🇵🇱",
       "capital": "华沙",
       "price": 1200,
       "colorId": 4,
@@ -551,6 +573,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "德国",
       "nameEn": "GERMANY",
+      "flag": "🇩🇪",
       "capital": "柏林",
       "price": 2400,
       "colorId": 4,
@@ -573,6 +596,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "奥地利",
       "nameEn": "AUSTRIA",
+      "flag": "🇦🇹",
       "capital": "维也纳",
       "price": 3000,
       "colorId": 5,
@@ -586,6 +610,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "瑞士",
       "nameEn": "SWITZERLAND",
+      "flag": "🇨🇭",
       "capital": "伯尔尼",
       "price": 3200,
       "colorId": 5,
@@ -599,6 +624,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "法国",
       "nameEn": "FRANCE",
+      "flag": "🇫🇷",
       "capital": "巴黎",
       "price": 3000,
       "colorId": 5,
@@ -612,6 +638,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "比利时",
       "nameEn": "BELGIUM",
+      "flag": "🇧🇪",
       "capital": "布鲁塞尔",
       "price": 2200,
       "colorId": 5,
@@ -634,6 +661,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "荷兰",
       "nameEn": "NETHERLANDS",
+      "flag": "🇳🇱",
       "capital": "阿姆斯特丹",
       "price": 2400,
       "colorId": 6,
@@ -647,6 +675,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "英国",
       "nameEn": "UK",
+      "flag": "🇬🇧",
       "capital": "伦敦",
       "price": 2200,
       "colorId": 6,
@@ -669,6 +698,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "芬兰",
       "nameEn": "FINLAND",
+      "flag": "🇫🇮",
       "capital": "赫尔辛基",
       "price": 2600,
       "colorId": 6,
@@ -682,6 +712,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "瑞典",
       "nameEn": "SWEDEN",
+      "flag": "🇸🇪",
       "capital": "斯德哥尔摩",
       "price": 2600,
       "colorId": 6,
@@ -695,6 +726,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "丹麦",
       "nameEn": "DENMARK",
+      "flag": "🇩🇰",
       "capital": "哥本哈根",
       "price": 2800,
       "colorId": 6,
@@ -708,6 +740,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "希腊",
       "nameEn": "GREECE",
+      "flag": "🇬🇷",
       "capital": "雅典",
       "price": 1600,
       "colorId": 7,
@@ -721,6 +754,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "意大利",
       "nameEn": "ITALY",
+      "flag": "🇮🇹",
       "capital": "罗马",
       "price": 1400,
       "colorId": 7,
@@ -743,6 +777,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "西班牙",
       "nameEn": "SPAIN",
+      "flag": "🇪🇸",
       "capital": "马德里",
       "price": 1400,
       "colorId": 7,
@@ -756,6 +791,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "葡萄牙",
       "nameEn": "PORTUGAL",
+      "flag": "🇵🇹",
       "capital": "里斯本",
       "price": 2000,
       "colorId": 7,
@@ -769,6 +805,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "埃及",
       "nameEn": "EGYPT",
+      "flag": "🇪🇬",
       "capital": "开罗",
       "price": 1800,
       "colorId": 8,
@@ -782,6 +819,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "摩洛哥",
       "nameEn": "MOROCCO",
+      "flag": "🇲🇦",
       "capital": "拉巴特",
       "price": 1800,
       "colorId": 8,
@@ -795,6 +833,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "赞比亚",
       "nameEn": "ZAMBIA",
+      "flag": "🇿🇲",
       "capital": "卢萨卡",
       "price": 600,
       "colorId": 8,
@@ -817,6 +856,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "南非共和国",
       "nameEn": "SOUTH AFRICA",
+      "flag": "🇿🇦",
       "capital": "比勒陀利亚",
       "price": 600,
       "colorId": 8,
@@ -830,6 +870,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "加拿大",
       "nameEn": "CANADA",
+      "flag": "🇨🇦",
       "capital": "渥太华",
       "price": 3500,
       "colorId": 9,
@@ -843,6 +884,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "美国",
       "nameEn": "USA",
+      "flag": "🇺🇸",
       "capital": "华盛顿",
       "price": 3500,
       "colorId": 9,
@@ -865,6 +907,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "墨西哥",
       "nameEn": "MEXICO",
+      "flag": "🇲🇽",
       "capital": "墨西哥城",
       "price": 1000,
       "colorId": 9,
@@ -878,6 +921,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "洪都拉斯",
       "nameEn": "HONDURAS",
+      "flag": "🇭🇳",
       "capital": "特古西加尔巴",
       "price": 1200,
       "colorId": 9,
@@ -891,6 +935,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "尼加拉瓜",
       "nameEn": "NICARAGUA",
+      "flag": "🇳🇮",
       "capital": "马那瓜",
       "price": 3000,
       "colorId": 10,
@@ -904,6 +949,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "哥斯达黎加",
       "nameEn": "COSTA RICA",
+      "flag": "🇨🇷",
       "capital": "圣何塞",
       "price": 1000,
       "colorId": 10,
@@ -926,6 +972,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "巴拿马",
       "nameEn": "PANAMA",
+      "flag": "🇵🇦",
       "capital": "巴拿马城",
       "price": 3200,
       "colorId": 10,
@@ -939,6 +986,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "古巴",
       "nameEn": "CUBA",
+      "flag": "🇨🇺",
       "capital": "哈瓦那",
       "price": 3000,
       "colorId": 10,
@@ -952,6 +1000,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "哥伦比亚",
       "nameEn": "COLOMBIA",
+      "flag": "🇨🇴",
       "capital": "波哥大",
       "price": 1800,
       "colorId": 11,
@@ -965,6 +1014,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "玻利维亚",
       "nameEn": "BOLIVIA",
+      "flag": "🇧🇴",
       "capital": "苏克雷·拉巴斯",
       "price": 1200,
       "colorId": 11,
@@ -978,6 +1028,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "巴西",
       "nameEn": "BRAZIL",
+      "flag": "🇧🇷",
       "capital": "巴西利亚",
       "price": 2600,
       "colorId": 11,
@@ -1000,6 +1051,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "阿根廷",
       "nameEn": "ARGENTINA",
+      "flag": "🇦🇷",
       "capital": "布宜诺斯艾利斯",
       "price": 1000,
       "colorId": 11,
@@ -1013,6 +1065,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "智利",
       "nameEn": "CHILE",
+      "flag": "🇨🇱",
       "capital": "圣地亚哥",
       "price": 3500,
       "colorId": 11,
@@ -1026,6 +1079,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "澳大利亚",
       "nameEn": "AUSTRALIA",
+      "flag": "🇦🇺",
       "capital": "堪培拉",
       "price": 3200,
       "colorId": 1,
@@ -1039,6 +1093,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "type": "property",
       "name": "新西兰",
       "nameEn": "NEW ZEALAND",
+      "flag": "🇳🇿",
       "capital": "惠灵顿",
       "price": 3500,
       "colorId": 1,
@@ -1052,22 +1107,13 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
 /* MAP_FALLBACK:END */;
 
 // ===== 国旗 emoji =====
-const FLAGS = {
-  "中国":"🇨🇳","日本":"🇯🇵","韩国":"🇰🇷","菲律宾":"🇵🇭","马来西亚":"🇲🇾",
-  "越南":"🇻🇳","泰国":"🇹🇭","印度":"🇮🇳","斯里兰卡":"🇱🇰","伊朗":"🇮🇷",
-  "伊拉克":"🇮🇶","沙特阿拉伯":"🇸🇦","叙利亚":"🇸🇾","土耳其":"🇹🇷",
-  "黎巴嫩":"🇱🇧","以色列":"🇮🇱","俄罗斯":"🇷🇺","波兰":"🇵🇱","德国":"🇩🇪",
-  "奥地利":"🇦🇹","瑞士":"🇨🇭","法国":"🇫🇷","比利时":"🇧🇪","荷兰":"🇳🇱",
-  "英国":"🇬🇧","芬兰":"🇫🇮","瑞典":"🇸🇪","丹麦":"🇩🇰","希腊":"🇬🇷",
-  "意大利":"🇮🇹","西班牙":"🇪🇸","葡萄牙":"🇵🇹","埃及":"🇪🇬","摩洛哥":"🇲🇦",
-  "赞比亚":"🇿🇲","南非共和国":"🇿🇦","加拿大":"🇨🇦","美国":"🇺🇸",
-  "墨西哥":"🇲🇽","洪都拉斯":"🇭🇳","尼加拉瓜":"🇳🇮","哥斯达黎加":"🇨🇷",
-  "巴拿马":"🇵🇦","古巴":"🇨🇺","哥伦比亚":"🇨🇴","玻利维亚":"🇧🇴","巴西":"🇧🇷",
-  "阿根廷":"🇦🇷","智利":"🇨🇱","澳大利亚":"🇦🇺","新西兰":"🇳🇿"
-};
+// 不再在页面里维护对照表：每个地产格自带 flag 字段（见 content/map-print-data.json），
+// 渲染时直接读即可 —— 改国旗改 JSON 那一个数就行（update.py 会校验漏填）。
+// 万一哪格漏填，这里给个白旗兜底并在控制台喊一声。
+function warnNoFlag(t) {
+  console.warn("[map-print] 格子 #" + t.id + "（" + t.name + "）没有 flag 字段，去 JSON 里补一下");
+}
 
-// 64 格数据不再写死在这里 —— 见 content/map-print-data.json（字段：
-// id / type(property|corner|chance|destiny|ocean) / name / nameEn / capital / price / colorId / color / side / col / row）
 
 // ===== 输出模式 =====
 // ?export=png → 棋盘铺满窗口，供高清截图导出
@@ -1140,7 +1186,8 @@ function applyPrintSize(printMM) {
   document.head.appendChild(st);
   document.title = `大富翁 世界之旅 · ${cm}cm 软垫打印版`;
   document.getElementById("hint-text").textContent =
-    `${cm}×${cm}cm 软垫：打印 → 目的地选「存储为 PDF」→ 纸张 ${mm}×${mm}mm、边距无、关闭页眉页脚，把 PDF 交给商家`;
+    `${cm}×${cm}cm 软垫：打印 → 目的地选「存储为 PDF」→ 纸张 ${mm}×${mm}mm、边距无、关闭页眉页脚、` +
+    `勾选「背景图形」（不勾整版会变白）→ 把 PDF 交给商家`;
   svg.setAttribute("viewBox", `0 0 ${L} ${L}`);
 }
 
@@ -1169,14 +1216,27 @@ function renderBoard(DATA) {
   svg.appendChild(el("rect", { x:B, y:B, width:L-2*B, height:L-2*B, fill:"#5B7FC6" }));
   svg.appendChild(el("polygon", { points:`620,${B} 780,${B} 990,900 720,900`, fill:"#ffffff", opacity:0.06 }));
   svg.appendChild(el("polygon", { points:`1020,${B} 1180,${B} 1090,900 840,900`, fill:"#ffffff", opacity:0.05 }));
-const silver = el("linearGradient", { id:"silver", x1:"0%", y1:"0%", x2:"0%", y2:"100%" });
-silver.appendChild(el("stop", { offset:"0%", "stop-color":"#f4f6fa" }));
-silver.appendChild(el("stop", { offset:"55%", "stop-color":"#c9d2e2" }));
-silver.appendChild(el("stop", { offset:"100%", "stop-color":"#8e99b0" }));
-svg.appendChild(silver);
-
 // —— 大富翁（正中）——
-svg.appendChild(bubble(900, 900, "大富翁", 168, { fill:"url(#silver)", dark:"#1b3f7e" }));
+// ⚠️ 别用渐变填充：打印预览默认不开「背景图形」，SVG 渐变会被整个丢掉，
+// 字就只剩底下的深蓝描边层 —— 看起来就是「一坨蓝色」。
+// 这里用「上半亮银 + 下半中银」两段实色拼出金属感，任何打印设置都不会丢。
+function silverTitle(x, y, str, size) {
+  const g = el("g");
+  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight:"bold", fill, stroke:sc, sw });
+  g.appendChild(mk("#ffffff", size * 0.38, "#ffffff"));   // 白色外晕
+  g.appendChild(mk("#1b3f7e", size * 0.16, "#1b3f7e"));   // 深蓝衬底
+  g.appendChild(mk("#1b3f7e", size * 0.02, "#c9d2e2"));   // 银字主体（＝原渐变中间色）
+  // 上半段亮银：同一行字再画一遍，用 clipPath 裁掉下半（≈原渐变 0~45% 的效果）
+  const w = str.length * size;
+  const cp = el("clipPath", { id:"silver-top" });
+  cp.appendChild(el("rect", { x:x-w, y:y-size*0.8, width:w*2, height:size*0.6 }));
+  const defs = el("defs", {}); defs.appendChild(cp); g.appendChild(defs);
+  const hi = el("g", { "clip-path":"url(#silver-top)" });
+  hi.appendChild(mk("#1b3f7e", size * 0.02, "#f4f6fa"));
+  g.appendChild(hi);
+  return g;
+}
+svg.appendChild(silverTitle(900, 900, "大富翁", 168));
 
 // —— 卡牌背面样式的两个卡堆（样式完全照 print.html 卡牌背面）——
 function cardBack(x, y, w, h, kind, rot) {
@@ -1241,7 +1301,7 @@ function tileGroup(col, row, side) {
   return el("g", { transform:`translate(${cx},${cy}) rotate(${rot})` });
 }
 // 局部坐标：x∈[-TW,TW]，y∈[-TH,TH]，色带在 y=-TH 一端（即靠圆心一侧）
-function propertyContent(g, id, name, nameEn, capital, price, colorId) {
+function propertyContent(g, id, name, nameEn, flag, capital, price, colorId) {
   g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:BAND, fill:HEX[colorId] || "#cccccc" }));
   g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
   const ns = LP.nameSize || {};
@@ -1255,7 +1315,7 @@ function propertyContent(g, id, name, nameEn, capital, price, colorId) {
     g.appendChild(txt(0, LP.nameY ?? -36, name, fs, { weight:"bold", fill:"#111" }));
     g.appendChild(txt(0, LP.nameEnY ?? -18, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
   }
-  g.appendChild(txt(0, LP.flagY ?? 26, FLAGS[name] || "🏳️", LP.flagSize ?? 30, {}));
+  g.appendChild(txt(0, LP.flagY ?? 26, flag || "🏳️", LP.flagSize ?? 30, {}));
   g.appendChild(txt(0, LP.priceY ?? 58, "$" + price, LP.priceSize ?? 18, { weight:"bold", fill:"#1a55a5" }));
   g.appendChild(txt(0, LP.capitalY ?? 80, capital, LP.capitalSize ?? 12, { fill:"#222" }));
 }
@@ -1311,6 +1371,7 @@ function cornerIcon(side, rot) {
   const id = t.id, col = t.col, row = t.row, side = t.side, type = t.type;
   const name = t.name, nameEn = t.nameEn;
   const capital = t.capital, price = t.price, colorId = t.colorId;
+  if ((type || "property") === "property" && !t.flag) warnNoFlag(t);
   const g = tileGroup(col, row, side);
 
   if (type === "corner") {
@@ -1343,7 +1404,7 @@ function cornerIcon(side, rot) {
     if (type === "chance") deckContent(g, id, name, nameEn, "chance");
     else if (type === "destiny") deckContent(g, id, name, nameEn, "fate");
     else if (type === "ocean") oceanContent(g, id, name);
-    else propertyContent(g, id, name, nameEn, capital, price, colorId);
+    else propertyContent(g, id, name, nameEn, t.flag, capital, price, colorId);
   }
   svg.appendChild(g);
 });

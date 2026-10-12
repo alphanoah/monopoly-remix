@@ -127,7 +127,7 @@ const data = {
   decks:    { chance: {...}, fate: {...} },             // 机会/命运牌堆的配色与文案
   colorGroups: [{ id, key, name, nameEn, hex, icon }],  // 地产格用 colorId 引用
   tileTypes:   { property: {...}, chance: {...}, ... },
-  tiles:    [{ id, type, name, nameEn, capital?, price?, colorId?, color?, side, col, row }],
+  tiles:    [{ id, type, name, nameEn, flag?, capital?, price?, colorId?, color?, side, col, row }],   // flag：地产格的国旗 emoji，页面直接画
 };
 ```
 

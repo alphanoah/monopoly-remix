@@ -1,6 +1,6 @@
-# cards.csv 字段说明
+# cards.csv 字段说明（`content/cards.csv`）
 
-卡牌内容的唯一来源。改这里 → push → GitHub Actions 自动生成 `cards.json` 并同步页面。
+卡牌内容的唯一来源（`content/cards.csv`）。改这里 → push → GitHub Actions 自动生成 `data/cards.json` 并同步页面。
 
 ---
 
@@ -116,7 +116,7 @@ v6,fate,1,,你在德州跟亡命牛仔玩「灵魂赌局」，背对背各走十
 
 ## 四、JSON 长什么样
 
-`cards.json` 的结构（由脚本生成，不用手改）：
+`data/cards.json` 的结构（由脚本生成，不用手改）：
 
 ```json
 {

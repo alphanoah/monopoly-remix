@@ -48,7 +48,7 @@
 ### 当前生效的卡牌
 
 在 **`cards.csv`**，打印页读的就是它。要改卡牌内容请改这个文件，
-字段怎么填见 [csv-fields.md](csv-fields.md)。
+字段怎么填见 [csv-fields.md](../docs/csv-fields.md)。
 
 ### 历史版本
 

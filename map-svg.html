@@ -239,7 +239,7 @@ function pickText(name, price, W, H) {
   return c;
 }
 
-// ===== 本地兜底数据（同 map-data.json）=====
+// ===== 本地兜底数据（同 content/map-data.json）=====
 const FALLBACK_DATA = {
   "version": "1.0",
   "name": "大富翁「世界之旅」",
@@ -980,7 +980,7 @@ function exportPNG() {
 initToolbar();   // 按钮是静态元素，先绑好，不等地图渲染
 
 // ===== 加载数据：优先 fetch JSON，失败则用本地兜底 =====
-fetch("./docs/map-data.json")
+fetch("./content/map-data.json")
   .then(res => {
     if (!res.ok) throw new Error("HTTP " + res.status);
     return res.json();

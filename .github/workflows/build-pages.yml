@@ -1,15 +1,15 @@
 name: 重新生成页面
 
-# 改了卡牌（cards.csv）、规则（docs/rules.md / docs/new-rule.md）或原版资料（original/*.md）就自动跑，不用手动生成
+# 改了 content/ 下的真源（卡牌 cards.csv、规则 rules.md / new-rule.md、道具 props.md、原版资料 original/*）就自动跑，不用手动生成
 on:
   push:
     branches: [main]
     paths:
-      - 'cards.csv'
-      - 'docs/rules.md'
-      - 'docs/new-rule.md'
-      - 'docs/props.md'
-      - 'original/**'
+      - 'content/cards.csv'
+      - 'content/rules.md'
+      - 'content/new-rule.md'
+      - 'content/props.md'
+      - 'content/original/**'
       - 'tools/update.py'
       - '.github/workflows/build-pages.yml'
   workflow_dispatch:
@@ -35,10 +35,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- cards.json props.json index.html print.html original.html; then
+          if git diff --quiet -- data/cards.json data/props.json index.html print.html original.html; then
             echo "没有变化，跳过提交"
             exit 0
           fi
-          git add cards.json props.json index.html print.html original.html
+          git add data/cards.json data/props.json index.html print.html original.html
           git commit -m "chore: 由 cards.csv / docs 规则 / original/ 重新生成页面"
           git push

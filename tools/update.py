@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# 一键更新：cards.csv → cards.json + index.html（首页）+ print.html（打印页）
+# 一键更新：content/cards.csv → data/cards.json + index.html（首页）+ print.html（打印页）
 #
 #   python3 tools/update.py
 #
 # 做四件事：
-#   1. 校验 cards.csv（结构、必填字段、每版本张数）
-#   2. 生成 cards.json                      —— 打印页线上 fetch 用
+#   1. 校验 content/cards.csv（结构、必填字段、每版本张数）
+#   2. 生成 data/cards.json                 —— 打印页线上 fetch 用
 #   3. 重写 index.html 的卡牌数据、规则三版切换区、道具清单 —— 首页内容（静态，离线可看）
 #   4. 回写 print.html 的内置兜底数据         —— 本地 file:// 打开时用
 #   5. 重写 original.html 的原版资料区        —— 原版资料页
@@ -19,13 +19,15 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(ROOT, 'cards.csv')
-JSON_PATH = os.path.join(ROOT, 'cards.json')
-PROPS_JSON_PATH = os.path.join(ROOT, 'props.json')
+CONTENT_DIR = os.path.join(ROOT, 'content')
+DATA_DIR = os.path.join(ROOT, 'data')
+CSV_PATH = os.path.join(CONTENT_DIR, 'cards.csv')
+JSON_PATH = os.path.join(DATA_DIR, 'cards.json')
+PROPS_JSON_PATH = os.path.join(DATA_DIR, 'props.json')
 INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
-PROPS_PATH = os.path.join(ROOT, 'docs', 'props.md')
-ORIGINAL_DIR = os.path.join(ROOT, 'original')
+PROPS_PATH = os.path.join(CONTENT_DIR, 'props.md')
+ORIGINAL_DIR = os.path.join(CONTENT_DIR, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 # 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
 ORIGINAL_DOCS = [
@@ -40,13 +42,14 @@ ORIGINAL_DOCS = [
 #   折叠小节 = (标题层级, 标题关键字, 是否折到文末, 折叠后显示的标题 / None = 用原标题)
 RULE_DOCS = [
     ('original', '原版', '实体说明书',
-     os.path.join(ORIGINAL_DIR, 'manual.md'), 'original/manual.md', 'original/', []),
+     os.path.join(ORIGINAL_DIR, 'manual.md'), 'content/original/manual.md',
+     'content/original/', []),
     ('v1', 'v1', '初版改版规则',
-     os.path.join(ROOT, 'docs', 'rules.md'), 'docs/rules.md', 'docs/',
+     os.path.join(CONTENT_DIR, 'rules.md'), 'content/rules.md', 'content/',
      [(3, '卡牌', True, '卡牌（cards.csv 与历史存档）'),
       (4, '备选', False, None)]),
     ('v2', 'v2', '最新改版规则',
-     os.path.join(ROOT, 'docs', 'new-rule.md'), 'docs/new-rule.md', 'docs/', []),
+     os.path.join(CONTENT_DIR, 'new-rule.md'), 'content/new-rule.md', 'content/', []),
 ]
 DEFAULT_RULE = 'v2'
 
@@ -140,11 +143,24 @@ def build(rows):
 
 
 # ---------- 简易 markdown → HTML（够三版规则文档用：标题/列表/引用/表格/链接/粗体/行内码）----------
-def inline(t, prefix='docs/'):
+def norm_href(p):
+    """把 md 里「相对自身目录」的链接折叠成相对站点根的路径：content/../docs/x → docs/x。"""
+    parts = []
+    for seg in p.split('/'):
+        if seg == '..':
+            if parts:
+                parts.pop()
+        elif seg and seg != '.':
+            parts.append(seg)
+    return '/'.join(parts)
+
+
+def inline(t, prefix='content/'):
     t = html.escape(t)
     t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
     t = re.sub(r'`(.+?)`', r'<code>\1</code>', t)
-    t = re.sub(r'\[(.+?)\]\((?!https?:|#)(.+?)\)', r'<a href="%s\2">\1</a>' % prefix, t)
+    t = re.sub(r'\[(.+?)\]\((?!https?:|#)(.+?)\)',
+               lambda m: '<a href="%s">%s</a>' % (norm_href(prefix + m.group(2)), m.group(1)), t)
     t = re.sub(r'\[(.+?)\]\((https?:.+?)\)', r'<a href="\2">\1</a>', t)
     return t
 
@@ -193,7 +209,7 @@ def render_table(lines, i, prefix):
     return '\n'.join(out), i
 
 
-def md_to_html(md, prefix='docs/'):
+def md_to_html(md, prefix='content/'):
     lines = md.replace('\r\n', '\n').split('\n')
     out, i = [], 0
     while i < len(lines):
@@ -272,22 +288,22 @@ def md_title(md):
 
 
 def build_props():
-    """把 docs/props.md 转成首页「道具清单」区的内容。"""
+    """把 content/props.md 转成首页「道具清单」区的内容。"""
     if not os.path.exists(PROPS_PATH):
-        print('  跳过：未找到 docs/props.md')
+        print('  跳过：未找到 content/props.md')
         return ''
     with open(PROPS_PATH, encoding='utf-8') as f:
-        return md_to_html(f.read(), prefix='docs/')
+        return md_to_html(f.read())
 
 
 def parse_props():
-    """从 docs/props.md 里抽出结构化道具数据：使用规则 + 道具列表（用于打印页）。
+    """从 content/props.md 里抽出结构化道具数据：使用规则 + 道具列表（用于打印页）。
 
-    真源仍然是 props.md（首页道具清单也由它生成），这里只是把 md 里的表格和
-    编号列表读成 dict，给打印页做道具卡用。改道具请改 props.md，别改 props.json。
+    真源仍然是 content/props.md（首页道具清单也由它生成），这里只是把 md 里的表格和
+    编号列表读成 dict，给打印页做道具卡用。改道具请改 content/props.md，别改 data/props.json。
     """
     if not os.path.exists(PROPS_PATH):
-        print('  跳过：未找到 docs/props.md')
+        print('  跳过：未找到 content/props.md')
         return None
     rules, items, section = [], [], None
     with open(PROPS_PATH, encoding='utf-8') as f:
@@ -309,7 +325,7 @@ def parse_props():
                 items.append({'name': cells[0], 'price': cells[1],
                               'effect': cells[2], 'qty': cells[3]})
     if not items:
-        print('  跳过：docs/props.md 里没解析到道具表格')
+        print('  跳过：content/props.md 里没解析到道具表格')
         return None
     return {'rules': rules, 'items': items}
 
@@ -322,7 +338,7 @@ def write_props(props):
         f.write('\n')
     js = ('const PROPS_FALLBACK = ' +
           json.dumps(props, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';')
-    block = ('  /* PROPS:START */  // 由 tools/update.py 从 docs/props.md 生成，请勿手改\n'
+    block = ('  /* PROPS:START */  // 由 tools/update.py 从 content/props.md 生成，请勿手改\n'
              '  %s\n'
              '  /* PROPS:END */' % js)
     if swap(PRINT_PATH, r'[ \t]*\/\* PROPS:START \*\/.*?\/\* PROPS:END \*\/', block, '道具兜底数据'):
@@ -331,12 +347,12 @@ def write_props(props):
 
 
 def build_original():
-    """把 original/ 下的原版实体资料转成 original.html 的正文区块。"""
+    """把 content/original/ 下的原版实体资料转成 original.html 的正文区块。"""
     parts = []
     for fn, label, opened in ORIGINAL_DOCS:
         path = os.path.join(ORIGINAL_DIR, fn)
         if not os.path.exists(path):
-            print('  跳过：未找到 original/%s' % fn)
+            print('  跳过：未找到 content/original/%s' % fn)
             continue
         with open(path, encoding='utf-8') as f:
             text = f.read()
@@ -344,7 +360,7 @@ def build_original():
             label = md_title(text) or fn
         parts.append('<details class="blk"%s><summary><h2>%s</h2><span class="tog"></span></summary>\n'
                      '<div class="md">\n%s\n</div>\n</details>'
-                     % (' open' if opened else '', html.escape(label), md_to_html(text, prefix='original/')))
+                     % (' open' if opened else '', html.escape(label), md_to_html(text, prefix='content/original/')))
     return '\n'.join(parts)
 
 

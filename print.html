@@ -232,10 +232,10 @@
 
 <script>
 // ===== 卡牌数据 =====
-// 来源优先级：先尝试 fetch 同目录的 cards.json（GitHub Pages 上同源可读）；
+// 来源优先级：先尝试 fetch data/cards.json（GitHub Pages 上同源可读）；
 // 读不到就回退到下面的内置兜底数据 —— 本地双击打开是 file:// 协议，fetch 会被浏览器拦掉，
 // 所以内置兜底不是摆设，是本地使用模式的必需品。
-// 内置兜底由 tools/update.py 从 cards.csv 自动生成，改卡牌请改 cards.csv，别手改这里。
+// 内置兜底由 tools/update.py 从 content/cards.csv 自动生成，改卡牌请改 content/cards.csv，别手改这里。
   /* FALLBACK:START */  // 由 tools/update.py 生成，请勿手改
   const FALLBACK = {
   "version": "v7",
@@ -526,9 +526,9 @@
   /* FALLBACK:END */
 
 // ===== 道具数据 =====
-// 与卡牌同一套路：先 fetch props.json，读不到就用内置兜底（本地 file:// 双击时用得到）。
-// 真源是 docs/props.md，由 tools/update.py 解析生成，改道具请改 props.md。
-  /* PROPS:START */  // 由 tools/update.py 从 docs/props.md 生成，请勿手改
+// 与卡牌同一套路：先 fetch data/props.json，读不到就用内置兜底（本地 file:// 双击时用得到）。
+// 真源是 content/props.md，由 tools/update.py 解析生成，改道具请改 content/props.md。
+  /* PROPS:START */  // 由 tools/update.py 从 content/props.md 生成，请勿手改
   const PROPS_FALLBACK = {
   "rules": [
     "道具可以指定玩家所在格子的前后 3 格内使用",
@@ -968,7 +968,7 @@ bindGroup('.btn[data-side]', b => { side = b.dataset.side; syncPaperUI(); render
 bindGroup('.btn[data-face]', b => { showFace = b.dataset.face === 'on'; render(); });
 document.getElementById('doPrint').addEventListener('click', () => window.print());
 
-// ===== 数据版本：优先线上 cards.json，读不到就用内置兜底 =====
+// ===== 数据版本：优先线上 data/cards.json，读不到就用内置兜底 =====
 let currentId = FALLBACK.version;
 
 function applyVersion(id) {
@@ -988,11 +988,11 @@ function fillVerSel() {
   if (!ALL) {
     sel.innerHTML = '<option>' + FALLBACK.label + '</option>';
     sel.disabled = true;
-    sel.title = '未加载到 cards.json（本地直接双击打开时属于正常现象）→ 正在使用内置兜底数据';
+    sel.title = '未加载到 data/cards.json（本地直接双击打开时属于正常现象）→ 正在使用内置兜底数据';
     return;
   }
   sel.disabled = false;
-  sel.title = '数据来自 cards.json（由 cards.csv 生成）';
+  sel.title = '数据来自 data/cards.json（由 content/cards.csv 生成）';
   sel.innerHTML = ALL.order.map(v =>
     '<option value="' + v + '"' + (v === currentId ? ' selected' : '') + '>' +
     ALL.versions[v].label + '</option>').join('');
@@ -1000,7 +1000,7 @@ function fillVerSel() {
 }
 
 // 先用兜底数据立刻渲染一版（不等网络），避免线上白屏；JSON 到货后再换掉
-fetch('cards.json', { cache: 'no-store' })
+fetch('data/cards.json', { cache: 'no-store' })
   .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
   .then(d => {
     if (!d || !d.versions || !d.order || !d.order.length) throw new Error('cards.json 格式不对');
@@ -1015,8 +1015,8 @@ fetch('cards.json', { cache: 'no-store' })
     refreshTitle();
   });
 
-// 道具数据：同样优先线上 props.json，读不到就用内置兜底
-fetch('props.json', { cache: 'no-store' })
+// 道具数据：同样优先线上 data/props.json，读不到就用内置兜底
+fetch('data/props.json', { cache: 'no-store' })
   .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
   .then(d => {
     if (!d || !d.items || !d.items.length) throw new Error('props.json 格式不对');

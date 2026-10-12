@@ -28,8 +28,8 @@
 
 ## 改完内容怎么同步
 
-改卡牌改 `cards.csv`，改规则改对应的规则源文件（见下），改道具改 `docs/props.md`，
-改原版资料改 `original/*.md`，然后**跑一次脚本**：
+改卡牌改 `content/cards.csv`，改规则改对应的规则源文件（见下），改道具改 `content/props.md`，
+改原版资料改 `content/original/*.md`，然后**跑一次脚本**：
 
 ```bash
 python3 tools/update.py
@@ -37,7 +37,7 @@ python3 tools/update.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `props.md` 生成 `props.json` 并注入打印页道具兜底。
+脚本会：校验 CSV → 生成 `data/cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `content/props.md` 生成 `data/props.json` 并注入打印页道具兜底。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出第几行错在哪。
@@ -46,7 +46,7 @@ push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永�
 
 ## 数据怎么改
 
-卡牌内容的**唯一来源是 `cards.csv`**，不要再改 md 里的表格，也不要手改 `index.html` 里的数据块。
+卡牌内容的**唯一来源是 `content/cards.csv`**，不要再改 md 里的表格，也不要手改 `index.html` 里的数据块。
 
 ```
 version,deck,seq,face,event,effect,cond,win,lose,rate,use
@@ -77,12 +77,12 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 
 | 版本 | 源文件 | 说明 |
 |---|---|---|
-| 原版 | `original/manual.md` | 实体《大富翁世界之旅（银牌）》说明书转录 |
-| v1 | `docs/rules.md` | 第一次改版（19580 起始资金那一版） |
-| v2 | `docs/new-rule.md` | 最新改版，首页默认打开的就是它 |
+| 原版 | `content/original/manual.md` | 实体《大富翁世界之旅（银牌）》说明书转录 |
+| v1 | `content/rules.md` | 第一次改版（19580 起始资金那一版） |
+| v2 | `content/new-rule.md` | 最新改版，首页默认打开的就是它 |
 
-道具清单改 `docs/props.md`（首页「道具清单」区由它生成，打印页的道具卡也由它生成）。
-`original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
+道具清单改 `content/props.md`（首页「道具清单」区由它生成，打印页的道具卡也由它生成）。
+`content/original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
 
 ---
 
@@ -90,7 +90,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 
 | 页面 | 首页 index.html | 打印页 print.html |
 |---|---|---|
-| 内容 | 脚本静态写入，离线可看 | 线上 `fetch('cards.json')` |
+| 内容 | 脚本静态写入，离线可看 | 线上 `fetch('data/cards.json')` |
 | 本地双击 | 正常（内容已写死在页面里） | 正常（fetch 被 CORS 拦 → 回退内置兜底） |
 | 版本切换 | 有，v4 / v5 / v6 / v7（默认 v7） | 有（需线上 JSON） |
 
@@ -103,10 +103,10 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 
 ```bash
 # 1. 改内容（任选）
-#    卡牌   → cards.csv
-#    规则   → docs/new-rule.md（v2）/ docs/rules.md（v1）/ original/manual.md（原版）
-#    道具   → docs/props.md
-#    原版   → original/*.md
+#    卡牌   → content/cards.csv
+#    规则   → content/new-rule.md（v2）/ content/rules.md（v1）/ content/original/manual.md（原版）
+#    道具   → content/props.md
+#    原版   → content/original/*.md
 
 # 2. 本地重新生成（macOS 也可以直接双击 update.command）
 python3 tools/update.py
@@ -119,7 +119,7 @@ git push
 默认**只提交到本地**，确认没问题了再 push。
 
 push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同一个脚本，
-把重新生成的 `cards.json` / `props.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
+把重新生成的 `data/cards.json` / `data/props.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
 然后 Pages 自动部署，约 1 分钟线上生效。
 
 **即使你忘了跑第 2 步也没关系**——Actions 会自己跑一遍并补提交，本地文件下次 pull 就能同步回来。
@@ -133,7 +133,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 |---|---|
 | Pages | Settings → Pages → Deploy from a branch → `main` / `/ (root)` |
 | Actions 权限 | Settings → Actions → General → Workflow permissions → **Read and write** |
-| Actions 自动触发 | 改了 `cards.csv` / `docs/rules.md` / `docs/new-rule.md` / `docs/props.md` / `original/**` / `tools/update.py` 时 |
+| Actions 自动触发 | 改了 `content/cards.csv` / `content/rules.md` / `content/new-rule.md` / `content/props.md` / `content/original/**` / `tools/update.py` 时 |
 | 手动触发 | Actions → 重新生成页面 → Run workflow |
 
 > Actions 的写权限是**必须的**：workflow 要把生成的文件提交回仓库，只读权限会失败。
@@ -156,37 +156,35 @@ richer/
 ├── index.html              首页：规则三版切换（原版/v1/v2）+ 机会/命运卡牌 + 道具清单（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具，可切卡牌/道具（脚本回写兜底）
-├── props.json              道具数据（由 docs/props.md 生成，打印页用）
 ├── map-svg.html            电子地图：64 格 SVG 棋盘，一键切换「加厚环（手机好读）/ 原版」，可导出 PNG，图例可点击筛选（手写页，脚本不动）
 │                           · 两种布局：`thick` 加厚环（340×340 正方，边格 12×80，手机可读）/ `classic` 原版（76×100 竖长格，1310×1718）
 │                           · 两档结构相同（每边 16 格、角格在四角、顺时针），只有画法不同；改加厚环的环厚只动常量 RING_T（1~8）
 │                           · 加厚环视图固定（不缩放不平移，手指滑到棋盘上照常滚页面）；原版布局才可缩放拖动
-├── cards.csv               卡牌数据真源
-├── cards.json              由 cards.csv 生成，供打印页读取
 ├── update.command          macOS 双击运行 update.py
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
-├── docs/                   规则 / 道具 / 字段说明 / 地图数据 / 卡牌差异（详见下表）
-├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
+├── content/                ← 手写真源：要改东西就改这里（详见下表）
+├── data/                   ← 脚本生成：cards.json / props.json，勿手改（见 data/README.md）
+├── docs/                   ← 使用说明（纯文档，不参与生成）
 ├── tools/
-│   └── update.py           一键更新：CSV → JSON + 首页 + 原版页 + 打印页
-└── .github/workflows/      cards.csv / docs 规则 / original/ 变更时自动重生成
+│   └── update.py           一键更新：content/ → data/ + 首页 + 原版页 + 打印页
+└── .github/workflows/      content/ 下真源变更时自动重生成
 ```
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。
 
-### `docs/` 里都是什么
+### `content/` 里都是什么（真源）
 
 | 文件 | 是什么 | 谁在用 |
 |---|---|---|
+| `cards.csv` | **卡牌数据真源**（v4–v7 四版，各 20+20 张） | 生成 `data/cards.json`；打印页线上读它 |
 | `new-rule.md` | **规则 v2 真源**（最新改版：地图、骰子、资金、地产、监狱、拍卖、道具、机会/命运） | 首页「游戏规则」默认打开的面板，脚本生成 |
 | `rules.md` | **规则 v1 真源**（初版改版，19580 起始资金那一版） | 首页「游戏规则」的 v1 面板，脚本生成 |
-| `props.md` | **道具清单**：14 件道具的价格 / 效果 / 印量，以及商店买卖规则 | 首页「道具清单」区，脚本生成 |
-| `csv-fields.md` | `cards.csv` 每一列怎么填、对应 JSON 哪个字段、脚本会拦哪些错 | README 与首页 v1 规则里的链接（纯文档） |
-| `card-diff.md` | 新版 40 张自制牌 vs 原版 40 张牌的逐张差异对照 | 首页与原版资料页的页脚链接（纯文档） |
+| `props.md` | **道具清单**：14 件道具的价格 / 效果 / 印量，以及商店买卖规则 | 首页「道具清单」区 + `data/props.json`，脚本生成 |
 | `map-data.json` | 电子地图 64 格数据（格名、颜色组、地价） | `map-svg.html` 线上 `fetch`；本地打开时用它内置的同款兜底 |
+| `original/` | 原版实体《大富翁》的电子化存档（`original.html` 由它生成，见下表） | 脚本生成 |
 
-### `original/` 里都是什么
+### `content/original/` 里都是什么
 
 | 文件 | 是什么 | 谁在用 |
 |---|---|---|
@@ -195,5 +193,12 @@ richer/
 | `map-data-guide.md` | 地图数据的使用指南：速览、投资建议、FAQ | `original.html` 的折叠区块（默认收起） |
 | `map-tiles.md` | 原版地图 64 格原始数据（格名、颜色组、价格、特殊格） | `original.html` 的折叠区块（默认收起） |
 
-> 两个目录里的 `.DS_Store` 是 macOS 自己生成的，已被 `.gitignore` 排除，不用管。
+> 目录里的 `.DS_Store` 是 macOS 自己生成的，已被 `.gitignore` 排除，不用管。
+
+### `docs/` 里都是什么（纯说明，不参与生成）
+
+| 文件 | 是什么 |
+|---|---|
+| `csv-fields.md` | `content/cards.csv` 每一列怎么填、对应 JSON 哪个字段、脚本会拦哪些错 |
+| `card-diff.md` | 新版 40 张自制牌 vs 原版 40 张牌的逐张差异对照 |
 

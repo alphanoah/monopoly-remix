@@ -81,6 +81,8 @@
     position: relative;
   }
   .svg-container.grabbing { cursor: grabbing; }
+  /* 加厚环：视图固定，不缩放也不平移。放开 touch-action，手指在棋盘上滑动才能正常滚页面 */
+  .svg-container.locked { cursor: default; touch-action: auto; }
   svg { display: block; width: 100%; height: auto; user-select: none; }
   .legend {
     margin-top: 10px;
@@ -362,7 +364,7 @@ let hashApplied = false;                          // #f= 的hash筛选只吃一�
 // 顶上的提示语随布局而变：加厚环一屏放下不用缩放，薄环才需要那套操作
 function defaultHint() {
   return isRingThick()
-    ? "加厚环 · 整板一屏放下，不用缩放 · 鼠标悬停看首都和价格 · 点下方色块只看某一组"
+    ? "加厚环 · 整板已固定一屏，不用缩放平移 · 鼠标悬停看首都和价格 · 点下方色块只看某一组"
     : "原版布局 · 滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组";
 }
 
@@ -399,9 +401,12 @@ function updateModeUI() {
   const thick = isRingThick();
   document.getElementById("zoom-controls").hidden = thick;
   // 加厚环是正方板，容器宽了反而字会变小；原版是竖长板，得放开宽度
-  document.getElementById("svg-container").style.maxWidth = thick ? "780px" : "1320px";
+  const container = document.getElementById("svg-container");
+  container.style.maxWidth = thick ? "780px" : "1320px";
+  // 加厚环锁视图：收回抓手光标 + 放开 touch-action，让手指能正常滚页面
+  container.classList.toggle("locked", thick);
   const btn = document.getElementById("btn-layout");
-  btn.textContent = thick ? "切换为原版布局" : "切换为加厚环（环厚 4）";
+  btn.textContent = thick ? "切换为原版布局" : "切换为加厚环";
   const hint = document.getElementById("hint");
   if (currentFilter === "all") hint.textContent = defaultHint();
 }
@@ -414,6 +419,8 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 5;
 
 function updateViewport() {
+  // 兜底：锁定档位下不管哪条路径改了 zoom/pan，都一律钳回「整板居中」
+  if (viewLocked()) { zoom = 1; panX = 0; panY = 0; }
   const g = document.getElementById("viewport-group");
   g.setAttribute("transform", `translate(${panX},${panY}) scale(${zoom})`);
   document.getElementById("zoom-level").textContent = Math.round(zoom * 100) + "%";
@@ -430,6 +437,8 @@ const CL_H = CL.N * CL.TH + (CL.N + 1) * CL.GAP;      // 1718
 
 function isRingThick() { return layoutMode !== "classic"; }
 function boardSize() { return isRingThick() ? { w: SVG_W, h: SVG_H } : { w: CL_W, h: CL_H }; }
+// 加厚环一屏放得下 → 视图固定：不允许缩放/平移（否则板子被拖歪，而这一档没有重置按钮，回不来）
+function viewLocked() { return isRingThick(); }
 
 // 格子容器：transform + 筛选属性 + 悬停提示（两种布局共用）
 function tileGroup(t, x, y) {
@@ -752,6 +761,7 @@ function initPanZoom() {
 
   // 鼠标滚轮缩放
   container.addEventListener("wheel", (e) => {
+    if (viewLocked()) return;                 // 锁定档：不拦滚轮，页面照常滚
     e.preventDefault();
     const rect = container.getBoundingClientRect();
     const mx = e.clientX - rect.left;
@@ -774,6 +784,7 @@ function initPanZoom() {
   let startX = 0, startY = 0, startPanX = 0, startPanY = 0;
 
   container.addEventListener("mousedown", (e) => {
+    if (viewLocked()) return;                 // 锁定档：不能拖
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
@@ -800,6 +811,7 @@ function initPanZoom() {
   let pinchZoom = 1;
 
   container.addEventListener("touchstart", (e) => {
+    if (viewLocked()) return;                 // 锁定档：不拦手势，交给浏览器去滚页面
     e.preventDefault();
     for (const t of e.touches) {
       touches[t.identifier] = { x: t.clientX, y: t.clientY };
@@ -821,6 +833,7 @@ function initPanZoom() {
   }, { passive: false });
 
   container.addEventListener("touchmove", (e) => {
+    if (viewLocked()) return;
     e.preventDefault();
     if (e.touches.length === 1 && isDragging) {
       panX = startPanX + (e.touches[0].clientX - startX);
@@ -838,6 +851,7 @@ function initPanZoom() {
   }, { passive: false });
 
   container.addEventListener("touchend", (e) => {
+    if (viewLocked()) return;
     for (const t of e.changedTouches) {
       delete touches[t.identifier];
     }
@@ -846,7 +860,7 @@ function initPanZoom() {
     }
   });
 
-  // 双击重置
+  // 双击重置（锁定档下 zoom/pan 恒为 1/0，等于空操作）
   container.addEventListener("dblclick", () => {
     zoom = 1;
     panX = 0;

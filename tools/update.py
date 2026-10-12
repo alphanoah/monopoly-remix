@@ -31,7 +31,8 @@ ORIGINAL_DIR = os.path.join(CONTENT_DIR, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 # 打印版棋盘（80×80cm 软垫）：真源 JSON → map-print.html 的内置兜底块
 MAP_DATA_PATH = os.path.join(CONTENT_DIR, 'map-print-data.json')
-MAP_PRINT_PATH = os.path.join(ROOT, 'map-print.html')
+MAP_PRINT_PATH = os.path.join(ROOT, 'map-print.html')       # 80cm 打印页
+MAP_SVG_PRINT_PATH = os.path.join(ROOT, 'map-print-svg.html')  # 电子地图（打印版数据）
 # 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
 ORIGINAL_DOCS = [
     ('cards.md', '原版命运牌 & 机会牌（20 + 20 张）', True),
@@ -521,9 +522,12 @@ def write_map_print_fallback():
     block = ('/* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改\n'
              '%s\n'
              '/* MAP_FALLBACK:END */' % js)
-    if swap(MAP_PRINT_PATH, r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/', block, '棋盘兜底数据'):
-        print('  map-print.html 内置兜底（%d 格 / %d 个颜色组）'
-              % (len(data['tiles']), len(data['colorGroups'])))
+    for path in (MAP_PRINT_PATH, MAP_SVG_PRINT_PATH):
+        if not os.path.exists(path):
+            continue
+        if swap(path, r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/', block, '棋盘兜底数据'):
+            print('  %s 内置兜底（%d 格 / %d 个颜色组）'
+                  % (os.path.basename(path), len(data['tiles']), len(data['colorGroups'])))
 
 
 def main():

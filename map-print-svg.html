@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大富翁「世界之旅」地图 · 打印版数据 (SVG)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    background: #fbfaf8;
+    color: #2c2c2a;
+    padding: 20px 16px 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 {
+    font-size: 21px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #2c2c2a;
+    letter-spacing: .3px;
+  }
+  .home {
+    font-size: 12.5px;
+    color: #6b6a66;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  .home:hover { color: #96597A; }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .toolbar button {
+    background: #fff;
+    border: 1px solid #ddd9d2;
+    border-radius: 8px;
+    padding: 6px 13px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    color: #2c2c2a;
+    transition: all 0.15s;
+  }
+  .toolbar button:hover { border-color: #B06F88; color: #96597A; }
+  .toolbar button:active { background: #f4f2ee; }
+  /* 下载按钮：给它一点主色，跟其余按钮区分开 */
+  .toolbar button.primary { background: #B06F88; border-color: #B06F88; color: #fff; }
+  .toolbar button.primary:hover { background: #96597A; border-color: #96597A; color: #fff; }
+  .toolbar button.primary:active { background: #854f6c; border-color: #854f6c; }
+  .toolbar button[disabled], .toolbar button.busy { opacity: .55; cursor: default; }
+  /* 加厚环模式下整板一屏放得下，不需要缩放控件 */
+  .zoom-controls { display: flex; gap: 8px; align-items: center; }
+  .zoom-controls[hidden] { display: none; }
+  .toolbar .zoom-level {
+    font-size: 13px;
+    color: #8a8880;
+    min-width: 52px;
+    text-align: center;
+  }
+  .svg-container {
+    background: #fff;
+    padding: 8px;
+    border: 1px solid #e8e5df;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 780px;      /* 环厚的板子是正方形，再宽手机上字会太小 */
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    position: relative;
+  }
+  .svg-container.grabbing { cursor: grabbing; }
+  /* 加厚环：视图固定，不缩放也不平移。放开 touch-action，手指在棋盘上滑动才能正常滚页面 */
+  .svg-container.locked { cursor: default; touch-action: auto; }
+  svg { display: block; width: 100%; height: auto; user-select: none; }
+  .legend {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12.5px;
+  }
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+  }
+  .legend-label {
+    font-size: 11px;
+    color: #8a8880;
+    font-weight: 500;
+    min-width: 56px;
+    text-align: right;
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #e5e1da;
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: #6b6a66;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .legend-item:hover { border-color: #B06F88; color: #96597A; }
+  .legend-item.on { background: #B06F88; border-color: #B06F88; color: #fff; }
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex: none;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  }
+  .hint {
+    font-size: 12px;
+    color: #8a8880;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .hint b { color: #2c2c2a; font-weight: 500; }
+  /* 手机上把边距压到最小，好让棋盘吃满屏宽 */
+  @media (max-width: 640px) {
+    body { padding: 10px 6px 28px; }
+    h1 { font-size: 18px; }
+    .svg-container { padding: 4px; border-radius: 8px; }
+    .legend-label { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">← 返回首页</a>
+<h1>大富翁「世界之旅」 WORLD TOUR</h1>
+<div class="hint" id="hint">加厚环 · 整板一屏放下，不用缩放 · 鼠标悬停看首都和价格 · 点下方色块只看某一组</div>
+<div id="legend" class="legend"></div>
+<div class="toolbar" id="toolbar">
+  <span class="zoom-controls" id="zoom-controls">
+    <button id="btn-zoom-out">−</button>
+    <span class="zoom-level" id="zoom-level">100%</span>
+    <button id="btn-zoom-in">+</button>
+    <button id="btn-reset">重置</button>
+  </span>
+  <button id="btn-layout" title="在「加厚环」和「原版薄环」之间切换">切换为原版薄环</button>
+  <button id="btn-png" title="把当前地图导出为 PNG 图片">下载 PNG</button>
+</div>
+<div class="svg-container" id="svg-container">
+  <svg id="map" xmlns="http://www.w3.org/2000/svg">
+    <g id="viewport-group"></g>
+  </svg>
+</div>
+
+<script>
+// ===== 颜色映射 =====
+// 色值不写死：取自 content/map-print-data.json 的 colorGroups[].hex（打印版＝按实体棋盘照片的鲜艳色）
+// 格子用 colorId 引用颜色组；老数据（map-data.json 用字符串 color）也能兼容。
+let HEX = {};        // 颜色组 id → 色值
+let HEXBYKEY = {};   // 颜色组 key（如 "red"）→ 色值
+function loadPalette(data) {
+  HEX = {}; HEXBYKEY = {};
+  (data.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; });
+}
+// 格子的色带颜色（地产格取分组色，其余取特殊格色）
+function tileColor(t) {
+  const c = (t.colorId != null ? HEX[t.colorId] : HEXBYKEY[t.color]);
+  return c || SPECIAL_COLORS[t.type] || "#b3afa6";
+}
+// 打印版数据里地产格也有 type:"property"，判断「是不是特殊格」要排除它
+function isSpecial(t) { return !!t.type && t.type !== "property"; }
+// 某颜色组有多少格（图例用；打印版 JSON 不带 count，现算）
+function countOf(data, colorId) {
+  return data.tiles.filter(x => x.colorId === colorId).length;
+}
+
+// 特殊格（非地产）的图例色，跟首页配色对应
+const SPECIAL_COLORS = {
+  "corner": "#b3afa6",
+  "chance": "#B06F88",
+  "destiny": "#D9BA8E",
+  "ocean": "#9BB6C4"
+};
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// ===== 布局参数 =====
+// 结构照旧：每边 16 格（角格 + 15）、角格仍在四角、顺时针、首尾接壤；
+// 只是把环「加厚」：每个格子沿径向往中间伸长 RING_T 个单位，中间的空被吃掉，格子随之变大。
+const N_POS = 17;                                 // 每边的位置数（角格 + 15 + 角格）
+const U = 20;                                     // 1 个单位 = 20 用户坐标（整板 340）
+const RING_T = 4;                                 // 加厚环的环厚（1 = 薄环；1~8 任意取值）
+const SVG_W = N_POS * U;                          // 加厚环整板正方形 = 340
+const SVG_H = SVG_W;
+
+// 中空边长 = 整板 − 两侧环厚（随 RING_T 变化，所以做成函数）
+function holeSize() { return (N_POS - 2 * RING_T) * U; }
+
+// ===== 格子位置：每边 16 格（角格 + 15），顺时针 =====
+// 赤道(右下·起点) → 底边向左 → 地中海(左下) → 左边向上 → 北极(左上) → 顶边向右 → 夏威夷(右上) → 右边向下 → 回起点
+function tileRectUnit(id) {
+  const L = N_POS - 2 * RING_T, ew = L / 15;
+  if (id === 0)  return { x: N_POS - RING_T, y: N_POS - RING_T, w: RING_T, h: RING_T };
+  if (id <= 15) { const k = id - 1;  return { x: N_POS - RING_T - (k + 1) * ew, y: N_POS - RING_T, w: ew, h: RING_T }; }
+  if (id === 16) return { x: 0, y: N_POS - RING_T, w: RING_T, h: RING_T };
+  if (id <= 31) { const k = id - 17; return { x: 0, y: N_POS - RING_T - (k + 1) * ew, w: RING_T, h: ew }; }
+  if (id === 32) return { x: 0, y: 0, w: RING_T, h: RING_T };
+  if (id <= 47) { const k = id - 33; return { x: RING_T + k * ew, y: 0, w: ew, h: RING_T }; }
+  if (id === 48) return { x: N_POS - RING_T, y: 0, w: RING_T, h: RING_T };
+  const k = id - 49; return { x: N_POS - RING_T, y: RING_T + k * ew, w: RING_T, h: ew };
+}
+// 色带贴「最外圈」那一边：四个角格各接自己那一条边，整圈连成一条
+function tileEdge(id) {
+  if (id <= 15) return "bottom";   // 赤道(0) + 底边
+  if (id <= 31) return "left";     // 地中海(16) + 左边
+  if (id <= 47) return "top";      // 北极(32) + 顶边
+  return "right";                  // 夏威夷(48) + 右边
+}
+// 三种排法里取字号最大的：竖排（字叠起来）/ 横排两行 / 横排一行
+function pickText(name, price, W, H) {
+  const n = name.length, pl = price ? price.length : 0;
+  const stackPrice = price ? (W * 0.94 / (pl * 0.58 + 0.2) < 6.5) : false;
+  const kP = price ? (stackPrice ? pl * 1.08 * 0.92 * 0.95 : 1.9) : 0.25;
+  const c = [
+    { m: "v",  f: Math.min(W * 0.84, H * 0.94 / (n * 1.08 + kP)), stackPrice: stackPrice },
+    { m: "h2", f: Math.min(W * 0.94 / Math.max(1, n), H * 0.465) },
+    { m: "h1", f: Math.min(W * 0.94 / (n + pl * 0.58 + 0.3), H * 0.80) }
+  ].sort(function (a, b) { return b.f - a.f; })[0];
+  c.f = Math.max(3, Math.min(c.f, 15));
+  return c;
+}
+
+// ===== 内置兜底数据（同 content/map-print-data.json；由 tools/update.py 生成，勿手改）=====
+const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改
+{
+  "version": "1.0",
+  "name": "大富翁「世界之旅」· 打印版棋盘",
+  "nameEn": "World Tour Monopoly · Print Board",
+  "note": "80×80cm 软垫打印版专用数据（按实体棋盘照片 map.jpg 一比一还原）。与 content/map-data.json（电子地图用）的区别：①颜色分组带数字 id，格子用 colorId 引用，②hex 为照片取色的鲜艳版（电子地图那套是压低饱和的淡色版），③地产格显式 type=\"property\"，④含 board/layout 版式参数。map-print.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底数据。",
+  "board": {
+    "size": 1800,
+    "trackWidth": 190,
+    "band": 38,
+    "tileCount": 64,
+    "tilesPerSide": 15,
+    "corners": 4
+  },
+  "layout": {
+    "property": {
+      "nameY": -36,
+      "nameEnY": -18,
+      "flagY": 26,
+      "flagSize": 30,
+      "priceY": 58,
+      "priceSize": 18,
+      "capitalY": 80,
+      "capitalSize": 12,
+      "nameSize": {
+        "le3": 19,
+        "eq4": 16,
+        "ge5": 13
+      },
+      "longNameY": [
+        -40,
+        -24,
+        -8
+      ]
+    },
+    "deck": {
+      "nameY": -50,
+      "enY": -32,
+      "symY": 20,
+      "symSize": 66,
+      "line1Y": 62,
+      "line2Y": 80
+    },
+    "ocean": {
+      "gap": 46,
+      "radius": 20,
+      "offset": 25
+    },
+    "id": {
+      "insetX": 5,
+      "insetY": 6,
+      "size": 11,
+      "opacity": 0.55
+    },
+    "corner": {
+      "iconOffset": 37,
+      "iconScale": 0.85,
+      "textY": -16,
+      "textSize": 46,
+      "idInset": 9
+    }
+  },
+  "decks": {
+    "chance": {
+      "bg": "#B06F88",
+      "fg": "#ffffff",
+      "ink": "#8E4F6C",
+      "w1": "机",
+      "w2": "会",
+      "sym": "?",
+      "en": "CHANCE"
+    },
+    "fate": {
+      "bg": "#D9BA8E",
+      "fg": "#2C3E6B",
+      "ink": "#2C3E6B",
+      "w1": "命",
+      "w2": "运",
+      "sym": "!",
+      "en": "FATE"
+    }
+  },
+  "colorGroups": [
+    {
+      "id": 1,
+      "key": "red",
+      "name": "红",
+      "nameEn": "Red",
+      "hex": "#E03A3A"
+    },
+    {
+      "id": 2,
+      "key": "light-blue",
+      "name": "浅蓝",
+      "nameEn": "Light Blue",
+      "hex": "#2FA3DC"
+    },
+    {
+      "id": 3,
+      "key": "yellow-green",
+      "name": "黄绿",
+      "nameEn": "Yellow Green",
+      "hex": "#A8C43C"
+    },
+    {
+      "id": 4,
+      "key": "purple",
+      "name": "紫",
+      "nameEn": "Purple",
+      "hex": "#9B59B6"
+    },
+    {
+      "id": 5,
+      "key": "pink",
+      "name": "粉",
+      "nameEn": "Pink",
+      "hex": "#EE6FA8"
+    },
+    {
+      "id": 6,
+      "key": "dark-gray",
+      "name": "深灰",
+      "nameEn": "Dark Gray",
+      "hex": "#5D6D7E"
+    },
+    {
+      "id": 7,
+      "key": "dark-blue",
+      "name": "深蓝",
+      "nameEn": "Dark Blue",
+      "hex": "#4A68B0"
+    },
+    {
+      "id": 8,
+      "key": "light-green",
+      "name": "浅绿",
+      "nameEn": "Light Green",
+      "hex": "#3FBF6E"
+    },
+    {
+      "id": 9,
+      "key": "khaki",
+      "name": "浅灰(卡其)",
+      "nameEn": "Khaki",
+      "hex": "#BFC5CC"
+    },
+    {
+      "id": 10,
+      "key": "hot-pink",
+      "name": "粉红",
+      "nameEn": "Hot Pink",
+      "hex": "#A962B0"
+    },
+    {
+      "id": 11,
+      "key": "green",
+      "name": "绿",
+      "nameEn": "Green",
+      "hex": "#2E9E4F"
+    }
+  ],
+  "tiles": [
+    {
+      "id": 0,
+      "type": "corner",
+      "name": "赤道",
+      "nameEn": "EQUATOR",
+      "side": "corner-br",
+      "col": 16,
+      "row": 16
+    },
+    {
+      "id": 1,
+      "type": "property",
+      "name": "中国",
+      "nameEn": "CHINA",
+      "capital": "北京",
+      "price": 4000,
+      "colorId": 1,
+      "color": "red",
+      "side": "bottom",
+      "col": 15,
+      "row": 16
+    },
+    {
+      "id": 2,
+      "type": "property",
+      "name": "日本",
+      "nameEn": "JAPAN",
+      "capital": "东京",
+      "price": 1000,
+      "colorId": 1,
+      "color": "red",
+      "side": "bottom",
+      "col": 14,
+      "row": 16
+    },
+    {
+      "id": 3,
+      "type": "chance",
+      "name": "机会",
+      "nameEn": "CHANCE",
+      "side": "bottom",
+      "col": 13,
+      "row": 16
+    },
+    {
+      "id": 4,
+      "type": "property",
+      "name": "韩国",
+      "nameEn": "KOREA",
+      "capital": "首尔",
+      "price": 1000,
+      "colorId": 1,
+      "color": "red",
+      "side": "bottom",
+      "col": 12,
+      "row": 16
+    },
+    {
+      "id": 5,
+      "type": "property",
+      "name": "菲律宾",
+      "nameEn": "PHILIPPINES",
+      "capital": "马尼拉",
+      "price": 600,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 11,
+      "row": 16
+    },
+    {
+      "id": 6,
+      "type": "property",
+      "name": "马来西亚",
+      "nameEn": "MALAYSIA",
+      "capital": "吉隆坡",
+      "price": 2600,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 10,
+      "row": 16
+    },
+    {
+      "id": 7,
+      "type": "property",
+      "name": "越南",
+      "nameEn": "VIETNAM",
+      "capital": "河内",
+      "price": 2800,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 9,
+      "row": 16
+    },
+    {
+      "id": 8,
+      "type": "property",
+      "name": "泰国",
+      "nameEn": "THAILAND",
+      "capital": "曼谷",
+      "price": 1600,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 8,
+      "row": 16
+    },
+    {
+      "id": 9,
+      "type": "property",
+      "name": "印度",
+      "nameEn": "INDIA",
+      "capital": "新德里",
+      "price": 1400,
+      "colorId": 2,
+      "color": "light-blue",
+      "side": "bottom",
+      "col": 7,
+      "row": 16
+    },
+    {
+      "id": 10,
+      "type": "ocean",
+      "name": "太平洋",
+      "nameEn": "PACIFIC",
+      "side": "bottom",
+      "col": 6,
+      "row": 16
+    },
+    {
+      "id": 11,
+      "type": "property",
+      "name": "斯里兰卡",
+      "nameEn": "SRI LANKA",
+      "capital": "科伦坡",
+      "price": 1400,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 5,
+      "row": 16
+    },
+    {
+      "id": 12,
+      "type": "property",
+      "name": "伊朗",
+      "nameEn": "IRAN",
+      "capital": "德黑兰",
+      "price": 2000,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 4,
+      "row": 16
+    },
+    {
+      "id": 13,
+      "type": "property",
+      "name": "伊拉克",
+      "nameEn": "IRAQ",
+      "capital": "巴格达",
+      "price": 1800,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 3,
+      "row": 16
+    },
+    {
+      "id": 14,
+      "type": "property",
+      "name": "沙特阿拉伯",
+      "nameEn": "SAUDI ARABIA",
+      "capital": "利雅得",
+      "price": 1800,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 2,
+      "row": 16
+    },
+    {
+      "id": 15,
+      "type": "property",
+      "name": "叙利亚",
+      "nameEn": "SYRIA",
+      "capital": "大马士革",
+      "price": 3500,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "bottom",
+      "col": 1,
+      "row": 16
+    },
+    {
+      "id": 16,
+      "type": "corner",
+      "name": "地中海",
+      "nameEn": "MEDITERRANEAN",
+      "side": "corner-bl",
+      "col": 0,
+      "row": 16
+    },
+    {
+      "id": 17,
+      "type": "property",
+      "name": "土耳其",
+      "nameEn": "TURKEY",
+      "capital": "安卡拉",
+      "price": 3500,
+      "colorId": 3,
+      "color": "yellow-green",
+      "side": "left",
+      "col": 0,
+      "row": 15
+    },
+    {
+      "id": 18,
+      "type": "destiny",
+      "name": "命运",
+      "nameEn": "DESTINY",
+      "side": "left",
+      "col": 0,
+      "row": 14
+    },
+    {
+      "id": 19,
+      "type": "property",
+      "name": "黎巴嫩",
+      "nameEn": "LEBANON",
+      "capital": "贝鲁特",
+      "price": 600,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 13
+    },
+    {
+      "id": 20,
+      "type": "property",
+      "name": "以色列",
+      "nameEn": "ISRAEL",
+      "capital": "耶路撒冷",
+      "price": 2000,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 12
+    },
+    {
+      "id": 21,
+      "type": "property",
+      "name": "俄罗斯",
+      "nameEn": "RUSSIA",
+      "capital": "莫斯科",
+      "price": 1000,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 11
+    },
+    {
+      "id": 22,
+      "type": "property",
+      "name": "波兰",
+      "nameEn": "POLAND",
+      "capital": "华沙",
+      "price": 1200,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 10
+    },
+    {
+      "id": 23,
+      "type": "property",
+      "name": "德国",
+      "nameEn": "GERMANY",
+      "capital": "柏林",
+      "price": 2400,
+      "colorId": 4,
+      "color": "purple",
+      "side": "left",
+      "col": 0,
+      "row": 9
+    },
+    {
+      "id": 24,
+      "type": "ocean",
+      "name": "印度洋",
+      "nameEn": "INDIAN OCEAN",
+      "side": "left",
+      "col": 0,
+      "row": 8
+    },
+    {
+      "id": 25,
+      "type": "property",
+      "name": "奥地利",
+      "nameEn": "AUSTRIA",
+      "capital": "维也纳",
+      "price": 3000,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 7
+    },
+    {
+      "id": 26,
+      "type": "property",
+      "name": "瑞士",
+      "nameEn": "SWITZERLAND",
+      "capital": "伯尔尼",
+      "price": 3200,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 6
+    },
+    {
+      "id": 27,
+      "type": "property",
+      "name": "法国",
+      "nameEn": "FRANCE",
+      "capital": "巴黎",
+      "price": 3000,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 5
+    },
+    {
+      "id": 28,
+      "type": "property",
+      "name": "比利时",
+      "nameEn": "BELGIUM",
+      "capital": "布鲁塞尔",
+      "price": 2200,
+      "colorId": 5,
+      "color": "pink",
+      "side": "left",
+      "col": 0,
+      "row": 4
+    },
+    {
+      "id": 29,
+      "type": "chance",
+      "name": "机会",
+      "nameEn": "CHANCE",
+      "side": "left",
+      "col": 0,
+      "row": 3
+    },
+    {
+      "id": 30,
+      "type": "property",
+      "name": "荷兰",
+      "nameEn": "NETHERLANDS",
+      "capital": "阿姆斯特丹",
+      "price": 2400,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "left",
+      "col": 0,
+      "row": 2
+    },
+    {
+      "id": 31,
+      "type": "property",
+      "name": "英国",
+      "nameEn": "UK",
+      "capital": "伦敦",
+      "price": 2200,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "left",
+      "col": 0,
+      "row": 1
+    },
+    {
+      "id": 32,
+      "type": "corner",
+      "name": "北极",
+      "nameEn": "ARCTIC",
+      "side": "corner-tl",
+      "col": 0,
+      "row": 0
+    },
+    {
+      "id": 33,
+      "type": "property",
+      "name": "芬兰",
+      "nameEn": "FINLAND",
+      "capital": "赫尔辛基",
+      "price": 2600,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "top",
+      "col": 1,
+      "row": 0
+    },
+    {
+      "id": 34,
+      "type": "property",
+      "name": "瑞典",
+      "nameEn": "SWEDEN",
+      "capital": "斯德哥尔摩",
+      "price": 2600,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "top",
+      "col": 2,
+      "row": 0
+    },
+    {
+      "id": 35,
+      "type": "property",
+      "name": "丹麦",
+      "nameEn": "DENMARK",
+      "capital": "哥本哈根",
+      "price": 2800,
+      "colorId": 6,
+      "color": "dark-gray",
+      "side": "top",
+      "col": 3,
+      "row": 0
+    },
+    {
+      "id": 36,
+      "type": "property",
+      "name": "希腊",
+      "nameEn": "GREECE",
+      "capital": "雅典",
+      "price": 1600,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 4,
+      "row": 0
+    },
+    {
+      "id": 37,
+      "type": "property",
+      "name": "意大利",
+      "nameEn": "ITALY",
+      "capital": "罗马",
+      "price": 1400,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 5,
+      "row": 0
+    },
+    {
+      "id": 38,
+      "type": "destiny",
+      "name": "命运",
+      "nameEn": "DESTINY",
+      "side": "top",
+      "col": 6,
+      "row": 0
+    },
+    {
+      "id": 39,
+      "type": "property",
+      "name": "西班牙",
+      "nameEn": "SPAIN",
+      "capital": "马德里",
+      "price": 1400,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 7,
+      "row": 0
+    },
+    {
+      "id": 40,
+      "type": "property",
+      "name": "葡萄牙",
+      "nameEn": "PORTUGAL",
+      "capital": "里斯本",
+      "price": 2000,
+      "colorId": 7,
+      "color": "dark-blue",
+      "side": "top",
+      "col": 8,
+      "row": 0
+    },
+    {
+      "id": 41,
+      "type": "property",
+      "name": "埃及",
+      "nameEn": "EGYPT",
+      "capital": "开罗",
+      "price": 1800,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 9,
+      "row": 0
+    },
+    {
+      "id": 42,
+      "type": "property",
+      "name": "摩洛哥",
+      "nameEn": "MOROCCO",
+      "capital": "拉巴特",
+      "price": 1800,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 10,
+      "row": 0
+    },
+    {
+      "id": 43,
+      "type": "property",
+      "name": "赞比亚",
+      "nameEn": "ZAMBIA",
+      "capital": "卢萨卡",
+      "price": 600,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 11,
+      "row": 0
+    },
+    {
+      "id": 44,
+      "type": "chance",
+      "name": "机会",
+      "nameEn": "CHANCE",
+      "side": "top",
+      "col": 12,
+      "row": 0
+    },
+    {
+      "id": 45,
+      "type": "property",
+      "name": "南非共和国",
+      "nameEn": "SOUTH AFRICA",
+      "capital": "比勒陀利亚",
+      "price": 600,
+      "colorId": 8,
+      "color": "light-green",
+      "side": "top",
+      "col": 13,
+      "row": 0
+    },
+    {
+      "id": 46,
+      "type": "property",
+      "name": "加拿大",
+      "nameEn": "CANADA",
+      "capital": "渥太华",
+      "price": 3500,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "top",
+      "col": 14,
+      "row": 0
+    },
+    {
+      "id": 47,
+      "type": "property",
+      "name": "美国",
+      "nameEn": "USA",
+      "capital": "华盛顿",
+      "price": 3500,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "top",
+      "col": 15,
+      "row": 0
+    },
+    {
+      "id": 48,
+      "type": "corner",
+      "name": "夏威夷",
+      "nameEn": "HAWAII",
+      "side": "corner-tr",
+      "col": 16,
+      "row": 0
+    },
+    {
+      "id": 49,
+      "type": "property",
+      "name": "墨西哥",
+      "nameEn": "MEXICO",
+      "capital": "墨西哥城",
+      "price": 1000,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "right",
+      "col": 16,
+      "row": 1
+    },
+    {
+      "id": 50,
+      "type": "property",
+      "name": "洪都拉斯",
+      "nameEn": "HONDURAS",
+      "capital": "特古西加尔巴",
+      "price": 1200,
+      "colorId": 9,
+      "color": "khaki",
+      "side": "right",
+      "col": 16,
+      "row": 2
+    },
+    {
+      "id": 51,
+      "type": "property",
+      "name": "尼加拉瓜",
+      "nameEn": "NICARAGUA",
+      "capital": "马那瓜",
+      "price": 3000,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 3
+    },
+    {
+      "id": 52,
+      "type": "property",
+      "name": "哥斯达黎加",
+      "nameEn": "COSTA RICA",
+      "capital": "圣何塞",
+      "price": 1000,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 4
+    },
+    {
+      "id": 53,
+      "type": "destiny",
+      "name": "命运",
+      "nameEn": "DESTINY",
+      "side": "right",
+      "col": 16,
+      "row": 5
+    },
+    {
+      "id": 54,
+      "type": "property",
+      "name": "巴拿马",
+      "nameEn": "PANAMA",
+      "capital": "巴拿马城",
+      "price": 3200,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 6
+    },
+    {
+      "id": 55,
+      "type": "property",
+      "name": "古巴",
+      "nameEn": "CUBA",
+      "capital": "哈瓦那",
+      "price": 3000,
+      "colorId": 10,
+      "color": "hot-pink",
+      "side": "right",
+      "col": 16,
+      "row": 7
+    },
+    {
+      "id": 56,
+      "type": "property",
+      "name": "哥伦比亚",
+      "nameEn": "COLOMBIA",
+      "capital": "波哥大",
+      "price": 1800,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 8
+    },
+    {
+      "id": 57,
+      "type": "property",
+      "name": "玻利维亚",
+      "nameEn": "BOLIVIA",
+      "capital": "苏克雷·拉巴斯",
+      "price": 1200,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 9
+    },
+    {
+      "id": 58,
+      "type": "property",
+      "name": "巴西",
+      "nameEn": "BRAZIL",
+      "capital": "巴西利亚",
+      "price": 2600,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 10
+    },
+    {
+      "id": 59,
+      "type": "ocean",
+      "name": "大西洋",
+      "nameEn": "ATLANTIC",
+      "side": "right",
+      "col": 16,
+      "row": 11
+    },
+    {
+      "id": 60,
+      "type": "property",
+      "name": "阿根廷",
+      "nameEn": "ARGENTINA",
+      "capital": "布宜诺斯艾利斯",
+      "price": 1000,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 12
+    },
+    {
+      "id": 61,
+      "type": "property",
+      "name": "智利",
+      "nameEn": "CHILE",
+      "capital": "圣地亚哥",
+      "price": 3500,
+      "colorId": 11,
+      "color": "green",
+      "side": "right",
+      "col": 16,
+      "row": 13
+    },
+    {
+      "id": 62,
+      "type": "property",
+      "name": "澳大利亚",
+      "nameEn": "AUSTRALIA",
+      "capital": "堪培拉",
+      "price": 3200,
+      "colorId": 1,
+      "color": "red",
+      "side": "right",
+      "col": 16,
+      "row": 14
+    },
+    {
+      "id": 63,
+      "type": "property",
+      "name": "新西兰",
+      "nameEn": "NEW ZEALAND",
+      "capital": "惠灵顿",
+      "price": 3500,
+      "colorId": 1,
+      "color": "red",
+      "side": "right",
+      "col": 16,
+      "row": 15
+    }
+  ]
+}
+/* MAP_FALLBACK:END */;
+
+// ===== SVG 辅助函数 =====
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    el.setAttribute(k, v);
+  }
+  return el;
+}
+
+function svgText(x, y, text, fontSize, opts = {}) {
+  const t = svgEl("text", {
+    x: x,
+    y: y,
+    "font-size": fontSize,
+    "font-family": opts.fontFamily || "-apple-system, PingFang SC, Microsoft YaHei, sans-serif",
+    "font-weight": opts.weight || "normal",
+    fill: opts.color || "#333",
+    "text-anchor": "middle",
+    "dominant-baseline": "middle"
+  });
+  if (opts.letterSpacing) t.setAttribute("letter-spacing", opts.letterSpacing);
+  t.textContent = text;
+  return t;
+}
+
+// ===== 图例筛选 =====
+let currentFilter = "all";
+let mapData = null;                               // 缓存当前数据，切换布局时用它重画
+let hashApplied = false;                          // #f= 的hash筛选只吃一次
+
+// 顶上的提示语随布局而变：加厚环一屏放下不用缩放，薄环才需要那套操作
+function defaultHint() {
+  return isRingThick()
+    ? "加厚环 · 整板已固定一屏，不用缩放平移 · 鼠标悬停看首都和价格 · 点下方色块只看某一组"
+    : "原版布局 · 滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组";
+}
+
+function setFilter(key, name) {
+  currentFilter = (key === currentFilter) ? "all" : key;   // 再点一次就取消
+  applyFilter(name);
+}
+
+// 把当前 currentFilter 落到棋盘上（重画之后也要重新调用一次）
+function applyFilter(name) {
+  document.querySelectorAll(".legend-item").forEach(el => {
+    el.classList.toggle("on", el.dataset.filter === currentFilter);
+  });
+  const pair = currentFilter.split(":");
+  const kind = pair[0], val = pair[1];
+  let hits = 0;
+  document.querySelectorAll("g[data-tile]").forEach(g => {
+    const match = currentFilter === "all" ||
+      (kind === "color" ? g.getAttribute("data-color") === val : g.getAttribute("data-special") === val);
+    g.setAttribute("opacity", match ? "1" : "0.12");
+    if (match) hits++;
+  });
+  const hint = document.getElementById("hint");
+  if (currentFilter === "all") {
+    hint.textContent = defaultHint();
+    return;
+  }
+  const label = name || (currentFilter.split(":")[1] || "");
+  hint.innerHTML = `只看 <b>${label}</b> · ${hits} 格 —— 再点一次取消筛选`;
+}
+
+// 按钮文字 / 缩放控件的显示，跟着当前布局走
+function updateModeUI() {
+  const thick = isRingThick();
+  document.getElementById("zoom-controls").hidden = thick;
+  // 加厚环是正方板，容器宽了反而字会变小；原版是竖长板，得放开宽度
+  const container = document.getElementById("svg-container");
+  container.style.maxWidth = thick ? "780px" : "1320px";
+  // 加厚环锁视图：收回抓手光标 + 放开 touch-action，让手指能正常滚页面
+  container.classList.toggle("locked", thick);
+  const btn = document.getElementById("btn-layout");
+  btn.textContent = thick ? "切换为原版布局" : "切换为加厚环";
+  const hint = document.getElementById("hint");
+  if (currentFilter === "all") hint.textContent = defaultHint();
+}
+
+// ===== 缩放平移状态 =====
+let zoom = 1;
+let panX = 0;
+let panY = 0;
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 5;
+
+function updateViewport() {
+  // 兜底：锁定档位下不管哪条路径改了 zoom/pan，都一律钳回「整板居中」
+  if (viewLocked()) { zoom = 1; panX = 0; panY = 0; }
+  const g = document.getElementById("viewport-group");
+  g.setAttribute("transform", `translate(${panX},${panY}) scale(${zoom})`);
+  document.getElementById("zoom-level").textContent = Math.round(zoom * 100) + "%";
+}
+
+// ===== 两种布局 =====
+// "thick"   加厚环（默认）：N_POS=17 / RING_T=4，整板 340×340 正方形，格子吃进中间空 → 手机上字够大
+// "classic" 原版：每格 76×100 + 1px 缝，整板 1310×1718 —— 就是最初那一版的样子（国名/英文/价格/首都四行）
+let layoutMode = "thick";
+
+const CL = { TW: 76, TH: 100, GAP: 1, BAND: 14, N: 17 };
+const CL_W = CL.N * CL.TW + (CL.N + 1) * CL.GAP;      // 1310
+const CL_H = CL.N * CL.TH + (CL.N + 1) * CL.GAP;      // 1718
+
+function isRingThick() { return layoutMode !== "classic"; }
+function boardSize() { return isRingThick() ? { w: SVG_W, h: SVG_H } : { w: CL_W, h: CL_H }; }
+// 加厚环一屏放得下 → 视图固定：不允许缩放/平移（否则板子被拖歪，而这一档没有重置按钮，回不来）
+function viewLocked() { return isRingThick(); }
+
+// 格子容器：transform + 筛选属性 + 悬停提示（两种布局共用）
+function tileGroup(t, x, y) {
+  const g = svgEl("g", { transform: `translate(${x},${y})` });
+  g.setAttribute("data-tile", "1");
+  if (isSpecial(t)) { g.setAttribute("data-special", t.type); } else { g.setAttribute("data-color", t.color); }
+  const tip = svgEl("title", {});
+  tip.textContent = `${t.name}${t.nameEn ? " " + t.nameEn : ""}` +
+    `${t.capital ? " · 首都 " + t.capital : ""}${t.price ? " · $" + t.price : ""}${t.sub ? " · " + t.sub : ""}`;
+  g.appendChild(tip);
+  return g;
+}
+
+// ===== 渲染地图 =====
+function renderMap(data) {
+  mapData = data;
+  loadPalette(data);
+  const svg = document.getElementById("map");
+  const bs = boardSize();
+  svg.setAttribute("viewBox", `0 0 ${bs.w} ${bs.h}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+  const vg = document.getElementById("viewport-group");
+  vg.innerHTML = "";
+  drawBoard(vg, data);
+  renderLegend(data);
+
+  updateViewport();
+  initPanZoom();
+  updateModeUI();
+  applyFilter();
+
+  if (!hashApplied && location.hash.startsWith("#f=")) {
+    hashApplied = true;
+    const k = decodeURIComponent(location.hash.slice(3));
+    const chip = document.querySelector('.legend-item[data-filter="' + k + '"]');
+    if (chip) chip.click();
+  }
+}
+
+// 整块棋盘：背景 + 中空 + 64 格，按当前布局走两种画法
+function drawBoard(vg, data) {
+  const bs = boardSize();
+  const thick = isRingThick();
+
+  // 渐变定义：中空那块用的底色（原版档沿用最初那组的配色）
+  const defs = svgEl("defs", {});
+  const grad = svgEl("linearGradient", { id: "centerGrad", x1: "0%", y1: "0%", x2: "100%", y2: "100%" });
+  grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": thick ? "#fdfcfa" : "#fbfaf8" }));
+  grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": thick ? "#f6f4f0" : "#f4f2ee" }));
+  defs.appendChild(grad);
+  vg.appendChild(defs);
+
+  vg.appendChild(svgEl("rect", { x: 0, y: 0, width: bs.w, height: bs.h, fill: "#f4f2ee", rx: 4 }));
+
+  // 中空：加厚环是 (17-2*RING_T)² 的方块，原版是 15×15 格那块
+  const hole = thick ? drawThickCenter(vg) : drawClassicCenter(vg);
+  const cx = hole.x + hole.w / 2, cy = hole.y + hole.h / 2;
+  if (thick) {
+    if (hole.h > 90) {
+      vg.appendChild(svgText(cx, cy - 6, "世界之旅", Math.min(22, hole.h * 0.13),
+        { weight: "bold", color: "#2c2c2a", letterSpacing: "4" }));
+      vg.appendChild(svgText(cx, cy + 12, "WORLD TOUR", Math.min(11, hole.h * 0.065),
+        { color: "#8a8880", letterSpacing: "2" }));
+    }
+  } else {
+    vg.appendChild(svgText(cx, cy - 8, "世界之旅", 24, { weight: "bold", color: "#2c2c2a", letterSpacing: "4" }));
+    vg.appendChild(svgText(cx, cy + 16, "WORLD TOUR", 12, { color: "#8a8880", letterSpacing: "2" }));
+  }
+
+  data.tiles.forEach(t => {
+    if (thick) {
+      const r = tileRectUnit(t.id);
+      const W = r.w * U, H = r.h * U;
+      const g = tileGroup(t, r.x * U, r.y * U);
+      drawThickTile(g, t, W, H);
+      vg.appendChild(g);
+    } else {
+      const g = tileGroup(t, CL.GAP + t.col * (CL.TW + CL.GAP), CL.GAP + t.row * (CL.TH + CL.GAP));
+      drawClassicTile(g, t);
+      vg.appendChild(g);
+    }
+  });
+}
+
+function drawThickCenter(vg) {
+  const hs = holeSize(), hx = RING_T * U;
+  if (hs > 4) {
+    vg.appendChild(svgEl("rect", {
+      x: hx, y: hx, width: hs, height: hs,
+      fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
+    }));
+  }
+  return { x: hx, y: hx, w: hs, h: hs };
+}
+
+function drawClassicCenter(vg) {
+  const cx = CL.GAP + CL.TW, cy = CL.GAP + CL.TH;
+  const cw = 15 * CL.TW + 14 * CL.GAP, ch = 15 * CL.TH + 14 * CL.GAP;
+  vg.appendChild(svgEl("rect", {
+    x: cx, y: cy, width: cw, height: ch,
+    fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
+  }));
+  return { x: cx, y: cy, w: cw, h: ch };
+}
+
+// ===== 加厚环的一格：文字在「竖排/横排两行/横排一行」里自动挑字号最大的 =====
+function drawThickTile(g, t, W, H) {
+  let bg = "#fff", stroke = "#e5e1da", sw = 1;
+  if (t.type === "corner") { bg = "#f7f5f1"; stroke = "#b3afa6"; sw = 2; }
+  else if (t.type === "chance") { bg = "#fdf7fa"; stroke = "#B06F88"; }
+  else if (t.type === "destiny") { bg = "#fdf9f2"; stroke = "#D9BA8E"; }
+  else if (t.type === "ocean") { bg = "#f4f8fa"; stroke = "#9BB6C4"; }
+  g.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
+
+  // 每格独立裁剪：窄格子里的文字不许溢出压到邻格
+  const cpId = "clip-tile-" + t.id;
+  const cp = svgEl("clipPath", { id: cpId });
+  cp.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H }));
+  g.appendChild(cp);
+  const inner = svgEl("g", { "clip-path": `url(#${cpId})` });
+  g.appendChild(inner);
+
+  // 色带贴在格子靠外的一边
+  const bandColor = tileColor(t);
+  const bt = Math.max(2, Math.min(W, H) * 0.15);
+  const edge = tileEdge(t.id);
+  let bx = 0, by = 0, bw = W, bh = H;
+  if (edge === "bottom") { by = H - bt; bh = bt; }
+  else if (edge === "top") { bh = bt; }
+  else if (edge === "left") { bw = bt; }
+  else { bx = W - bt; bw = bt; }
+  inner.appendChild(svgEl("rect", { x: bx, y: by, width: bw, height: bh, fill: bandColor, rx: 1 }));
+
+  if (t.type === "corner") {
+    const f = Math.min(W * 0.34, H * 0.26, 15);
+    inner.appendChild(svgText(W / 2, H * 0.34, t.name, f, { weight: "bold", color: "#2c2c2a" }));
+    inner.appendChild(svgText(W / 2, H * 0.50, t.nameEn, Math.max(6, f * 0.40), { color: "#8a8880", letterSpacing: "1" }));
+    const m = String(t.sub || "").match(/\$[\d,]+/);
+    if (m) inner.appendChild(svgText(W / 2, H * 0.68, "起点 " + m[0], Math.max(6, f * 0.50), { weight: "bold", color: "#96597A" }));
+    return;
+  }
+
+  const price = t.price ? String(t.price) : "";
+  const c = pickText(t.name, price, W, H);
+  const nameColor = t.type === "chance" ? "#96597A" : t.type === "destiny" ? "#7A6338" : t.type === "ocean" ? "#4a6b7c" : "#2c2c2a";
+  const priceColor = isSpecial(t) ? "#8a8880" : "#96597A";
+  const glyph = t.type === "chance" ? "?" : t.type === "destiny" ? "\u2726" : t.type === "ocean" ? "~" : null;
+
+  if (c.m === "v") {
+    const fp = price ? (c.stackPrice ? c.f * 0.92 : c.f * 0.85) : 0;
+    const nameH = t.name.length * 1.08 * c.f;
+    const priceH = price ? (c.stackPrice ? price.length * 1.08 * fp : 1.6 * fp) : 0;
+    const fg = glyph ? Math.min(c.f * 0.9, W * 0.62) : 0;
+    const glyphH = (glyph && (H * 0.94 - nameH - priceH) > fg * 1.5) ? fg * 1.2 : 0;
+    let y = (H - nameH - priceH - glyphH) / 2 + c.f * 0.55;
+    if (glyphH) {
+      inner.appendChild(svgText(W / 2, y - c.f * 0.55 + fg * 0.6, glyph, fg, { weight: "bold", color: bandColor }));
+      y += glyphH;
+    }
+    for (let k = 0; k < t.name.length; k++) {
+      inner.appendChild(svgText(W / 2, y, t.name[k], c.f, { weight: "bold", color: nameColor }));
+      y += c.f * 1.08;
+    }
+    if (price) {
+      if (c.stackPrice) {
+        y += fp * 0.35;
+        for (let k = 0; k < price.length; k++) {
+          inner.appendChild(svgText(W / 2, y, price[k], fp, { color: priceColor }));
+          y += fp * 1.08;
+        }
+      } else {
+        y += fp * 0.6;
+        inner.appendChild(svgText(W / 2, y, price, fp, { color: priceColor }));
+      }
+    }
+  } else if (c.m === "h2") {
+    inner.appendChild(svgText(W / 2, H * 0.40, t.name, c.f, { weight: "bold", color: nameColor }));
+    if (price) inner.appendChild(svgText(W / 2, H * 0.74, price, c.f * 0.85, { color: priceColor }));
+  } else {
+    inner.appendChild(svgText(W / 2, H * 0.52, price ? t.name + " " + price : t.name, c.f, { weight: "bold", color: nameColor }));
+  }
+}
+
+// ===== 原版的一格：76×100，色带在顶部，国名/英文/$价格/首都四行 =====
+function drawClassicTile(g, t) {
+  const TW = CL.TW, TH = CL.TH, BH = CL.BAND;
+
+  if (isSpecial(t)) {
+    let bg = "#fff", stroke = "#e5e1da", sw = 1;
+    if (t.type === "corner") { bg = "#f4f2ee"; stroke = "#b3afa6"; sw = 2; }
+    else if (t.type === "chance") { bg = "#faf3f6"; stroke = "#B06F88"; sw = 1; }
+    else if (t.type === "destiny") { bg = "#faf5ec"; stroke = "#D9BA8E"; sw = 1; }
+    else if (t.type === "ocean") { bg = "#eef3f6"; stroke = "#9BB6C4"; sw = 1; }
+
+    g.appendChild(svgEl("rect", { x: 0, y: 0, width: TW, height: TH, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
+
+    if (t.type === "corner") {
+      g.appendChild(svgText(TW / 2, TH / 2 - 6, t.name, 16, { weight: "bold", color: "#2c2c2a" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 12, t.nameEn, 9, { color: "#8a8880", letterSpacing: "0.5" }));
+      if (t.sub) g.appendChild(svgText(TW / 2, TH / 2 + 26, t.sub, 8, { weight: "bold", color: "#96597A" }));
+    } else if (t.type === "chance") {
+      g.appendChild(svgText(TW / 2, TH / 2 - 14, "?", 28, { weight: "bold", color: "#B06F88" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 12, t.name, 11, { weight: "bold", color: "#96597A" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 26, t.nameEn, 7, { color: "#96597A" }));
+    } else if (t.type === "destiny") {
+      g.appendChild(svgText(TW / 2, TH / 2 - 14, "\u2726", 24, { weight: "bold", color: "#C79A5E" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 12, t.name, 11, { weight: "bold", color: "#7A6338" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 26, t.nameEn, 7, { color: "#7A6338" }));
+    } else if (t.type === "ocean") {
+      g.appendChild(svgText(TW / 2, TH / 2 - 14, "~", 22, { color: "#7fa3b8" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 10, t.name, 11, { weight: "bold", color: "#4a6b7c" }));
+      g.appendChild(svgText(TW / 2, TH / 2 + 26, t.nameEn, 7, { color: "#4a6b7c" }));
+    }
+    return;
+  }
+
+  g.appendChild(svgEl("rect", { x: 0, y: 0, width: TW, height: TH, fill: "#fff", stroke: "#e5e1da", "stroke-width": 1, rx: 2 }));
+
+  const bandColor = tileColor(t);
+  g.appendChild(svgEl("rect", { x: 0, y: 0, width: TW, height: BH, fill: bandColor, rx: 2 }));
+  g.appendChild(svgText(8, BH + 8, "#" + t.id, 6, { color: "#c9c5bd" }));
+
+  const cx2 = TW / 2;
+  let cy2 = BH + 20;
+  g.appendChild(svgText(cx2, cy2, t.name, 13, { weight: "bold", color: "#2c2c2a" }));
+  cy2 += 16;
+  g.appendChild(svgText(cx2, cy2, t.nameEn, 7, { color: "#b3afa6", letterSpacing: "0.3" }));
+  cy2 += 14;
+  g.appendChild(svgText(cx2, cy2, "$" + t.price, 12, { weight: "bold", color: "#96597A" }));
+  cy2 += 14;
+  g.appendChild(svgText(cx2, cy2, t.capital, 8, { color: "#8a8880" }));
+}
+
+function renderLegend(data) {
+  // 渲染图例（分 3 行：国家色组 / 机会命运 / 海洋角落）
+  const legend = document.getElementById("legend");
+  legend.innerHTML = "";
+
+  // 辅助：创建一个筛选按钮
+  function makeChip(c) {
+    const item = document.createElement("button");
+    item.className = "legend-item" + (c.key === "all" ? " on" : "");
+    item.dataset.filter = c.key;
+    if (c.color) {
+      const sw = document.createElement("span");
+      sw.className = "legend-color";
+      sw.style.background = c.color;
+      item.appendChild(sw);
+    }
+    item.appendChild(document.createTextNode(`${c.name} (${c.count})`));
+    item.addEventListener("click", () => setFilter(c.key, c.name));
+    return item;
+  }
+
+  // 第一行：全部 + 国家前半（前 6 组）
+  const row1 = document.createElement("div");
+  row1.className = "legend-row";
+  const label1 = document.createElement("span");
+  label1.className = "legend-label";
+  label1.textContent = "国家";
+  row1.appendChild(label1);
+  row1.appendChild(makeChip({ key: "all", name: "全部", count: data.tiles.length, color: null }));
+  data.colorGroups.slice(0, 6).forEach(g => {
+    row1.appendChild(makeChip({
+      key: "color:" + g.key, name: g.name, count: countOf(data, g.id), color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
+    }));
+  });
+  legend.appendChild(row1);
+
+  // 第二行：国家后半（后 5 组）
+  const row1b = document.createElement("div");
+  row1b.className = "legend-row";
+  const label1b = document.createElement("span");
+  label1b.className = "legend-label";
+  label1b.textContent = "";
+  row1b.appendChild(label1b);
+  data.colorGroups.slice(6).forEach(g => {
+    row1b.appendChild(makeChip({
+      key: "color:" + g.key, name: g.name, count: countOf(data, g.id), color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
+    }));
+  });
+  legend.appendChild(row1b);
+
+  // 第二行：机会 / 命运
+  const row2 = document.createElement("div");
+  row2.className = "legend-row";
+  const label2 = document.createElement("span");
+  label2.className = "legend-label";
+  label2.textContent = "机会/命运";
+  row2.appendChild(label2);
+  [["chance", "机会"], ["destiny", "命运"]].forEach(pair => {
+    const n = data.tiles.filter(x => x.type === pair[0]).length;
+    if (n) row2.appendChild(makeChip({ key: "special:" + pair[0], name: pair[1], count: n, color: SPECIAL_COLORS[pair[0]] }));
+  });
+  legend.appendChild(row2);
+
+  // 第三行：海洋 / 角落
+  const row3 = document.createElement("div");
+  row3.className = "legend-row";
+  const label3 = document.createElement("span");
+  label3.className = "legend-label";
+  label3.textContent = "海洋/角落";
+  row3.appendChild(label3);
+  [["ocean", "海洋"], ["corner", "角落"]].forEach(pair => {
+    const n = data.tiles.filter(x => x.type === pair[0]).length;
+    if (n) row3.appendChild(makeChip({ key: "special:" + pair[0], name: pair[1], count: n, color: SPECIAL_COLORS[pair[0]] }));
+  });
+  legend.appendChild(row3);
+
+  // 初始化 viewport（事件只绑一次，避免切换布局时重复叠加）
+}
+
+// ===== 缩放平移交互（只绑定一次）=====
+let panZoomReady = false;
+function initPanZoom() {
+  if (panZoomReady) return;
+  panZoomReady = true;
+  const container = document.getElementById("svg-container");
+  const svg = document.getElementById("map");
+
+  // 鼠标滚轮缩放
+  container.addEventListener("wheel", (e) => {
+    if (viewLocked()) return;                 // 锁定档：不拦滚轮，页面照常滚
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * delta));
+
+    // 以鼠标位置为中心缩放
+    const scaleRatio = newZoom / zoom;
+    panX = mx - (mx - panX) * scaleRatio;
+    panY = my - (my - panY) * scaleRatio;
+    zoom = newZoom;
+
+    updateViewport();
+  }, { passive: false });
+
+  // 拖拽平移（鼠标）
+  let isDragging = false;
+  let startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+
+  container.addEventListener("mousedown", (e) => {
+    if (viewLocked()) return;                 // 锁定档：不能拖
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = panX;
+    startPanY = panY;
+    container.classList.add("grabbing");
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    updateViewport();
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    container.classList.remove("grabbing");
+  });
+
+  // 触摸：双指缩放 + 单指拖拽
+  let touches = {};
+  let pinchDist = 0;
+  let pinchZoom = 1;
+
+  container.addEventListener("touchstart", (e) => {
+    if (viewLocked()) return;                 // 锁定档：不拦手势，交给浏览器去滚页面
+    e.preventDefault();
+    for (const t of e.touches) {
+      touches[t.identifier] = { x: t.clientX, y: t.clientY };
+    }
+    if (e.touches.length === 1) {
+      isDragging = true;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startPanX = panX;
+      startPanY = panY;
+    }
+    if (e.touches.length === 2) {
+      isDragging = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchDist = Math.hypot(dx, dy);
+      pinchZoom = zoom;
+    }
+  }, { passive: false });
+
+  container.addEventListener("touchmove", (e) => {
+    if (viewLocked()) return;
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging) {
+      panX = startPanX + (e.touches[0].clientX - startX);
+      panY = startPanY + (e.touches[0].clientY - startY);
+      updateViewport();
+    }
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / pinchDist;
+      zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pinchZoom * ratio));
+      updateViewport();
+    }
+  }, { passive: false });
+
+  container.addEventListener("touchend", (e) => {
+    if (viewLocked()) return;
+    for (const t of e.changedTouches) {
+      delete touches[t.identifier];
+    }
+    if (e.touches.length === 0) {
+      isDragging = false;
+    }
+  });
+
+  // 双击重置（锁定档下 zoom/pan 恒为 1/0，等于空操作）
+  container.addEventListener("dblclick", () => {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    updateViewport();
+  });
+
+  // 工具栏按钮
+  document.getElementById("btn-zoom-in").addEventListener("click", () => {
+    zoom = Math.min(MAX_ZOOM, zoom * 1.2);
+    updateViewport();
+  });
+
+  document.getElementById("btn-zoom-out").addEventListener("click", () => {
+    zoom = Math.max(MIN_ZOOM, zoom * 0.8);
+    updateViewport();
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    updateViewport();
+  });
+}
+
+// ===== 工具栏：布局切换 + 导出 PNG =====
+function initToolbar() {
+  document.getElementById("btn-layout").addEventListener("click", () => {
+    if (!mapData) return;
+    layoutMode = isRingThick() ? "classic" : "thick";   // 加厚环 <-> 原版
+    zoom = 1;                                           // 换布局就回到整板视图
+    panX = 0;
+    panY = 0;
+    renderMap(mapData);
+  });
+
+  document.getElementById("btn-png").addEventListener("click", exportPNG);
+}
+
+// 导出时长边约 2400px（加厚环 340 → ×6；原版 1718 → ×2），上限 6 倍
+function exportScale(bs) { return Math.min(6, Math.max(1, Math.ceil(2400 / Math.max(bs.w, bs.h)))); }
+
+function exportFileName() {
+  const tag = isRingThick() ? "加厚环" : "原版";
+  const filter = currentFilter === "all" ? "" : "-筛选";
+  return `大富翁世界之旅地图-${tag}${filter}.png`;
+}
+
+function exportPNG() {
+  const btn = document.getElementById("btn-png");
+  const restore = () => {
+    btn.classList.remove("busy");
+    btn.textContent = "下载 PNG";
+  };
+
+  // 复制一份 SVG 用于导出：去掉当前的缩放/平移，按 1:1 导出整块板
+  const clone = document.getElementById("map").cloneNode(true);
+  const cvg = clone.querySelector("#viewport-group");
+  if (cvg) cvg.removeAttribute("transform");
+  clone.setAttribute("xmlns", SVG_NS);
+  clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+  const bs = boardSize();
+  const vb = (clone.getAttribute("viewBox") || `0 0 ${bs.w} ${bs.h}`).split(/[\s,]+/).map(Number);
+  const vw = vb[2] || bs.w, vh = vb[3] || bs.h;
+  clone.setAttribute("width", vw);
+  clone.setAttribute("height", vh);
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const svgBlob = new Blob(["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xml],
+    { type: "image/svg+xml;charset=utf-8" });
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  btn.classList.add("busy");
+  btn.textContent = "导出中…";
+
+  const img = new Image();
+  img.onload = function () {
+    try {
+      const scale = exportScale({ w: vw, h: vh });
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(vw * scale);
+      cv.height = Math.round(vh * scale);
+      const ctx = cv.getContext("2d");
+      ctx.fillStyle = "#f4f2ee";
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(svgUrl);
+
+      const save = function (href, revoke) {
+        const a = document.createElement("a");
+        a.href = href;
+        a.download = exportFileName();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        if (revoke) setTimeout(() => URL.revokeObjectURL(href), 4000);
+        restore();
+      };
+      if (cv.toBlob) cv.toBlob(b => save(URL.createObjectURL(b), true), "image/png");
+      else save(cv.toDataURL("image/png"), false);
+    } catch (e) {
+      URL.revokeObjectURL(svgUrl);
+      restore();
+      alert("导出失败：" + e.message + "\n可以试试用浏览器的「打印 → 另存为 PDF」。");
+    }
+  };
+  img.onerror = function () {
+    URL.revokeObjectURL(svgUrl);
+    restore();
+    alert("导出失败：浏览器无法渲染这张 SVG。\n可以试试用浏览器的「打印 → 另存为 PDF」。");
+  };
+  img.src = svgUrl;
+}
+
+initToolbar();   // 按钮是静态元素，先绑好，不等地图渲染
+
+// ===== 加载数据：优先 fetch JSON，失败则用本地兜底 =====
+fetch("./content/map-print-data.json")
+  .then(res => {
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+  })
+  .then(data => {
+    console.log("[map-svg] 数据来源: map-print-data.json（打印版）");
+    renderMap(data);
+  })
+  .catch(err => {
+    console.warn("[map-svg] fetch map-print-data.json 失败，使用内置兜底数据:", err.message);
+    renderMap(FALLBACK_DATA);
+  });
+</script>
+
+</body>
+</html>

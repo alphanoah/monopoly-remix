@@ -8,6 +8,7 @@ on:
       - 'cards.csv'
       - 'docs/rules.md'
       - 'docs/new-rule.md'
+      - 'docs/props.md'
       - 'original/**'
       - 'tools/update.py'
       - '.github/workflows/build-pages.yml'

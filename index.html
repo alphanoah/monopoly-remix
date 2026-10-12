@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>大富翁改版 · 规则与自制卡牌</title>
-<meta name="description" content="七个熟人玩了四个小时还没打完，于是把大富翁重做了一遍：十六面骰、起始资金重算，房子、过路费、监狱、拍卖规则全改，机会牌与命运牌 40 张重写。规则区可切换原版 / v1 / v2 三版，含卡牌全文、电子地图、原版资料与打印页。">
+<meta name="description" content="七个熟人玩了四个小时还没打完，于是把大富翁重做了一遍：十六面骰、起始资金重算，房子、过路费、监狱、拍卖规则全改，机会牌与命运牌 40 张重写，另有道具商店。规则区可切换原版 / v1 / v2 三版，含机会/命运卡牌全文、道具清单、电子地图、原版资料与打印页。">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -181,7 +181,7 @@
   <p class="notice">规则改过两轮，下面的「游戏规则」把三版并列放在一起，点卡片就能切换：
      <strong>原版</strong>（实体说明书）、<strong>v1</strong>（初版改版）、<strong>v2</strong>（最新改版）。
      默认打开的是现在在玩的 <strong>v2</strong>。</p>
-  <p class="nav"><a href="#why">为什么改版</a><a href="#rules">游戏规则</a><a href="#cards">卡牌全文</a><a href="#print">打印</a><a href="#map">电子地图</a><a href="original.html">原版资料</a></p>
+  <p class="nav"><a href="#why">为什么改版</a><a href="#rules">游戏规则</a><a href="#cards">机会/命运卡牌</a><a href="#props">道具清单</a><a href="#print">打印</a><a href="#map">电子地图</a><a href="original.html">原版资料</a></p>
 </header>
 
 <section class="blk" id="why">
@@ -512,7 +512,7 @@
 </details>
 
 <details class="blk" id="cards" open>
-  <summary><h2>卡牌全文</h2><span class="tog"></span></summary>
+  <summary><h2>机会/命运卡牌</h2><span class="tog"></span></summary>
   <div class="ctrl">
     <select id="verSel" title="卡牌版本"></select>
     <div class="seg" id="deckSeg">
@@ -523,6 +523,43 @@
   </div>
   <p class="meta" id="cardMeta"></p>
   <div class="grid" id="grid"></div>
+</details>
+
+<details class="blk" id="props" open>
+  <summary><h2>道具清单</h2><span class="tog"></span></summary>
+  <p class="meta">v2 新增的「道具商店」开在印度洋和大西洋两格，进店随机刷 3 个道具可以买；
+     下表是全部 14 件道具的价钱、效果和印量。</p>
+  <div class="md">
+<!-- PROPS:START -->
+<h3>使用规则</h3>
+<ol>
+<li>道具可以指定玩家所在格子的前后 3 格内使用
+</li>
+<li>玩家进入商店时，随机刷新 3 个道具供购买
+</li>
+<li>玩家进入商店时，可以半价出售持有的道具
+</li></ol>
+<h3>道具列表</h3>
+<div class="tw"><table>
+<thead><tr><th>道具</th><th>价格</th><th>效果</th><th>数量</th></tr></thead>
+<tbody>
+<tr><td>乌龟帽</td><td>1000</td><td>接下来的 3 回合只能前进一格</td><td>2</td></tr>
+<tr><td>工程机器人</td><td>2000</td><td>升级指定格子的房子</td><td>2</td></tr>
+<tr><td>导弹</td><td>2000</td><td>降级指定格子的房子</td><td>2</td></tr>
+<tr><td>遥控骰子</td><td>1000</td><td>你可以前进指定格数（1–16）</td><td>2</td></tr>
+<tr><td>路障</td><td>500</td><td>任何人撞上去会立即停止（不能放在有玩家的格子）</td><td>2</td></tr>
+<tr><td>嫁祸卡</td><td>1000</td><td>当你被送进监狱时，指定让另外一名玩家背锅</td><td>2</td></tr>
+<tr><td>免责卡</td><td>1000</td><td>抵消你一次送进监狱</td><td>2</td></tr>
+<tr><td>汽车</td><td>1000</td><td>你下一次移动前进双倍格数</td><td>2</td></tr>
+<tr><td>冷冻枪</td><td>1000</td><td>指定玩家原地停留 1 回合</td><td>2</td></tr>
+<tr><td>抢夺卡</td><td>1000</td><td>抢夺指定玩家的 1 件道具（盲抽）</td><td>2</td></tr>
+<tr><td>转向卡</td><td>1000</td><td>让指定玩家掉头</td><td>2</td></tr>
+<tr><td>绿卡</td><td>1500</td><td>抵消你一次付款</td><td>2</td></tr>
+<tr><td>红卡</td><td>1500</td><td>让你一次收款翻倍</td><td>2</td></tr>
+<tr><td>拍卖卡</td><td>2000</td><td>强制拍卖指定房子</td><td>2</td></tr>
+</tbody></table></div>
+<!-- PROPS:END -->
+  </div>
 </details>
 
 <section class="blk" id="print">
@@ -554,6 +591,7 @@
   <a href="print.html">打印页</a>
   <a href="map-svg.html">电子地图</a>
   <a href="docs/new-rule.md">规则源文件（v2）</a>
+  <a href="docs/props.md">道具源文件</a>
   <a href="docs/csv-fields.md">卡牌字段说明</a>
   <a href="docs/card-diff.md">与原版卡差异</a>
   <span>CC BY-NC 4.0</span>

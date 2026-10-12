@@ -6,7 +6,7 @@
 # 做四件事：
 #   1. 校验 cards.csv（结构、必填字段、每版本张数）
 #   2. 生成 cards.json                      —— 打印页线上 fetch 用
-#   3. 重写 index.html 的卡牌数据、规则三版切换区 —— 首页内容（静态，离线可看）
+#   3. 重写 index.html 的卡牌数据、规则三版切换区、道具清单 —— 首页内容（静态，离线可看）
 #   4. 回写 print.html 的内置兜底数据         —— 本地 file:// 打开时用
 #   5. 重写 original.html 的原版资料区        —— 原版资料页
 #
@@ -23,6 +23,7 @@ CSV_PATH = os.path.join(ROOT, 'cards.csv')
 JSON_PATH = os.path.join(ROOT, 'cards.json')
 INDEX_PATH = os.path.join(ROOT, 'index.html')
 PRINT_PATH = os.path.join(ROOT, 'print.html')
+PROPS_PATH = os.path.join(ROOT, 'docs', 'props.md')
 ORIGINAL_DIR = os.path.join(ROOT, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
 # 原版实体资料：文件名 → 页面上的区块标题（None = 直接用 md 里的一级标题）→ 是否默认展开
@@ -269,6 +270,15 @@ def md_title(md):
     return m.group(1).strip() if m else ''
 
 
+def build_props():
+    """把 docs/props.md 转成首页「道具清单」区的内容。"""
+    if not os.path.exists(PROPS_PATH):
+        print('  跳过：未找到 docs/props.md')
+        return ''
+    with open(PROPS_PATH, encoding='utf-8') as f:
+        return md_to_html(f.read(), prefix='docs/')
+
+
 def build_original():
     """把 original/ 下的原版实体资料转成 original.html 的正文区块。"""
     parts = []
@@ -385,7 +395,7 @@ def write_original(original_html):
         print('  original.html（%d 字符）' % len(original_html))
 
 
-def write_index(data, rules_html):
+def write_index(data, rules_html, props_html):
     js = 'const DECKS = ' + json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';'
     ok1 = swap(INDEX_PATH,
                r'/\* CARDS:START \*/.*?/\* CARDS:END \*/',
@@ -395,10 +405,14 @@ def write_index(data, rules_html):
                r'<!-- RULES:START -->.*?<!-- RULES:END -->',
                '<!-- RULES:START -->\n' + rules_html + '\n<!-- RULES:END -->',
                '规则区')
-    if ok1 and ok2:
+    ok3 = swap(INDEX_PATH,
+               r'<!-- PROPS:START -->.*?<!-- PROPS:END -->',
+               '<!-- PROPS:START -->\n' + props_html + '\n<!-- PROPS:END -->',
+               '道具区')
+    if ok1 and ok2 and ok3:
         total = sum(len(data['versions'][v]['cards']) for v in data['order'])
-        print('  index.html（%d 个卡牌版本共 %d 张 + 规则三版 %d 字符）'
-              % (len(data['order']), total, len(rules_html)))
+        print('  index.html（%d 个卡牌版本共 %d 张 + 规则三版 %d 字符 + 道具区 %d 字符）'
+              % (len(data['order']), total, len(rules_html), len(props_html)))
 
 
 def write_print_fallback(data):
@@ -427,11 +441,12 @@ def main():
 
     print('生成规则区：')
     rules_html = build_rules()
+    props_html = build_props()
     original_html = build_original()
 
     print('写入：')
     write_json(data)
-    write_index(data, rules_html)
+    write_index(data, rules_html, props_html)
     write_original(original_html)
     write_print_fallback(data)
     print('完成。')

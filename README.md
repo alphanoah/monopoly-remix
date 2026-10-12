@@ -14,8 +14,9 @@
 所以这一版的核心目标就是**把节奏拧快**：十六面骰拉大每一步的跨度、起始资金一次给足到 19580、
 过路费和房子等级重算，让后期的高级房子更早登场；卡牌顺势改成损人利己 + 押注博弈，熟人局才玩得出味道。
 
-- **首页 `index.html`**：三版规则卡片切换（原版 / v1 / v2）+ 卡牌全文，可切换版本浏览（静态页面，双击就能看）
+- **首页 `index.html`**：三版规则卡片切换（原版 / v1 / v2）+ 机会/命运卡牌 + 道具清单，卡牌可切换版本浏览（静态页面，双击就能看）
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录
+- **电子地图 `map-svg.html`**：64 格 SVG 棋盘，可拖动缩放、按颜色组筛选、导出 PNG
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印
 - **在线地址**：https://alphanoah.github.io/monopoly-remix/
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
@@ -27,7 +28,8 @@
 
 ## 改完内容怎么同步
 
-改卡牌改 `cards.csv`，改规则改对应的规则源文件（见下），改原版资料改 `original/*.md`，然后**跑一次脚本**：
+改卡牌改 `cards.csv`，改规则改对应的规则源文件（见下），改道具改 `docs/props.md`，
+改原版资料改 `original/*.md`，然后**跑一次脚本**：
 
 ```bash
 python3 tools/update.py
@@ -35,7 +37,7 @@ python3 tools/update.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与三版规则切换区 → 重写 `original.html` → 回写打印页内置兜底。
+脚本会：校验 CSV → 生成 `cards.json` → 重写首页的卡牌与三版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出第几行错在哪。
@@ -69,7 +71,7 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 - 用 Excel / Numbers 打开后**必须存成「CSV UTF-8（带 BOM）」**，否则中文会乱码。
   macOS 的 Numbers 导出时选「CSV」一般就是 UTF-8；Excel 另存时要挑「CSV UTF-8(逗号分隔)」那个选项。
 - 单元格里可以正常写逗号和引号，Excel 保存时会自动加转义。
-- 改完保存 → 跑 `python3 tools/update.py` → push。
+- 改完保存 → 跑 `python3 tools/update.py` → 提交。
 
 规则文件改哪个，首页就更新哪个，**不要在首页直接改规则**：
 
@@ -79,9 +81,8 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 | v1 | `docs/rules.md` | 第一次改版（19580 起始资金那一版） |
 | v2 | `docs/new-rule.md` | 最新改版，首页默认打开的就是它 |
 
+道具清单改 `docs/props.md`（首页「道具清单」区由它生成）。
 `original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
-`docs/full-rules.md` 是 v2 之前的「原版 + 新版」合并对照稿，**已归档不再参与页面生成**；
-`docs/props.md` 是道具清单，目前也没有接进页面，要展示时再说。
 
 ---
 
@@ -104,14 +105,18 @@ version,deck,seq,face,event,effect,cond,win,lose,rate,use
 # 1. 改内容（任选）
 #    卡牌   → cards.csv
 #    规则   → docs/new-rule.md（v2）/ docs/rules.md（v1）/ original/manual.md（原版）
+#    道具   → docs/props.md
 #    原版   → original/*.md
 
 # 2. 本地重新生成（macOS 也可以直接双击 update.command）
 python3 tools/update.py
 
-# 3. 提交并推送
-git add -A && git commit -m "改了什么" && git push
+# 3. 提交（推送等确认后再做）
+git add -A && git commit -m "改了什么"
+git push
 ```
+
+默认**只提交到本地**，确认没问题了再 push。
 
 push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同一个脚本，
 把重新生成的 `cards.json` / `index.html` / `original.html` / `print.html` 自动提交回去，
@@ -128,7 +133,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 |---|---|
 | Pages | Settings → Pages → Deploy from a branch → `main` / `/ (root)` |
 | Actions 权限 | Settings → Actions → General → Workflow permissions → **Read and write** |
-| Actions 自动触发 | 改了 `cards.csv` / `docs/rules.md` / `docs/new-rule.md` / `original/**` / `tools/update.py` 时 |
+| Actions 自动触发 | 改了 `cards.csv` / `docs/rules.md` / `docs/new-rule.md` / `docs/props.md` / `original/**` / `tools/update.py` 时 |
 | 手动触发 | Actions → 重新生成页面 → Run workflow |
 
 > Actions 的写权限是**必须的**：workflow 要把生成的文件提交回仓库，只读权限会失败。
@@ -148,35 +153,49 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 
 ```
 richer/
-├── index.html              首页：规则三版切换（原版/v1/v2）+ 卡牌浏览（脚本生成，静态）
+├── index.html              首页：规则三版切换（原版/v1/v2）+ 机会/命运卡牌 + 道具清单（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具（脚本回写兜底）
 ├── map-svg.html            电子地图：64 格 SVG 棋盘，一键切换「加厚环/原版薄环」，可导出 PNG，图例可点击筛选（手写页，脚本不动）
 │                           · 每边 16 格（角格 + 15）、角格在四角；环厚 RING_T=4，格子向中间伸长，手机也看得清
 │                           · 改环厚只动一个常量：RING_T（1 = 原来的薄环，1~8 任意值）
+├── preview-layout.html     卡面排版预览页：新版卡面 vs 原版卡面并排对照（手写页，脚本不动）
 ├── cards.csv               卡牌数据真源
 ├── cards.json              由 cards.csv 生成，供打印页读取
 ├── update.command          macOS 双击运行 update.py
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
-├── docs/
-│   ├── new-rule.md         规则 v2 真源（最新改版，首页默认显示）
-│   ├── rules.md            规则 v1 真源（初版改版；文末「卡牌」段在首页默认折叠）
-│   ├── props.md            道具清单（v2 的道具商店用，暂未接进页面）
-│   ├── full-rules.md       已归档：v2 之前的「原版 + 新版」合并对照稿，不再参与生成
-│   ├── csv-fields.md       cards.csv 每列的填法与对应 JSON 字段
-│   └── map-data.json       电子地图用的 64 格数据（map-svg.html 内置同款兜底）
-│   └── card-diff.md        新版 vs 原版差异对照
+├── docs/                   规则 / 道具 / 字段说明 / 地图数据 / 卡牌差异（详见下表）
 ├── original/               原版实体《大富翁》的电子化存档（original.html 由它生成）
-│   ├── cards.md            原版命运牌 & 机会牌（20 + 20）转录
-│   ├── manual.md           原版《大富翁世界之旅（银牌）》说明书转录
-│   ├── map-data-guide.md   地图数据使用指南（速览 / 投资建议 / FAQ）
-│   └── map-tiles.md        原版地图 64 格原始数据
 ├── cards/                  自制卡牌历史版本存档 v1–v6.md
 ├── tools/
-│   ├── update.py           一键更新：CSV → JSON + 首页 + 打印页
+│   ├── update.py           一键更新：CSV → JSON + 首页 + 原版页 + 打印页
 │   └── md2csv.py           一次性迁移脚本：cards/vN.md → cards.csv
 └── .github/workflows/      cards.csv / docs 规则 / original/ 变更时自动重生成
 ```
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。
+
+### `docs/` 里都是什么
+
+| 文件 | 是什么 | 谁在用 |
+|---|---|---|
+| `new-rule.md` | **规则 v2 真源**（最新改版：地图、骰子、资金、地产、监狱、拍卖、道具、机会/命运） | 首页「游戏规则」默认打开的面板，脚本生成 |
+| `rules.md` | **规则 v1 真源**（初版改版，19580 起始资金那一版） | 首页「游戏规则」的 v1 面板，脚本生成 |
+| `props.md` | **道具清单**：14 件道具的价格 / 效果 / 印量，以及商店买卖规则 | 首页「道具清单」区，脚本生成 |
+| `csv-fields.md` | `cards.csv` 每一列怎么填、对应 JSON 哪个字段、脚本会拦哪些错 | README 与首页 v1 规则里的链接（纯文档） |
+| `card-diff.md` | 新版 40 张自制牌 vs 原版 40 张牌的逐张差异对照 | 首页与原版资料页的页脚链接（纯文档） |
+| `map-data.json` | 电子地图 64 格数据（格名、颜色组、地价） | `map-svg.html` 线上 `fetch`；本地打开时用它内置的同款兜底 |
+| `v7-review.md` `v7-review.html` | v7 卡牌修订时的一次性对照稿（v6 → v7 每张改了什么，含待审阅标注），html 是 md 的排版版 | **没有任何页面或脚本引用**，纯留档 |
+
+### `original/` 里都是什么
+
+| 文件 | 是什么 | 谁在用 |
+|---|---|---|
+| `manual.md` | 原版《大富翁世界之旅（银牌）》说明书的照片转录（准备、骰子、起点、地产、房屋、监狱、抵押、破产……） | `original.html` 的说明书区块；同时是首页「游戏规则」的原版面板 |
+| `cards.md` | 原版命运牌 & 机会牌各 20 张的转录（牌面文字 + 金额） | `original.html` 的卡牌区块 |
+| `map-data-guide.md` | 地图数据的使用指南：速览、投资建议、FAQ | `original.html` 的折叠区块（默认收起） |
+| `map-tiles.md` | 原版地图 64 格原始数据（格名、颜色组、价格、特殊格） | `original.html` 的折叠区块（默认收起） |
+
+> 两个目录里的 `.DS_Store` 是 macOS 自己生成的，已被 `.gitignore` 排除，不用管。
+

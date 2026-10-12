@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>大富翁 世界之旅 · 80cm 软垫打印版</title>
+<style>
+  /* ===== 成品：80×80cm 软垫（2mm 厚 / 3mm 精装锁边），无边距 ===== */
+  @page {
+    size: 800mm 800mm;
+    margin: 0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    background: #fff;
+    color: #222;
+  }
+  .page { margin: 0 auto; }
+  svg { display: block; width: 100%; height: 100%; }
+
+  /* 打印时：整页 800×800mm，棋盘铺满 */
+  @media print {
+    .page {
+      width: 800mm !important;
+      height: 800mm !important;
+      margin: 0 !important;
+    }
+  }
+
+  /* 屏幕上的提示条，打印时隐藏 */
+  .screen-hint {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+    background: #2c2c2a; color: #fff; padding: 8px 16px; border-radius: 999px;
+    font-size: 13px; z-index: 99; box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  }
+  .screen-hint button {
+    background: #fff; color: #2c2c2a; border: 0; border-radius: 999px;
+    padding: 4px 12px; margin-left: 8px; cursor: pointer; font-weight: 600;
+  }
+  @media print {
+    .screen-hint { display: none; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen-hint">
+  80×80cm 软垫：打印→目的地选「存储为 PDF」→纸张方向 800×800mm、边距无、关闭页眉页脚，把 PDF 交给商家
+  <button onclick="window.print()">打印 / 存为 PDF</button>
+</div>
+
+<div class="page">
+  <svg id="board" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1800"></svg>
+</div>
+
+<script>
+// ===== 颜色组（对照原版照片取色）=====
+const COLORS = {
+  "red":          "#E03A3A",  // 中国 日本 韩国 / 澳大利亚 新西兰
+  "light-blue":   "#2FA3DC",  // 菲律宾 马来西亚 越南 泰国 印度
+  "yellow-green": "#A8C43C",  // 斯里兰卡 伊朗 伊拉克 沙特 叙利亚 土耳其
+  "purple":       "#9B59B6",  // 黎巴嫩 以色列 俄罗斯 波兰 德国
+  "pink":         "#EE6FA8",  // 奥地利 瑞士 法国 比利时
+  "dark-gray":    "#5D6D7E",  // 荷兰 英国 芬兰 瑞典 丹麦
+  "dark-blue":    "#4A68B0",  // 希腊 意大利 西班牙 葡萄牙
+  "light-green":  "#3FBF6E",  // 埃及 摩洛哥 赞比亚 南非共和国
+  "khaki":        "#BFC5CC",  // 加拿大 美国
+  "hot-pink":     "#A962B0",  // 尼加拉瓜 哥斯达黎加 巴拿马 古巴
+  "green":        "#2E9E4F"   // 哥伦比亚 玻利维亚 巴西 阿根廷 智利
+};
+
+// ===== 国旗 emoji =====
+const FLAGS = {
+  "中国":"🇨🇳","日本":"🇯🇵","韩国":"🇰🇷","菲律宾":"🇵🇭","马来西亚":"🇲🇾",
+  "越南":"🇻🇳","泰国":"🇹🇭","印度":"🇮🇳","斯里兰卡":"🇱🇰","伊朗":"🇮🇷",
+  "伊拉克":"🇮🇶","沙特阿拉伯":"🇸🇦","叙利亚":"🇸🇾","土耳其":"🇹🇷",
+  "黎巴嫩":"🇱🇧","以色列":"🇮🇱","俄罗斯":"🇷🇺","波兰":"🇵🇱","德国":"🇩🇪",
+  "奥地利":"🇦🇹","瑞士":"🇨🇭","法国":"🇫🇷","比利时":"🇧🇪","荷兰":"🇳🇱",
+  "英国":"🇬🇧","芬兰":"🇫🇮","瑞典":"🇸🇪","丹麦":"🇩🇰","希腊":"🇬🇷",
+  "意大利":"🇮🇹","西班牙":"🇪🇸","葡萄牙":"🇵🇹","埃及":"🇪🇬","摩洛哥":"🇲🇦",
+  "赞比亚":"🇿🇲","南非共和国":"🇿🇦","加拿大":"🇨🇦","美国":"🇺🇸",
+  "墨西哥":"🇲🇽","洪都拉斯":"🇭🇳","尼加拉瓜":"🇳🇮","哥斯达黎加":"🇨🇷",
+  "巴拿马":"🇵🇦","古巴":"🇨🇺","哥伦比亚":"🇨🇴","玻利维亚":"🇧🇴","巴西":"🇧🇷",
+  "阿根廷":"🇦🇷","智利":"🇨🇱","澳大利亚":"🇦🇺","新西兰":"🇳🇿"
+};
+
+// ===== 64 格数据（来自 map-data.json，与原版照片一致）=====
+const TILES = [
+  // 底行（右→左）row=16
+  [16,16,"corner-br","corner","赤道","EQUATOR","起点 · 酬金 $2000"],
+  [15,16,"bottom",null,"中华人民共和国","CHINA","北京",4000,"red"],
+  [14,16,"bottom",null,"日本","JAPAN","东京",1000,"red"],
+  [13,16,"bottom","chance","机会","CHANCE"],
+  [12,16,"bottom",null,"韩国","KOREA","首尔",1000,"red"],
+  [11,16,"bottom",null,"菲律宾","PHILIPPINES","马尼拉",600,"light-blue"],
+  [10,16,"bottom",null,"马来西亚","MALAYSIA","吉隆坡",2600,"light-blue"],
+  [ 9,16,"bottom",null,"越南","VIETNAM","河内",2800,"light-blue"],
+  [ 8,16,"bottom",null,"泰国","THAILAND","曼谷",1600,"light-blue"],
+  [ 7,16,"bottom",null,"印度","INDIA","新德里",1400,"light-blue"],
+  [ 6,16,"bottom","ocean","太平洋","PACIFIC"],
+  [ 5,16,"bottom",null,"斯里兰卡","SRI LANKA","科伦坡",1400,"yellow-green"],
+  [ 4,16,"bottom",null,"伊朗","IRAN","德黑兰",2000,"yellow-green"],
+  [ 3,16,"bottom",null,"伊拉克","IRAQ","巴格达",1800,"yellow-green"],
+  [ 2,16,"bottom",null,"沙特阿拉伯","SAUDI ARABIA","利雅得",1800,"yellow-green"],
+  [ 1,16,"bottom",null,"叙利亚","SYRIA","大马士革",3500,"yellow-green"],
+  [ 0,16,"corner-bl","corner","地中海","MEDITERRANEAN"],
+  // 左列（下→上）col=0
+  [ 0,15,"left",null,"土耳其","TURKEY","安卡拉",3500,"yellow-green"],
+  [ 0,14,"left","destiny","命运","DESTINY"],
+  [ 0,13,"left",null,"黎巴嫩","LEBANON","贝鲁特",600,"purple"],
+  [ 0,12,"left",null,"以色列","ISRAEL","耶路撒冷",2000,"purple"],
+  [ 0,11,"left",null,"俄罗斯","RUSSIA","莫斯科",1000,"purple"],
+  [ 0,10,"left",null,"波兰","POLAND","华沙",1200,"purple"],
+  [ 0, 9,"left",null,"德国","GERMANY","柏林",2400,"purple"],
+  [ 0, 8,"left","ocean","印度洋","INDIAN OCEAN"],
+  [ 0, 7,"left",null,"奥地利","AUSTRIA","维也纳",3000,"pink"],
+  [ 0, 6,"left",null,"瑞士","SWITZERLAND","伯尔尼",3200,"pink"],
+  [ 0, 5,"left",null,"法国","FRANCE","巴黎",3000,"pink"],
+  [ 0, 4,"left",null,"比利时","BELGIUM","布鲁塞尔",2200,"pink"],
+  [ 0, 3,"left","chance","机会","CHANCE"],
+  [ 0, 2,"left",null,"荷兰","NETHERLANDS","阿姆斯特丹",2400,"dark-gray"],
+  [ 0, 1,"left",null,"英国","UK","伦敦",2200,"dark-gray"],
+  [ 0, 0,"corner-tl","corner","北极","ARCTIC"],
+  // 顶行（左→右）row=0
+  [ 1, 0,"top",null,"芬兰","FINLAND","赫尔辛基",2600,"dark-gray"],
+  [ 2, 0,"top",null,"瑞典","SWEDEN","斯德哥尔摩",2600,"dark-gray"],
+  [ 3, 0,"top",null,"丹麦","DENMARK","哥本哈根",2800,"dark-gray"],
+  [ 4, 0,"top",null,"希腊","GREECE","雅典",1600,"dark-blue"],
+  [ 5, 0,"top",null,"意大利","ITALY","罗马",1400,"dark-blue"],
+  [ 6, 0,"top","destiny","命运","DESTINY"],
+  [ 7, 0,"top",null,"西班牙","SPAIN","马德里",1400,"dark-blue"],
+  [ 8, 0,"top",null,"葡萄牙","PORTUGAL","里斯本",2000,"dark-blue"],
+  [ 9, 0,"top",null,"埃及","EGYPT","开罗",1800,"light-green"],
+  [10, 0,"top",null,"摩洛哥","MOROCCO","拉巴特",1800,"light-green"],
+  [11, 0,"top",null,"赞比亚","ZAMBIA","卢萨卡",600,"light-green"],
+  [12, 0,"top","chance","机会","CHANCE"],
+  [13, 0,"top",null,"南非共和国","SOUTH AFRICA","比勒陀利亚",600,"light-green"],
+  [14, 0,"top",null,"加拿大","CANADA","渥太华",3500,"khaki"],
+  [15, 0,"top",null,"美国","USA","华盛顿",3500,"khaki"],
+  [16, 0,"corner-tr","corner","夏威夷","HAWAII"],
+  // 右列（上→下）col=16
+  [16, 1,"right",null,"墨西哥","MEXICO","墨西哥城",1000,"khaki"],
+  [16, 2,"right",null,"洪都拉斯","HONDURAS","特古西加尔巴",1200,"khaki"],
+  [16, 3,"right",null,"尼加拉瓜","NICARAGUA","马那瓜",3000,"hot-pink"],
+  [16, 4,"right",null,"哥斯达黎加","COSTA RICA","圣何塞",1000,"hot-pink"],
+  [16, 5,"right","destiny","命运","DESTINY"],
+  [16, 6,"right",null,"巴拿马","PANAMA","巴拿马城",3200,"hot-pink"],
+  [16, 7,"right",null,"古巴","CUBA","哈瓦那",3000,"hot-pink"],
+  [16, 8,"right",null,"哥伦比亚","COLOMBIA","波哥大",1800,"green"],
+  [16, 9,"right",null,"玻利维亚","BOLIVIA","苏克雷",1200,"green"],
+  [16,10,"right",null,"巴西","BRAZIL","巴西利亚",2600,"green"],
+  [16,11,"right","ocean","大西洋","ATLANTIC"],
+  [16,12,"right",null,"阿根廷","ARGENTINA","布宜诺斯艾利斯",1000,"green"],
+  [16,13,"right",null,"智利","CHILE","圣地亚哥",3500,"green"],
+  [16,14,"right",null,"澳大利亚","AUSTRALIA","堪培拉",3200,"red"],
+  [16,15,"right",null,"新西兰","NEW ZEALAND","惠灵顿",3500,"red"]
+];
+
+// ===== 输出模式 =====
+// ?export=png → 棋盘铺满窗口，供高清截图导出
+const PARAMS = new URLSearchParams(location.search);
+const EXPORT_PNG = PARAMS.get("export") === "png";
+if (EXPORT_PNG) {
+  document.querySelector(".screen-hint").style.display = "none";
+}
+
+// ===== 布局参数（原版：跑道宽=角格边长，格子紧挨无间距）=====
+const L = 1800;   // 棋盘边长
+const B = 150;    // 跑道宽（角格边长、横向格高、纵向格宽）
+const W = 100;    // 格宽（横向格宽、纵向格高）
+const BAND = 36;  // 色带宽（靠圆心一侧）
+
+const svg = document.getElementById("board");
+const NS = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs, children) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (children) children.forEach(c => e.appendChild(c));
+  return e;
+}
+function txt(x, y, str, size, opts = {}) {
+  const t = el("text", {
+    x, y, "font-size": size,
+    "text-anchor": opts.anchor || "middle",
+    "dominant-baseline": opts.baseline || "middle",
+    "font-weight": opts.weight || "normal",
+    fill: opts.fill || "#222",
+    "font-family": opts.family || '"PingFang SC","Microsoft YaHei",sans-serif',
+    "paint-order": "stroke",
+    "stroke-linejoin": "round"
+  });
+  if (opts.stroke) { t.setAttribute("stroke", opts.stroke); t.setAttribute("stroke-width", opts.sw || 3); }
+  t.textContent = str;
+  return t;
+}
+// 气泡字：白色外晕 + 深色描边 + 彩色填充（角格「赤道/地中海/北极/夏威夷」「起点」用）
+function bubble(x, y, str, size, opts = {}) {
+  const g = el("g");
+  const mk = (strokeColor, sw, fill) => txt(x, y, str, size, {
+    weight: "bold", fill, stroke: strokeColor, sw, ...opts
+  });
+  g.appendChild(mk("#ffffff", size * 0.38, "#ffffff"));
+  g.appendChild(mk(opts.dark || "#1b3f7e", size * 0.16, opts.dark || "#1b3f7e"));
+  g.appendChild(mk(opts.dark || "#1b3f7e", size * 0.02, opts.fill || "#2e8fd4"));
+  return g;
+}
+
+// ===== 背景 =====
+svg.appendChild(el("rect", { x:0, y:0, width:L, height:L, fill:"#ffffff" }));
+
+// ===== 中心区（深蓝底）=====
+svg.appendChild(el("rect", { x:B, y:B, width:L-2*B, height:L-2*B, fill:"#5B7FC6" }));
+// 顶部射灯
+svg.appendChild(el("polygon", { points:`600,150 760,150 980,900 700,900`, fill:"#ffffff", opacity:0.06 }));
+svg.appendChild(el("polygon", { points:`1040,150 1200,150 1120,900 860,900`, fill:"#ffffff", opacity:0.05 }));
+// 银牌渐变
+const silver = el("linearGradient", { id:"silver", x1:"0%", y1:"0%", x2:"0%", y2:"100%" });
+silver.appendChild(el("stop", { offset:"0%", "stop-color":"#f4f6fa" }));
+silver.appendChild(el("stop", { offset:"55%", "stop-color":"#c9d2e2" }));
+silver.appendChild(el("stop", { offset:"100%", "stop-color":"#8e99b0" }));
+svg.appendChild(silver);
+
+// —— 银行游戏盘（绿橙相间）——
+{
+  const chars = ["银","行","游","戏","盘"];
+  const cols  = ["#7ac143","#f08300","#7ac143","#f08300","#7ac143"];
+  chars.forEach((c,i) => {
+    svg.appendChild(bubble(760 + i*70, 345, c, 72, { fill: cols[i], dark: "#1b3f7e" }));
+  });
+}
+// —— 银牌徽章 ——
+svg.appendChild(el("rect", { x:1315, y:295, width:200, height:95, rx:16, fill:"none", stroke:"#d9deea", "stroke-width":6 }));
+svg.appendChild(el("rect", { x:1327, y:307, width:176, height:71, rx:10, fill:"none", stroke:"#9aa8c8", "stroke-width":2 }));
+svg.appendChild(txt(1415, 344, "银牌", 58, { weight:"bold", fill:"url(#silver)", stroke:"#5a6580", sw:2 }));
+
+// —— 命运卡（左上，奶黄底虚线框）——
+{
+  const g = el("g", { transform:"translate(395,445) rotate(-35)" });
+  g.appendChild(el("rect", { x:-115, y:-80, width:230, height:160, fill:"#f7f2cc", stroke:"#8a7a40", "stroke-width":2.5, "stroke-dasharray":"7,5" }));
+  // 小号
+  g.appendChild(el("polygon", { points:"-78,38 -34,4 -22,16 -66,50", fill:"#ffd400", stroke:"#222", "stroke-width":2 }));
+  g.appendChild(el("circle", { cx:-26, cy:8, r:8, fill:"none", stroke:"#2a7a2a", "stroke-width":2.5 }));
+  g.appendChild(txt(38, -18, "命运", 46, { weight:"bold", fill:"#d42a2a" }));
+  g.appendChild(txt(-10, 52, "DESTINY !", 17, { weight:"bold", fill:"#d42a2a", family:'Georgia,"Times New Roman",serif' }));
+  svg.appendChild(g);
+}
+
+// —— 大富翁 ——
+svg.appendChild(bubble(655, 645, "大富翁", 148, { fill:"url(#silver)", dark:"#1b3f7e" }));
+// —— Uncle Wang ——
+svg.appendChild(txt(1090, 645, "Uncle Wang", 66, { weight:"bold", fill:"#ffd400", stroke:"#d42a2a", sw:6, family:'"Arial Black","PingFang SC",sans-serif' }));
+
+// —— 世界之旅 + 两侧弧形箭头 ——
+{
+  const g = el("g");
+  const arrow = (t) => el("path", {
+    d: t
+      ? "M1560,700 C1600,780 1560,860 1470,880 L1470,850 L1420,905 L1480,935 L1480,905 C1580,880 1625,775 1575,690 Z"
+      : "M240,700 C200,780 240,860 330,880 L330,850 L380,905 L320,935 L320,905 C220,880 175,775 225,690 Z",
+    fill:"#2b6bd8", stroke:"#dce6f5", "stroke-width":4
+  });
+  g.appendChild(arrow(false));
+  g.appendChild(arrow(true));
+  ["世","界","之","旅"].forEach((c,i) => {
+    g.appendChild(bubble(710 + i*130, 830, c, 150, { fill:"url(#silver)", dark:"#1b3f7e" }));
+  });
+  svg.appendChild(g);
+}
+
+// —— 一代接一代 + 标语 ——
+svg.appendChild(el("rect", { x:770, y:940, width:260, height:54, rx:27, fill:"#d42a2a", stroke:"#ffffff", "stroke-width":2.5 }));
+svg.appendChild(txt(900, 967, "一代接一代", 32, { weight:"bold", fill:"#ffffff" }));
+svg.appendChild(txt(900, 1030, "我们都是玩大富翁长大的", 34, { weight:"bold", fill:"#ffe14d", stroke:"#d4581e", sw:4 }));
+
+// —— 地标剪影带 ——
+{
+  const g = el("g", { fill:"#8fa6cd", opacity:0.9 });
+  // 狮身人面像
+  g.appendChild(el("path", { d:"M560,1230 L560,1190 Q580,1150 620,1150 L640,1170 L700,1170 L700,1185 L650,1185 L650,1230 Z" }));
+  // 双塔教堂
+  g.appendChild(el("path", { d:"M760,1230 L760,1120 L775,1090 L790,1120 L790,1230 Z M810,1230 L810,1130 L828,1100 L846,1130 L846,1230 Z M755,1230 L855,1230 L855,1215 L755,1215 Z" }));
+  // 圣瓦西里洋葱顶
+  g.appendChild(el("path", { d:"M920,1230 L920,1160 Q920,1130 940,1125 Q960,1130 960,1160 L960,1230 Z M965,1230 L965,1150 Q985,1100 1000,1075 Q1015,1100 1035,1150 L1035,1230 Z M1040,1230 L1040,1165 Q1060,1135 1080,1165 L1080,1230 Z" }));
+  // 比萨斜塔
+  g.appendChild(el("path", { d:"M1120,1230 L1135,1060 Q1160,1040 1178,1062 L1160,1230 Z M1130,1180 L1162,1180 M1127,1120 L1159,1120" , fill:"#8fa6cd", stroke:"#6d84b4", "stroke-width":3 }));
+  // 万神殿柱廊
+  g.appendChild(el("path", { d:"M1220,1230 L1220,1150 L1235,1130 L1330,1130 L1345,1150 L1345,1230 Z M1235,1150 L1330,1150 M1235,1150 L1235,1230 M1260,1150 L1260,1230 M1285,1150 L1285,1230 M1310,1150 L1310,1230", fill:"none", stroke:"#8fa6cd", "stroke-width":4 }));
+  g.appendChild(el("rect", { x:520, y:1226, width:860, height:8, fill:"#7d95c0" }));
+  svg.appendChild(g);
+}
+
+// —— 卡通男孩（左）与女孩（中）——
+{
+  const g = el("g");
+  // 男孩
+  g.appendChild(el("circle", { cx:430, cy:1265, r:58, fill:"#ffdfc0", stroke:"#5a3a1a", "stroke-width":3 }));
+  g.appendChild(el("path", { d:"M372,1255 Q375,1195 430,1192 Q488,1195 490,1255 Q470,1215 430,1213 Q390,1215 372,1255 Z", fill:"#8a5a2a" }));
+  g.appendChild(el("circle", { cx:410, cy:1268, r:5, fill:"#222" }));
+  g.appendChild(el("circle", { cx:452, cy:1268, r:5, fill:"#222" }));
+  g.appendChild(el("path", { d:"M405,1290 Q430,1312 458,1290", fill:"none", stroke:"#5a3a1a", "stroke-width":4, "stroke-linecap":"round" }));
+  g.appendChild(el("path", { d:"M390,1320 L472,1320 L486,1420 L448,1420 L432,1360 L414,1420 L376,1420 Z", fill:"#3aa54a", stroke:"#2a7a3a", "stroke-width":2.5 }));
+  g.appendChild(el("path", { d:"M376,1420 L414,1420 L410,1470 L378,1470 Z", fill:"#3a6ac8" }));
+  g.appendChild(el("path", { d:"M448,1420 L486,1420 L494,1470 L460,1470 Z", fill:"#3a6ac8" }));
+  // 女孩
+  g.appendChild(el("circle", { cx:830, cy:1300, r:48, fill:"#ffdfc0", stroke:"#5a3a1a", "stroke-width":3 }));
+  g.appendChild(el("path", { d:"M782,1295 Q785,1245 830,1242 Q875,1245 878,1295 Q855,1262 830,1262 Q805,1262 782,1295 Z", fill:"#a8642a" }));
+  g.appendChild(el("circle", { cx:783, cy:1300, r:16, fill:"#d4823a" }));
+  g.appendChild(el("circle", { cx:877, cy:1300, r:16, fill:"#d4823a" }));
+  g.appendChild(el("path", { d:"M770,1288 L758,1272 L780,1276 Z", fill:"#d42a2a" }));
+  g.appendChild(el("path", { d:"M890,1288 L902,1272 L880,1276 Z", fill:"#d42a2a" }));
+  g.appendChild(el("circle", { cx:812, cy:1302, r:4.5, fill:"#222" }));
+  g.appendChild(el("circle", { cx:848, cy:1302, r:4.5, fill:"#222" }));
+  g.appendChild(el("path", { d:"M812,1322 Q830,1338 850,1322", fill:"none", stroke:"#5a3a1a", "stroke-width":3.5, "stroke-linecap":"round" }));
+  g.appendChild(el("path", { d:"M796,1348 L864,1348 L878,1430 L782,1430 Z", fill:"#e8c83a", stroke:"#c0982a", "stroke-width":2.5 }));
+  svg.appendChild(g);
+}
+
+// —— 机会卡（右下，粉底虚线框）——
+{
+  const g = el("g", { transform:"translate(1310,1200) rotate(-52)" });
+  g.appendChild(el("rect", { x:-150, y:-105, width:300, height:210, fill:"#f5bcca", stroke:"#c2426a", "stroke-width":3, "stroke-dasharray":"9,6" }));
+  g.appendChild(txt(-55, -25, "?", 72, { weight:"bold", fill:"#d43636" }));
+  g.appendChild(el("circle", { cx:-55, cy:8, r:14, fill:"none", stroke:"#8a1a3a", "stroke-width":3 }));
+  g.appendChild(txt(48, -30, "机", 84, { weight:"bold", fill:"#d43636", stroke:"#8a1a3a", sw:3 }));
+  g.appendChild(txt(48, 58, "会", 84, { weight:"bold", fill:"#d43636", stroke:"#8a1a3a", sw:3 }));
+  g.appendChild(txt(-118, 78, "CHANCE", 17, { weight:"bold", fill:"#d43636", family:'Georgia,"Times New Roman",serif' }));
+  g.appendChild(txt(112, -78, "CHANCE", 17, { weight:"bold", fill:"#d43636", family:'Georgia,"Times New Roman",serif' }));
+  svg.appendChild(g);
+}
+
+// —— 底部版权行 ——
+svg.appendChild(el("rect", { x:575, y:1572, width:110, height:40, fill:"none", stroke:"#333", "stroke-width":1.5 }));
+svg.appendChild(txt(630, 1586, "注意商标", 13, { fill:"#333" }));
+svg.appendChild(txt(630, 1602, "仿冒必究", 13, { fill:"#333" }));
+svg.appendChild(txt(935, 1592, "大富翁 商标系（台湾）亚湾文具（股）公司特约授权制造／销售", 15, { fill:"#333" }));
+svg.appendChild(txt(1565, 1592, "货号：3004", 15, { weight:"bold", fill:"#222" }));
+
+// ===== 跑道格子 =====
+// 四边同一套设计：色带在靠圆心一侧，内容依次 国名→英文→国旗→$价格→首都，
+// 整格旋转：底 0° / 左 +90° / 顶 180° / 右 -90°（与原版照片一致，顶行文字倒置、左右列文字朝圆心）
+function tileGroup(col, row, side) {
+  let cx, cy, rot;
+  if (side === "top")         { cx = B + (col-1)*W + W/2; cy = B/2;       rot = 180; }
+  else if (side === "bottom") { cx = B + (col-1)*W + W/2; cy = L - B/2;   rot = 0;   }
+  else if (side === "left")   { cx = B/2;                 cy = B + (row-1)*W + W/2; rot = 90;  }
+  else if (side === "right")  { cx = L - B/2;             cy = B + (row-1)*W + W/2; rot = -90; }
+  else if (col===0 && row===0)   { cx = B/2; cy = B/2;     rot = 0; }
+  else if (col===16 && row===0)  { cx = L-B/2; cy = B/2;   rot = 0; }
+  else if (col===0 && row===16)  { cx = B/2; cy = L-B/2;   rot = 0; }
+  else                           { cx = L-B/2; cy = L-B/2; rot = 0; }  // 赤道
+  return el("g", { transform:`translate(${cx},${cy}) rotate(${rot})` });
+}
+// 局部坐标：x∈[-50,50]，y∈[-75,75]，色带在 y=-75 一端（即靠圆心一侧）
+function propertyContent(g, name, nameEn, capital, price, color) {
+  g.appendChild(el("rect", { x:-50, y:-75, width:100, height:BAND, fill:COLORS[color] }));
+  const long = name.length >= 6;
+  if (long) {
+    // 中华人民共和国 → 两行
+    g.appendChild(txt(0, -33, name.slice(0, 4), 13, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, -17, name.slice(4), 13, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, -4, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+  } else {
+    const fs = name.length >= 5 ? 13 : (name.length === 4 ? 16 : 19);
+    g.appendChild(txt(0, -22, name, fs, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, -6, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+  }
+  g.appendChild(txt(0, 22, FLAGS[name] || "🏳️", 27, {}));
+  g.appendChild(txt(0, 47, "$" + price, 18, { weight:"bold", fill:"#1a55a5" }));
+  g.appendChild(txt(0, 65, capital, 12, { fill:"#222" }));
+}
+function chanceContent(g) {
+  g.appendChild(txt(0, -36, "机会", 26, { weight:"bold", fill:"#111" }));
+  g.appendChild(txt(0, -14, "CHANCE", 13, { weight:"bold", fill:"#c22a2a", family:'Georgia,"Times New Roman",serif' }));
+  g.appendChild(txt(3, 24, "?", 60, { weight:"bold", fill:"#3a6ac8" }));
+  g.appendChild(txt(0, 21, "?", 60, { weight:"bold", fill:"#d42222" }));
+  g.appendChild(txt(0, 54, "抽取", 12, { fill:"#222" }));
+  g.appendChild(txt(0, 68, "机会一张", 12, { fill:"#222" }));
+}
+function destinyContent(g) {
+  g.appendChild(txt(0, -36, "命运", 26, { weight:"bold", fill:"#111" }));
+  g.appendChild(txt(0, -14, "DESTINY", 12, { weight:"bold", fill:"#b03030", family:'Georgia,"Times New Roman",serif' }));
+  // 小号图标
+  const h = el("g", { transform:"translate(0,16)" });
+  h.appendChild(el("polygon", { points:"-20,24 12,-6 22,4 -10,34", fill:"#ffd400", stroke:"#222", "stroke-width":2 }));
+  h.appendChild(el("circle", { cx:17, cy:-2, r:7, fill:"none", stroke:"#2a7a2a", "stroke-width":2.5 }));
+  h.appendChild(el("rect", { x:-26, y:22, width:10, height:7, rx:2, fill:"#222", transform:"rotate(-45 -21 25)" }));
+  g.appendChild(h);
+  g.appendChild(txt(0, 54, "抽取", 12, { fill:"#222" }));
+  g.appendChild(txt(0, 68, "命运一张", 12, { fill:"#222" }));
+}
+function oceanContent(g, name) {
+  const blues = ["#6a8ad8", "#4a72c8", "#2e56b0"];
+  const chars = name.split("");
+  chars.forEach((c, i) => {
+    const y = (i - (chars.length-1)/2) * 44;
+    g.appendChild(el("circle", { cx:0, cy:y, r:20, fill:blues[i % 3] }));
+    g.appendChild(txt(0, y+1, c, 21, { weight:"bold", fill:"#fff" }));
+  });
+}
+
+TILES.forEach(t => {
+  const [col, row, side, type, name, nameEn, sub, price, color] = t;
+  const g = tileGroup(col, row, side);
+  if (type === "corner") {
+    g.appendChild(el("rect", { x:-75, y:-75, width:150, height:150, fill:"#A8CCE9", stroke:"#1a1a1a", "stroke-width":2 }));
+    if (side === "corner-br") {
+      // 赤道：气泡字横排 + 黄星 + 红字 + 蓝色起点箭头 + 小孩
+      g.appendChild(bubble(-12, -40, "赤道", 46, {}));
+      g.appendChild(txt(56, -46, "✦", 34, { weight:"bold", fill:"#ffd400", stroke:"#e07800", sw:2 }));
+      g.appendChild(txt(0, -4, "起点/由此去得酬金$2000", 11.5, { weight:"bold", fill:"#d42a2a" }));
+      g.appendChild(el("polygon", {
+        points:"-64,30 -16,10 36,10 36,50 -16,50",
+        fill:"#2e6fd4", stroke:"#eef3fb", "stroke-width":3, "stroke-linejoin":"round"
+      }));
+      g.appendChild(bubble(12, 30, "起点", 24, { fill:"#ffd400", dark:"#d42a2a" }));
+      // 男孩
+      g.appendChild(el("circle", { cx:53, cy:16, r:9, fill:"#ffdfc0", stroke:"#5a3a1a", "stroke-width":1.5 }));
+      g.appendChild(el("path", { d:"M45,13 Q46,5 53,5 Q60,5 61,13 Q55,8 45,13 Z", fill:"#8a5a2a" }));
+      g.appendChild(el("path", { d:"M47,26 L59,26 L61,48 L55,48 L53,36 L51,48 L45,48 Z", fill:"#3aa54a" }));
+      // 女孩
+      g.appendChild(el("circle", { cx:67, cy:24, r:8, fill:"#ffdfc0", stroke:"#5a3a1a", "stroke-width":1.5 }));
+      g.appendChild(el("circle", { cx:60, cy:24, r:4, fill:"#d4823a" }));
+      g.appendChild(el("circle", { cx:74, cy:24, r:4, fill:"#d4823a" }));
+      g.appendChild(el("path", { d:"M61,33 L73,33 L75,52 L59,52 Z", fill:"#e8c83a" }));
+    } else {
+      // 地中海 / 北极 / 夏威夷：-45° 气泡字 + 图案
+      const gg = el("g", { transform:"rotate(-45)" });
+      gg.appendChild(bubble(-4, -12, name, 44, {}));
+      g.appendChild(gg);
+      if (side === "corner-bl") {
+        // 帆船
+        g.appendChild(el("path", { d:"M18,52 Q34,62 52,52 L47,44 L24,44 Z", fill:"#2a4a8a" }));
+        g.appendChild(el("polygon", { points:"30,10 30,42 16,42", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
+        g.appendChild(el("polygon", { points:"36,14 36,42 52,42", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
+        g.appendChild(el("line", { x1:36, y1:20, x2:36, y2:42, stroke:"#d42a2a", "stroke-width":4 }));
+      } else if (side === "corner-tl") {
+        // 冰屋
+        g.appendChild(el("path", { d:"M12,54 A26,26 0 0 1 64,54 Z", fill:"#f2f4f6", stroke:"#9ab0c4", "stroke-width":2 }));
+        g.appendChild(el("path", { d:"M30,54 A8,10 0 0 1 46,54 Z", fill:"#5a6a8a" }));
+        g.appendChild(el("path", { d:"M14,42 Q38,34 62,42 M18,30 Q38,24 58,30", fill:"none", stroke:"#b8c4d0", "stroke-width":2 }));
+      } else {
+        // 棕榈树
+        g.appendChild(el("path", { d:"M30,58 Q34,36 46,24", fill:"none", stroke:"#8a5a2a", "stroke-width":5, "stroke-linecap":"round" }));
+        [[46,24,-30],[46,24,0],[46,24,30],[46,24,60],[46,24,-60]].forEach(([x,y,a]) => {
+          g.appendChild(el("ellipse", { cx:x+16*Math.cos(a*Math.PI/180)*0.6, cy:y-10, rx:16, ry:5.5,
+            fill:"#3aa54a", transform:`rotate(${a} ${x} ${y})` }));
+        });
+        g.appendChild(el("ellipse", { cx:38, cy:60, rx:26, ry:6, fill:"#f0e0b8" }));
+      }
+    }
+  } else {
+    // 普通格：白底
+    g.appendChild(el("rect", { x:-50, y:-75, width:100, height:150, fill:"#ffffff", stroke:"#1a1a1a", "stroke-width":2 }));
+    if (type === "chance") chanceContent(g);
+    else if (type === "destiny") destinyContent(g);
+    else if (type === "ocean") oceanContent(g, name);
+    else propertyContent(g, name, nameEn, sub, price, color);
+  }
+  svg.appendChild(g);
+});
+
+// 外边框
+svg.appendChild(el("rect", {
+  x:1, y:1, width:L-2, height:L-2, rx:2,
+  fill:"none", stroke:"#222", "stroke-width":4
+}));
+
+console.log("棋盘渲染完成，共 " + TILES.length + " 格");
+
+// 屏幕自适应：正方形棋盘居中；export=png 时铺满 100%
+function fitBoard() {
+  if (window.matchMedia("print").matches) return;
+  const s = Math.min(window.innerWidth, window.innerHeight) * (EXPORT_PNG ? 1 : 0.88);
+  const page = document.querySelector(".page");
+  page.style.width = s + "px";
+  page.style.height = s + "px";
+  page.style.marginLeft = "auto";
+  page.style.marginRight = "auto";
+  page.style.marginTop = ((window.innerHeight - s) / 2) + "px";
+}
+window.addEventListener("resize", fitBoard);
+fitBoard();
+
+</script>
+
+</body>
+</html>

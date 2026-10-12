@@ -143,6 +143,8 @@ richer/
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具（脚本回写兜底）
 ├── map-svg.html            电子地图：64 格 SVG 棋盘，可拖动缩放，图例可点击筛选（手写页，脚本不动）
+│                           · 每边 16 格（角格 + 15）、角格在四角；环厚 RING_T=4，格子向中间伸长，手机也看得清
+│                           · 改环厚只动一个常量：RING_T（1 = 原来的薄环，1~8 任意值）
 ├── cards.csv               卡牌数据真源
 ├── cards.json              由 cards.csv 生成，供打印页读取
 ├── update.command          macOS 双击运行 update.py

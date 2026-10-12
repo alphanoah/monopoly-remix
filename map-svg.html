@@ -64,7 +64,7 @@
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     width: 100%;
-    max-width: 1320px;
+    max-width: 780px;      /* 环厚的板子是正方形，再宽手机上字会太小 */
     overflow: hidden;
     cursor: grab;
     touch-action: none;
@@ -124,6 +124,13 @@
     text-align: center;
   }
   .hint b { color: #2c2c2a; font-weight: 500; }
+  /* 手机上把边距压到最小，好让棋盘吃满屏宽 */
+  @media (max-width: 640px) {
+    body { padding: 10px 6px 28px; }
+    h1 { font-size: 18px; }
+    .svg-container { padding: 4px; border-radius: 8px; }
+    .legend-label { min-width: 0; }
+  }
 </style>
 </head>
 <body>
@@ -170,15 +177,50 @@ const SPECIAL_COLORS = {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-// 布局参数
-const TILE_W = 76;
-const TILE_H = 100;
-const GAP = 1;
-const BAND_H = 14;
-const COLS = 17;
-const ROWS = 17;
-const SVG_W = COLS * TILE_W + (COLS + 1) * GAP;
-const SVG_H = ROWS * TILE_H + (ROWS + 1) * GAP;
+// ===== 布局参数 =====
+// 结构照旧：每边 16 格（角格 + 15）、角格仍在四角、顺时针、首尾接壤；
+// 只是把环「加厚」：每个格子沿径向往中间伸长 RING_T 个单位，中间的空被吃掉，格子随之变大。
+const N_POS = 17;                                 // 每边的位置数（角格 + 15 + 角格）
+const RING_T = 4;                                 // 环厚（1 = 原来的薄环）；调这一个数即可，1~8 任意取值
+const U = 20;                                     // 1 个单位 = 20 用户坐标（整板 340）
+const CORNER_S = RING_T * U;                      // 角格边长 = 80
+const HOLE_S = (N_POS - 2 * RING_T) * U;          // 中空 = 180
+const SVG_W = N_POS * U;                          // 整板正方形 = 340
+const SVG_H = SVG_W;
+
+// ===== 格子位置：每边 16 格（角格 + 15），顺时针 =====
+// 赤道(右下·起点) → 底边向左 → 地中海(左下) → 左边向上 → 北极(左上) → 顶边向右 → 夏威夷(右上) → 右边向下 → 回起点
+function tileRectUnit(id) {
+  const L = N_POS - 2 * RING_T, ew = L / 15;
+  if (id === 0)  return { x: N_POS - RING_T, y: N_POS - RING_T, w: RING_T, h: RING_T };
+  if (id <= 15) { const k = id - 1;  return { x: N_POS - RING_T - (k + 1) * ew, y: N_POS - RING_T, w: ew, h: RING_T }; }
+  if (id === 16) return { x: 0, y: N_POS - RING_T, w: RING_T, h: RING_T };
+  if (id <= 31) { const k = id - 17; return { x: 0, y: N_POS - RING_T - (k + 1) * ew, w: RING_T, h: ew }; }
+  if (id === 32) return { x: 0, y: 0, w: RING_T, h: RING_T };
+  if (id <= 47) { const k = id - 33; return { x: RING_T + k * ew, y: 0, w: ew, h: RING_T }; }
+  if (id === 48) return { x: N_POS - RING_T, y: 0, w: RING_T, h: RING_T };
+  const k = id - 49; return { x: N_POS - RING_T, y: RING_T + k * ew, w: RING_T, h: ew };
+}
+// 色带贴「最外圈」那一边：四个角格各接自己那一条边，整圈连成一条
+function tileEdge(id) {
+  if (id <= 15) return "bottom";   // 赤道(0) + 底边
+  if (id <= 31) return "left";     // 地中海(16) + 左边
+  if (id <= 47) return "top";      // 北极(32) + 顶边
+  return "right";                  // 夏威夷(48) + 右边
+}
+// 三种排法里取字号最大的：竖排（字叠起来）/ 横排两行 / 横排一行
+function pickText(name, price, W, H) {
+  const n = name.length, pl = price ? price.length : 0;
+  const stackPrice = price ? (W * 0.94 / (pl * 0.58 + 0.2) < 6.5) : false;
+  const kP = price ? (stackPrice ? pl * 1.08 * 0.92 * 0.95 : 1.9) : 0.25;
+  const c = [
+    { m: "v",  f: Math.min(W * 0.84, H * 0.94 / (n * 1.08 + kP)), stackPrice: stackPrice },
+    { m: "h2", f: Math.min(W * 0.94 / Math.max(1, n), H * 0.465) },
+    { m: "h1", f: Math.min(W * 0.94 / (n + pl * 0.58 + 0.3), H * 0.80) }
+  ].sort(function (a, b) { return b.f - a.f; })[0];
+  c.f = Math.max(3, Math.min(c.f, 15));
+  return c;
+}
 
 // ===== 本地兜底数据（同 map-data.json）=====
 const FALLBACK_DATA = {
@@ -349,83 +391,110 @@ function renderMap(data) {
     fill: "#f4f2ee", rx: 4
   }));
 
-  // 中心区域
-  const cx = GAP + TILE_W;
-  const cy = GAP + TILE_H;
-  const cw = 15 * TILE_W + 14 * GAP;
-  const ch = 15 * TILE_H + 14 * GAP;
-
-  const centerGrad = svgEl("linearGradient", { id: "centerGrad", x1: "0%", y1: "0%", x2: "100%", y2: "100%" });
-  centerGrad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "#fbfaf8" }));
-  centerGrad.appendChild(svgEl("stop", { offset: "100%", "stop-color": "#f4f2ee" }));
-  svg.insertBefore(centerGrad, vg);
-
-  vg.appendChild(svgEl("rect", {
-    x: cx, y: cy, width: cw, height: ch,
-    fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
-  }));
-
-  // 中心标题
-  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 - 8, "世界之旅", 24, { weight: "bold", color: "#2c2c2a", letterSpacing: "4" }));
-  vg.appendChild(svgText(cx + cw / 2, cy + ch / 2 + 16, "WORLD TOUR", 12, { color: "#8a8880", letterSpacing: "2" }));
+  // 中空：被格子吃掉之后剩下的那一块
+  if (HOLE_S > 4) {
+    const hx = RING_T * U, hs = HOLE_S;
+    vg.appendChild(svgEl("rect", {
+      x: hx, y: hx, width: hs, height: hs,
+      fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
+    }));
+    if (hs > 90) {
+      vg.appendChild(svgText(hx + hs / 2, hx + hs / 2 - 6, "世界之旅", Math.min(22, hs * 0.13),
+        { weight: "bold", color: "#2c2c2a", letterSpacing: "4" }));
+      vg.appendChild(svgText(hx + hs / 2, hx + hs / 2 + 12, "WORLD TOUR", Math.min(11, hs * 0.065),
+        { color: "#8a8880", letterSpacing: "2" }));
+    }
+  }
 
   // 渲染格子
   data.tiles.forEach(t => {
-    const x = GAP + t.col * (TILE_W + GAP);
-    const y = GAP + t.row * (TILE_H + GAP);
-    const g = svgEl("g", { transform: `translate(${x},${y})` });
+    const r = tileRectUnit(t.id);
+    const W = r.w * U, H = r.h * U;
+    const g = svgEl("g", { transform: `translate(${r.x * U},${r.y * U})` });
     // 打标记，图例筛选时按这两个属性匹配
     g.setAttribute("data-tile", "1");
-    if (t.type) {
-      g.setAttribute("data-special", t.type);
-    } else {
-      g.setAttribute("data-color", t.color);
+    if (t.type) { g.setAttribute("data-special", t.type); } else { g.setAttribute("data-color", t.color); }
+
+    // 悬停提示：窄格子里放不下的完整信息在这里补齐
+    const tip = svgEl("title", {});
+    tip.textContent = `${t.name}${t.nameEn ? " " + t.nameEn : ""}` +
+      `${t.capital ? " · 首都 " + t.capital : ""}${t.price ? " · $" + t.price : ""}${t.sub ? " · " + t.sub : ""}`;
+    g.appendChild(tip);
+
+    let bg = "#fff", stroke = "#e5e1da", sw = 1;
+    if (t.type === "corner") { bg = "#f7f5f1"; stroke = "#b3afa6"; sw = 2; }
+    else if (t.type === "chance") { bg = "#fdf7fa"; stroke = "#B06F88"; }
+    else if (t.type === "destiny") { bg = "#fdf9f2"; stroke = "#D9BA8E"; }
+    else if (t.type === "ocean") { bg = "#f4f8fa"; stroke = "#9BB6C4"; }
+    g.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
+
+    // 每格独立裁剪：窄格子里的文字不许溢出压到邻格
+    const cpId = "clip-tile-" + t.id;
+    const cp = svgEl("clipPath", { id: cpId });
+    cp.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H }));
+    g.appendChild(cp);
+    const inner = svgEl("g", { "clip-path": `url(#${cpId})` });
+    g.appendChild(inner);
+
+    // 色带贴在格子靠外的一边
+    const bandColor = t.color ? COLORS[t.color] : (SPECIAL_COLORS[t.type] || "#b3afa6");
+    const bt = Math.max(2, Math.min(W, H) * 0.15);
+    const edge = tileEdge(t.id);
+    let bx = 0, by = 0, bw = W, bh = H;
+    if (edge === "bottom") { by = H - bt; bh = bt; }
+    else if (edge === "top") { bh = bt; }
+    else if (edge === "left") { bw = bt; }
+    else { bx = W - bt; bw = bt; }
+    inner.appendChild(svgEl("rect", { x: bx, y: by, width: bw, height: bh, fill: bandColor, rx: 1 }));
+
+    if (t.type === "corner") {
+      const f = Math.min(W * 0.34, H * 0.26, 15);
+      inner.appendChild(svgText(W / 2, H * 0.34, t.name, f, { weight: "bold", color: "#2c2c2a" }));
+      inner.appendChild(svgText(W / 2, H * 0.50, t.nameEn, Math.max(6, f * 0.40), { color: "#8a8880", letterSpacing: "1" }));
+      const m = String(t.sub || "").match(/\$[\d,]+/);
+      if (m) inner.appendChild(svgText(W / 2, H * 0.68, "起点 " + m[0], Math.max(6, f * 0.50), { weight: "bold", color: "#96597A" }));
+      vg.appendChild(g);
+      return;
     }
 
-    if (t.type) {
-      let bg = "#fff", stroke = "#e5e1da", sw = 1;
-      if (t.type === "corner") { bg = "#f4f2ee"; stroke = "#b3afa6"; sw = 2; }
-      else if (t.type === "chance") { bg = "#faf3f6"; stroke = "#B06F88"; sw = 1; }
-      else if (t.type === "destiny") { bg = "#faf5ec"; stroke = "#D9BA8E"; sw = 1; }
-      else if (t.type === "ocean") { bg = "#eef3f6"; stroke = "#9BB6C4"; sw = 1; }
+    const price = t.price ? String(t.price) : "";
+    const c = pickText(t.name, price, W, H);
+    const nameColor = t.type === "chance" ? "#96597A" : t.type === "destiny" ? "#7A6338" : t.type === "ocean" ? "#4a6b7c" : "#2c2c2a";
+    const priceColor = t.type ? "#8a8880" : "#96597A";
+    const glyph = t.type === "chance" ? "?" : t.type === "destiny" ? "\u2726" : t.type === "ocean" ? "~" : null;
 
-      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
-
-      if (t.type === "corner") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 6, t.name, 16, { weight: "bold", color: "#2c2c2a" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.nameEn, 9, { color: "#8a8880", letterSpacing: "0.5" }));
-        if (t.sub) {
-          g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.sub, 8, { weight: "bold", color: "#96597A" }));
-        }
-      } else if (t.type === "chance") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "?", 28, { weight: "bold", color: "#B06F88" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#96597A" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#96597A" }));
-      } else if (t.type === "destiny") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "\u2726", 24, { weight: "bold", color: "#C79A5E" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 12, t.name, 11, { weight: "bold", color: "#7A6338" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#7A6338" }));
-      } else if (t.type === "ocean") {
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 - 14, "~", 22, { color: "#7fa3b8" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 10, t.name, 11, { weight: "bold", color: "#4a6b7c" }));
-        g.appendChild(svgText(TILE_W / 2, TILE_H / 2 + 26, t.nameEn, 7, { color: "#4a6b7c" }));
+    if (c.m === "v") {
+      const fp = price ? (c.stackPrice ? c.f * 0.92 : c.f * 0.85) : 0;
+      const nameH = t.name.length * 1.08 * c.f;
+      const priceH = price ? (c.stackPrice ? price.length * 1.08 * fp : 1.6 * fp) : 0;
+      const fg = glyph ? Math.min(c.f * 0.9, W * 0.62) : 0;
+      const glyphH = (glyph && (H * 0.94 - nameH - priceH) > fg * 1.5) ? fg * 1.2 : 0;
+      let y = (H - nameH - priceH - glyphH) / 2 + c.f * 0.55;
+      if (glyphH) {
+        inner.appendChild(svgText(W / 2, y - c.f * 0.55 + fg * 0.6, glyph, fg, { weight: "bold", color: bandColor }));
+        y += glyphH;
       }
+      for (let k = 0; k < t.name.length; k++) {
+        inner.appendChild(svgText(W / 2, y, t.name[k], c.f, { weight: "bold", color: nameColor }));
+        y += c.f * 1.08;
+      }
+      if (price) {
+        if (c.stackPrice) {
+          y += fp * 0.35;
+          for (let k = 0; k < price.length; k++) {
+            inner.appendChild(svgText(W / 2, y, price[k], fp, { color: priceColor }));
+            y += fp * 1.08;
+          }
+        } else {
+          y += fp * 0.6;
+          inner.appendChild(svgText(W / 2, y, price, fp, { color: priceColor }));
+        }
+      }
+    } else if (c.m === "h2") {
+      inner.appendChild(svgText(W / 2, H * 0.40, t.name, c.f, { weight: "bold", color: nameColor }));
+      if (price) inner.appendChild(svgText(W / 2, H * 0.74, price, c.f * 0.85, { color: priceColor }));
     } else {
-      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: TILE_H, fill: "#fff", stroke: "#e5e1da", "stroke-width": 1, rx: 2 }));
-
-      const bandColor = COLORS[t.color] || "#ccc";
-      g.appendChild(svgEl("rect", { x: 0, y: 0, width: TILE_W, height: BAND_H, fill: bandColor, rx: 2 }));
-      g.appendChild(svgText(8, BAND_H + 8, "#" + t.id, 6, { color: "#c9c5bd" }));
-
-      const cx2 = TILE_W / 2;
-      let cy2 = BAND_H + 20;
-      g.appendChild(svgText(cx2, cy2, t.name, 13, { weight: "bold", color: "#2c2c2a" }));
-      cy2 += 16;
-      g.appendChild(svgText(cx2, cy2, t.nameEn, 7, { color: "#b3afa6", letterSpacing: "0.3" }));
-      cy2 += 14;
-      g.appendChild(svgText(cx2, cy2, "$" + t.price, 12, { weight: "bold", color: "#96597A" }));
-      cy2 += 14;
-      g.appendChild(svgText(cx2, cy2, t.capital, 8, { color: "#8a8880" }));
+      inner.appendChild(svgText(W / 2, H * 0.52, price ? t.name + " " + price : t.name, c.f, { weight: "bold", color: nameColor }));
     }
 
     vg.appendChild(g);

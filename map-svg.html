@@ -37,6 +37,8 @@
     gap: 8px;
     margin-bottom: 10px;
     align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .toolbar button {
     background: #fff;
@@ -51,6 +53,14 @@
   }
   .toolbar button:hover { border-color: #B06F88; color: #96597A; }
   .toolbar button:active { background: #f4f2ee; }
+  /* 下载按钮：给它一点主色，跟其余按钮区分开 */
+  .toolbar button.primary { background: #B06F88; border-color: #B06F88; color: #fff; }
+  .toolbar button.primary:hover { background: #96597A; border-color: #96597A; color: #fff; }
+  .toolbar button.primary:active { background: #854f6c; border-color: #854f6c; }
+  .toolbar button[disabled], .toolbar button.busy { opacity: .55; cursor: default; }
+  /* 加厚环模式下整板一屏放得下，不需要缩放控件 */
+  .zoom-controls { display: flex; gap: 8px; align-items: center; }
+  .zoom-controls[hidden] { display: none; }
   .toolbar .zoom-level {
     font-size: 13px;
     color: #8a8880;
@@ -137,13 +147,17 @@
 
 <a class="home" href="index.html">← 返回首页</a>
 <h1>大富翁「世界之旅」 WORLD TOUR</h1>
-<div class="hint" id="hint">滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组</div>
+<div class="hint" id="hint">加厚环 · 整板一屏放下，不用缩放 · 鼠标悬停看首都和价格 · 点下方色块只看某一组</div>
 <div id="legend" class="legend"></div>
-<div class="toolbar">
-  <button id="btn-zoom-out">−</button>
-  <span class="zoom-level" id="zoom-level">100%</span>
-  <button id="btn-zoom-in">+</button>
-  <button id="btn-reset">重置</button>
+<div class="toolbar" id="toolbar">
+  <span class="zoom-controls" id="zoom-controls">
+    <button id="btn-zoom-out">−</button>
+    <span class="zoom-level" id="zoom-level">100%</span>
+    <button id="btn-zoom-in">+</button>
+    <button id="btn-reset">重置</button>
+  </span>
+  <button id="btn-layout" title="在「加厚环」和「原版薄环」之间切换">切换为原版薄环</button>
+  <button id="btn-png" title="把当前地图导出为 PNG 图片">下载 PNG</button>
 </div>
 <div class="svg-container" id="svg-container">
   <svg id="map" xmlns="http://www.w3.org/2000/svg">
@@ -181,12 +195,16 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 // 结构照旧：每边 16 格（角格 + 15）、角格仍在四角、顺时针、首尾接壤；
 // 只是把环「加厚」：每个格子沿径向往中间伸长 RING_T 个单位，中间的空被吃掉，格子随之变大。
 const N_POS = 17;                                 // 每边的位置数（角格 + 15 + 角格）
-const RING_T = 4;                                 // 环厚（1 = 原来的薄环）；调这一个数即可，1~8 任意取值
 const U = 20;                                     // 1 个单位 = 20 用户坐标（整板 340）
-const CORNER_S = RING_T * U;                      // 角格边长 = 80
-const HOLE_S = (N_POS - 2 * RING_T) * U;          // 中空 = 180
+let RING_T = 4;                                   // 当前环厚；4 = 加厚环（手机上能读），1 = 原来的薄环
+const RING_THICK = 4;                             // 「加厚环」档
+const RING_THIN = 1;                              // 「原版薄环」档
 const SVG_W = N_POS * U;                          // 整板正方形 = 340
 const SVG_H = SVG_W;
+
+// 中空边长 = 整板 − 两侧环厚（随 RING_T 变化，所以做成函数）
+function isRingThick() { return RING_T !== RING_THIN; }
+function holeSize() { return (N_POS - 2 * RING_T) * U; }
 
 // ===== 格子位置：每边 16 格（角格 + 15），顺时针 =====
 // 赤道(右下·起点) → 底边向左 → 地中海(左下) → 左边向上 → 北极(左上) → 顶边向右 → 夏威夷(右上) → 右边向下 → 回起点
@@ -340,11 +358,24 @@ function svgText(x, y, text, fontSize, opts = {}) {
 }
 
 // ===== 图例筛选 =====
-const HINT_DEFAULT = "滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组";
 let currentFilter = "all";
+let mapData = null;                               // 缓存当前数据，切换布局时用它重画
+let hashApplied = false;                          // #f= 的hash筛选只吃一次
+
+// 顶上的提示语随布局而变：加厚环一屏放下不用缩放，薄环才需要那套操作
+function defaultHint() {
+  return isRingThick()
+    ? "加厚环 · 整板一屏放下，不用缩放 · 鼠标悬停看首都和价格 · 点下方色块只看某一组"
+    : "原版薄环 · 滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组";
+}
 
 function setFilter(key, name) {
   currentFilter = (key === currentFilter) ? "all" : key;   // 再点一次就取消
+  applyFilter(name);
+}
+
+// 把当前 currentFilter 落到棋盘上（重画之后也要重新调用一次）
+function applyFilter(name) {
   document.querySelectorAll(".legend-item").forEach(el => {
     el.classList.toggle("on", el.dataset.filter === currentFilter);
   });
@@ -358,9 +389,22 @@ function setFilter(key, name) {
     if (match) hits++;
   });
   const hint = document.getElementById("hint");
-  hint.innerHTML = currentFilter === "all"
-    ? HINT_DEFAULT
-    : `只看 <b>${name}</b> · ${hits} 格 —— 再点一次取消筛选`;
+  if (currentFilter === "all") {
+    hint.textContent = defaultHint();
+    return;
+  }
+  const label = name || (currentFilter.split(":")[1] || "");
+  hint.innerHTML = `只看 <b>${label}</b> · ${hits} 格 —— 再点一次取消筛选`;
+}
+
+// 按钮文字 / 缩放控件的显示，跟着当前布局走
+function updateModeUI() {
+  const thick = isRingThick();
+  document.getElementById("zoom-controls").hidden = thick;
+  const btn = document.getElementById("btn-layout");
+  btn.textContent = thick ? "切换为原版薄环" : "切换为加厚环（环厚 4）";
+  const hint = document.getElementById("hint");
+  if (currentFilter === "all") hint.textContent = defaultHint();
 }
 
 // ===== 缩放平移状态 =====
@@ -378,12 +422,22 @@ function updateViewport() {
 
 // ===== 渲染地图 =====
 function renderMap(data) {
+  mapData = data;
   const svg = document.getElementById("map");
   svg.setAttribute("viewBox", `0 0 ${SVG_W} ${SVG_H}`);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  // 所有内容画到 viewport-group 里
+  // 所有内容画到 viewport-group 里（切换布局时整块清空重画）
   const vg = document.getElementById("viewport-group");
+  vg.innerHTML = "";
+
+  // 渐变定义：中空那块用的底色
+  const defs = svgEl("defs", {});
+  const grad = svgEl("linearGradient", { id: "centerGrad", x1: "0%", y1: "0%", x2: "100%", y2: "100%" });
+  grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "#fdfcfa" }));
+  grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": "#f6f4f0" }));
+  defs.appendChild(grad);
+  vg.appendChild(defs);
 
   // 背景
   vg.appendChild(svgEl("rect", {
@@ -392,8 +446,9 @@ function renderMap(data) {
   }));
 
   // 中空：被格子吃掉之后剩下的那一块
-  if (HOLE_S > 4) {
-    const hx = RING_T * U, hs = HOLE_S;
+  const hs = holeSize();
+  if (hs > 4) {
+    const hx = RING_T * U;
     vg.appendChild(svgEl("rect", {
       x: hx, y: hx, width: hs, height: hs,
       fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
@@ -575,20 +630,28 @@ function renderMap(data) {
   });
   legend.appendChild(row3);
 
-  // 初始化 viewport
+  // 初始化 viewport（事件只绑一次，避免切换布局时重复叠加）
   updateViewport();
   initPanZoom();
+  updateModeUI();
 
-  // 支持带 hash 打开直接落到某个筛选，如 map-svg.html#f=color:red
-  if (location.hash.startsWith("#f=")) {
+  // 重画之后把筛选状态还原回去（比如正看着「红组」，切完布局还是只有红组亮着）
+  applyFilter();
+
+  // 支持带 hash 打开直接落到某个筛选，如 map-svg.html#f=color:red（只在首次渲染时吃一次）
+  if (!hashApplied && location.hash.startsWith("#f=")) {
+    hashApplied = true;
     const k = decodeURIComponent(location.hash.slice(3));
     const chip = document.querySelector('.legend-item[data-filter="' + k + '"]');
     if (chip) chip.click();
   }
 }
 
-// ===== 缩放平移交互 =====
+// ===== 缩放平移交互（只绑定一次）=====
+let panZoomReady = false;
 function initPanZoom() {
+  if (panZoomReady) return;
+  panZoomReady = true;
   const container = document.getElementById("svg-container");
   const svg = document.getElementById("map");
 
@@ -714,6 +777,96 @@ function initPanZoom() {
     updateViewport();
   });
 }
+
+// ===== 工具栏：布局切换 + 导出 PNG =====
+function initToolbar() {
+  document.getElementById("btn-layout").addEventListener("click", () => {
+    if (!mapData) return;
+    RING_T = isRingThick() ? RING_THIN : RING_THICK;   // 4 <-> 1
+    zoom = 1;                                          // 换布局就回到整板视图
+    panX = 0;
+    panY = 0;
+    renderMap(mapData);
+  });
+
+  document.getElementById("btn-png").addEventListener("click", exportPNG);
+}
+
+// 导出的画布倍率：viewBox 是 340，×6 = 2040px 宽，够打印也够发群
+const EXPORT_SCALE = 6;
+
+function exportFileName() {
+  const tag = isRingThick() ? "加厚环" : "原版薄环";
+  const filter = currentFilter === "all" ? "" : "-筛选";
+  return `大富翁世界之旅地图-${tag}${filter}.png`;
+}
+
+function exportPNG() {
+  const btn = document.getElementById("btn-png");
+  const restore = () => {
+    btn.classList.remove("busy");
+    btn.textContent = "下载 PNG";
+  };
+
+  // 复制一份 SVG 用于导出：去掉当前的缩放/平移，按 1:1 导出整块板
+  const clone = document.getElementById("map").cloneNode(true);
+  const cvg = clone.querySelector("#viewport-group");
+  if (cvg) cvg.removeAttribute("transform");
+  clone.setAttribute("xmlns", SVG_NS);
+  clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+  const vb = (clone.getAttribute("viewBox") || `0 0 ${SVG_W} ${SVG_H}`).split(/[\s,]+/).map(Number);
+  const vw = vb[2] || SVG_W, vh = vb[3] || SVG_H;
+  clone.setAttribute("width", vw);
+  clone.setAttribute("height", vh);
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const svgBlob = new Blob(["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xml],
+    { type: "image/svg+xml;charset=utf-8" });
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  btn.classList.add("busy");
+  btn.textContent = "导出中…";
+
+  const img = new Image();
+  img.onload = function () {
+    try {
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(vw * EXPORT_SCALE);
+      cv.height = Math.round(vh * EXPORT_SCALE);
+      const ctx = cv.getContext("2d");
+      ctx.fillStyle = "#f4f2ee";
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(svgUrl);
+
+      const save = function (href, revoke) {
+        const a = document.createElement("a");
+        a.href = href;
+        a.download = exportFileName();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        if (revoke) setTimeout(() => URL.revokeObjectURL(href), 4000);
+        restore();
+      };
+      if (cv.toBlob) cv.toBlob(b => save(URL.createObjectURL(b), true), "image/png");
+      else save(cv.toDataURL("image/png"), false);
+    } catch (e) {
+      URL.revokeObjectURL(svgUrl);
+      restore();
+      alert("导出失败：" + e.message + "\n可以试试用浏览器的「打印 → 另存为 PDF」。");
+    }
+  };
+  img.onerror = function () {
+    URL.revokeObjectURL(svgUrl);
+    restore();
+    alert("导出失败：浏览器无法渲染这张 SVG。\n可以试试用浏览器的「打印 → 另存为 PDF」。");
+  };
+  img.src = svgUrl;
+}
+
+initToolbar();   // 按钮是静态元素，先绑好，不等地图渲染
 
 // ===== 加载数据：优先 fetch JSON，失败则用本地兜底 =====
 fetch("./docs/map-data.json")

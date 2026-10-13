@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>大富翁「世界之旅」地图 · 打印版数据 (SVG)</title>
+<title>大富翁「世界之旅」电子地图（加厚环 / 原版 / 打印版）</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -136,12 +136,53 @@
     text-align: center;
   }
   .hint b { color: #2c2c2a; font-weight: 500; }
+
+  /* ===== 布局切换 = 分段控件（加厚环 / 原版 / 打印版）===== */
+  .seg { display: inline-flex; }
+  .seg-btn {
+    margin-left: -1px;
+    border-radius: 0;
+    position: relative;
+  }
+  .seg-btn:first-child { border-radius: 8px 0 0 8px; margin-left: 0; }
+  .seg-btn:last-child { border-radius: 0 8px 8px 0; }
+  .seg-btn:hover { z-index: 1; }
+  .seg-btn.on {
+    background: #B06F88; border-color: #B06F88; color: #fff; z-index: 2;
+  }
+  .seg-btn.on:hover { background: #96597A; border-color: #96597A; color: #fff; }
+  /* 打印按钮：蓝色实心，跟「下载 PNG」的粉紫主色区分开 */
+  .btn-print {
+    background: #1a55a5; border-color: #1a55a5; color: #fff;
+  }
+  .btn-print:hover { background: #14437f; border-color: #14437f; color: #fff; }
+  .btn-print:active { background: #0f3370; border-color: #0f3370; }
   /* 手机上把边距压到最小，好让棋盘吃满屏宽 */
   @media (max-width: 640px) {
     body { padding: 10px 6px 28px; }
     h1 { font-size: 18px; }
     .svg-container { padding: 4px; border-radius: 8px; }
     .legend-label { min-width: 0; }
+    .toolbar { gap: 6px; padding: 7px 8px; }
+    .toolbar button, .seg-btn { padding: 6px 10px; font-size: 12.5px; }
+  }
+
+  /* ===== 打印：只出棋盘本体（尺寸按 JSON 的 board.printMM，运行时注入 @page）=====
+     筛选状态不会带进打印：g[data-tile] 一律还原不透明 */
+  @media print {
+    body { padding: 0 !important; background: #fff; }
+    h1, .home, .toolbar, .legend, .hint { display: none !important; }
+    .svg-container {
+      width: 100% !important; max-width: none !important;
+      border: 0 !important; border-radius: 0 !important; padding: 0 !important;
+      box-shadow: none !important; overflow: visible !important;
+    }
+    #viewport-group { transform: none !important; }
+    g[data-tile] { opacity: 1 !important; }
+    svg, svg * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
   }
 </style>
 </head>
@@ -150,17 +191,25 @@
 <a class="home" href="index.html">← 返回首页</a>
 <h1>大富翁「世界之旅」 WORLD TOUR</h1>
 <div class="hint" id="hint">加厚环 · 整板一屏放下，不用缩放 · 鼠标悬停看首都和价格 · 点下方色块只看某一组</div>
-<div id="legend" class="legend"></div>
+
 <div class="toolbar" id="toolbar">
+  <span class="seg" id="seg-layout">
+    <button class="seg-btn on" data-mode="thick" title="360° 加厚环：格子吃进中间空，手机上字最大">加厚环</button>
+    <button class="seg-btn" data-mode="classic" title="原版布局：76×100 竖长格，国名/英文/价格/首都四行">原版</button>
+    <button class="seg-btn" data-mode="print" title="打印版：按实体棋盘一比一还原的 80cm 软垫图">打印版</button>
+  </span>
   <span class="zoom-controls" id="zoom-controls">
     <button id="btn-zoom-out">−</button>
     <span class="zoom-level" id="zoom-level">100%</span>
     <button id="btn-zoom-in">+</button>
     <button id="btn-reset">重置</button>
   </span>
-  <button id="btn-layout" title="在「加厚环」和「原版薄环」之间切换">切换为原版薄环</button>
-  <button id="btn-png" title="把当前地图导出为 PNG 图片">下载 PNG</button>
+  <button id="btn-print" class="btn-print" title="切到打印版并开打印对话框：纸张 800×800mm、边距无、勾「背景图形」">打印</button>
+  <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片">下载 PNG</button>
 </div>
+
+<div id="legend" class="legend"></div>
+
 <div class="svg-container" id="svg-container">
   <svg id="map" xmlns="http://www.w3.org/2000/svg">
     <g id="viewport-group"></g>
@@ -247,7 +296,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-filter.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
   "board": {
     "size": 1800,
     "printMM": 800,
@@ -1315,6 +1364,9 @@ let hashApplied = false;                          // #f= 的hash筛选只吃一�
 
 // 顶上的提示语随布局而变：加厚环一屏放下不用缩放，薄环才需要那套操作
 function defaultHint() {
+  if (isPrintMode()) {
+    return "打印版 · 按实体棋盘一比一还原的 80cm 软垫图 · 可滚轮/双指缩放 · 点「打印」直接出 800×800mm（勾「背景图形」）· 点下方色块只看某一组";
+  }
   return isRingThick()
     ? "加厚环 · 整板已固定一屏，不用缩放平移 · 鼠标悬停看首都和价格 · 点下方色块只看某一组"
     : "原版布局 · 滚轮/双指缩放 · 拖拽平移 · 双击重置 · 点下方色块只看某一组";
@@ -1350,15 +1402,21 @@ function applyFilter(name) {
 
 // 按钮文字 / 缩放控件的显示，跟着当前布局走
 function updateModeUI() {
-  const thick = isRingThick();
+  const thick = isRingThick(), print = isPrintMode();
+  // 加厚环一屏放得下，不需要缩放控件；原版和打印版都保留缩放平移
   document.getElementById("zoom-controls").hidden = thick;
-  // 加厚环是正方板，容器宽了反而字会变小；原版是竖长板，得放开宽度
+  // 加厚环是正方板，容器宽了反而字会变小；原版是竖长板，得放开宽度；打印版也是正方板
   const container = document.getElementById("svg-container");
-  container.style.maxWidth = thick ? "780px" : "1320px";
+  container.style.maxWidth = thick ? "780px" : (print ? "900px" : "1320px");
   // 加厚环锁视图：收回抓手光标 + 放开 touch-action，让手指能正常滚页面
   container.classList.toggle("locked", thick);
-  const btn = document.getElementById("btn-layout");
-  btn.textContent = thick ? "切换为原版布局" : "切换为加厚环";
+  // 分段控件：当前档位高亮
+  document.querySelectorAll("#seg-layout .seg-btn").forEach(b => {
+    b.classList.toggle("on", b.dataset.mode === layoutMode);
+  });
+  document.getElementById("btn-png").textContent = print ? "下载 PNG（打印版）" : "下载 PNG";
+  // 标题跟着档位走：打印档是「软垫打印版」，其余档位还原成电子地图
+  if (!print) document.title = "大富翁「世界之旅」电子地图（加厚环 / 原版 / 打印版）";
   const hint = document.getElementById("hint");
   if (currentFilter === "all") hint.textContent = defaultHint();
 }
@@ -1381,15 +1439,23 @@ function updateViewport() {
 // ===== 两种布局 =====
 // "thick"   加厚环（默认）：N_POS=17 / RING_T=4，整板 340×340 正方形，格子吃进中间空 → 手机上字够大
 // "classic" 原版：每格 76×100 + 1px 缝，整板 1310×1718 —— 就是最初那一版的样子（国名/英文/价格/首都四行）
+// "print"   打印版：整板 1800×1800，按实体棋盘照片一比一还原的 80cm 软垫图（见上面的 PrintBoard）
 let layoutMode = "thick";
 
 const CL = { TW: 76, TH: 100, GAP: 1, BAND: 14, N: 17 };
 const CL_W = CL.N * CL.TW + (CL.N + 1) * CL.GAP;      // 1310
 const CL_H = CL.N * CL.TH + (CL.N + 1) * CL.GAP;      // 1718
 
-function isRingThick() { return layoutMode !== "classic"; }
-function boardSize() { return isRingThick() ? { w: SVG_W, h: SVG_H } : { w: CL_W, h: CL_H }; }
+function isRingThick() { return layoutMode === "thick"; }
+function isPrintMode() { return layoutMode === "print"; }
+// 打印版整板是 JSON 里 board.size 的正方形（80cm 软垫那张 = 1800）
+function printSize() { return (DATA && DATA.board && DATA.board.size) || 1800; }
+function boardSize() {
+  if (isPrintMode()) return { w: printSize(), h: printSize() };
+  return isRingThick() ? { w: SVG_W, h: SVG_H } : { w: CL_W, h: CL_H };
+}
 // 加厚环一屏放得下 → 视图固定：不允许缩放/平移（否则板子被拖歪，而这一档没有重置按钮，回不来）
+// 打印版格子小、信息多，允许缩放平移才看得清
 function viewLocked() { return isRingThick(); }
 
 // 格子容器：transform + 筛选属性 + 悬停提示（两种布局共用）
@@ -1403,6 +1469,326 @@ function tileGroup(t, x, y) {
   g.appendChild(tip);
   return g;
 }
+
+// ===== 打印版棋盘（第三种布局：按实体棋盘照片一比一还原的 80cm 软垫图）=====
+// 整套绘制代码自成一家（内部自带 el/txt/bubble…），只对外暴露 render()，
+// 不跟本页原有的 svgEl/svgText/tileGroup 撞车。
+const PrintBoard = (function () {
+  const NS = "http://www.w3.org/2000/svg";
+  let ROOT = null;                 // 画到哪（viewport-group 里的 <g>）
+  let L, B, W, TW, TH, BAND;       // 边长 / 跑道宽 / 格宽 / 半格 / 色带宽
+  let HEX = {}, HEXBYKEY = {}, GKEY = {}, DECKS = {}, LAY = {};
+  let LP, LD, LO, LI, LC;
+
+// ===== 国旗 emoji =====
+// 不再在页面里维护对照表：每个地产格自带 flag 字段（见 content/map-print-data.json），
+// 渲染时直接读即可 —— 改国旗改 JSON 那一个数就行。
+// 万一哪格漏填（update.py 会校验拦截），这里给个白旗兜底并在控制台喊一声。
+function warnNoFlag(t) {
+  console.warn("[map-print] 格子 #" + t.id + "（" + t.name + "）没有 flag 字段，去 JSON 里补一下");
+}
+
+function el(tag, attrs, children) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (children) children.forEach(c => e.appendChild(c));
+  return e;
+}
+function txt(x, y, str, size, opts = {}) {
+  const t = el("text", {
+    x, y, "font-size": size,
+    "text-anchor": opts.anchor || "middle",
+    "dominant-baseline": opts.baseline || "middle",
+    "font-weight": opts.weight || "normal",
+    fill: opts.fill || "#222",
+    "font-family": opts.family || '"PingFang SC","Microsoft YaHei",sans-serif',
+    "paint-order": "stroke",
+    "stroke-linejoin": "round"
+  });
+  if (opts.ls) t.setAttribute("letter-spacing", opts.ls);
+  if (opts.opacity != null) t.setAttribute("opacity", opts.opacity);
+  if (opts.stroke) { t.setAttribute("stroke", opts.stroke); t.setAttribute("stroke-width", opts.sw || 3); }
+  t.textContent = str;
+  return t;
+}
+// 气泡字：白色外晕 + 深色描边 + 彩色填充（角格「赤道/地中海/北极/夏威夷」「起点」「大富翁」用）
+function bubble(x, y, str, size, opts = {}) {
+  const g = el("g");
+  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight:"bold", fill, stroke:sc, sw, ...opts });
+  g.appendChild(mk("#ffffff", size * 0.38, "#ffffff"));
+  g.appendChild(mk(opts.dark || "#1b3f7e", size * 0.16, opts.dark || "#1b3f7e"));
+  g.appendChild(mk(opts.dark || "#1b3f7e", size * 0.02, opts.fill || "#2e8fd4"));
+  return g;
+}
+// 格子编号：统一放格子右下角（局部坐标），半透明灰字带白晕
+function idTag(x, y, id) {
+  return txt(x, y, "#" + id, LI.size ?? 11, {
+    anchor: "end", weight: "bold",
+    fill: "#55606e", stroke: "#ffffff", sw: 2, opacity: LI.opacity ?? 0.55
+  });
+}
+
+// ===== 渲染：整块棋盘都按 renderBoard(DATA) 画一遍 =====
+function renderBoard(DATA) {
+  // —— 参数全部取自 JSON ——
+  const bd = DATA.board || {};
+  L = bd.size || 1800;
+  B = bd.trackWidth || 190;
+  W = (L - 2*B) / (bd.tilesPerSide || 15);
+  TW = W / 2; TH = B / 2; BAND = bd.band || 38;
+  applyPrintSize(bd.printMM);
+  HEX = {}; HEXBYKEY = {}; GKEY = {};     // GKEY：颜色组 id → key（筛选时给格子打标记用）
+  (DATA.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; GKEY[g.id] = g.key; });
+  DECKS = DATA.decks || {};
+  LAY = DATA.layout || {};
+  LP = LAY.property || {}; LD = LAY.deck || {}; LO = LAY.ocean || {};
+  LI = LAY.id || {};       LC = LAY.corner || {};
+
+  ROOT.innerHTML = "";  // 重绘前清空（renderMap 已把 viewport-group 清空重建）
+
+  // ===== 背景 =====
+  ROOT.appendChild(el("rect", { x:0, y:0, width:L, height:L, fill:"#ffffff" }));
+
+  // ===== 中心区（深蓝底 + 大富翁 + 两张卡堆）=====
+  ROOT.appendChild(el("rect", { x:B, y:B, width:L-2*B, height:L-2*B, fill:"#5B7FC6" }));
+  ROOT.appendChild(el("polygon", { points:`620,${B} 780,${B} 990,900 720,900`, fill:"#ffffff", opacity:0.06 }));
+  ROOT.appendChild(el("polygon", { points:`1020,${B} 1180,${B} 1090,900 840,900`, fill:"#ffffff", opacity:0.05 }));
+// —— 大富翁（正中）——
+// ⚠️ 别用渐变填充：打印预览默认不开「背景图形」，SVG 渐变会被整个丢掉，
+// 字就只剩底下的深蓝描边层 —— 看起来就是「一坨蓝色」。
+// 这里用「上半亮银 + 下半中银」两段实色拼出金属感，任何打印设置都不会丢。
+function silverTitle(x, y, str, size) {
+  const g = el("g");
+  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight:"bold", fill, stroke:sc, sw });
+  g.appendChild(mk("#ffffff", size * 0.38, "#ffffff"));   // 白色外晕
+  g.appendChild(mk("#1b3f7e", size * 0.16, "#1b3f7e"));   // 深蓝衬底
+  g.appendChild(mk("#1b3f7e", size * 0.02, "#c9d2e2"));   // 银字主体（＝原渐变中间色）
+  // 上半段亮银：同一行字再画一遍，用 clipPath 裁掉下半（≈原渐变 0~45% 的效果）
+  const w = str.length * size;
+  const cp = el("clipPath", { id:"silver-top" });
+  cp.appendChild(el("rect", { x:x-w, y:y-size*0.8, width:w*2, height:size*0.6 }));
+  const defs = el("defs", {}); defs.appendChild(cp); g.appendChild(defs);
+  const hi = el("g", { "clip-path":"url(#silver-top)" });
+  hi.appendChild(mk("#1b3f7e", size * 0.02, "#f4f6fa"));
+  g.appendChild(hi);
+  return g;
+}
+ROOT.appendChild(silverTitle(900, 900, "大富翁", 168));
+
+// —— 卡牌背面样式的两个卡堆（样式完全照 print.html 卡牌背面）——
+function cardBack(x, y, w, h, kind, rot) {
+  const m = DECKS[kind];
+  const g = el("g", { transform:`translate(${x},${y}) rotate(${rot})` });
+  // 下面垫两张，做出「牌堆」的厚度感
+  [[16, 14], [8, 7]].forEach(([ox, oy], i) => {
+    g.appendChild(el("rect", { x:-w/2+ox, y:-h/2+oy, width:w, height:h, rx:10,
+      fill:m.bg, stroke:"rgba(0,0,0,.22)", "stroke-width":2, opacity: i ? 0.75 : 0.55 }));
+  });
+  // 卡面
+  g.appendChild(el("rect", { x:-w/2, y:-h/2, width:w, height:h, rx:10, fill:m.bg, stroke:"rgba(0,0,0,.22)", "stroke-width":2 }));
+  // 尺寸基准 = 短边（横版也能保持和竖版一致的视觉比例）
+  const u = Math.min(w, h);
+  // 内框（inset 3mm ≈ 短边的 4.8%）
+  const ins = u * 0.048;
+  g.appendChild(el("rect", { x:-w/2+ins, y:-h/2+ins, width:w-2*ins, height:h-2*ins, rx:6,
+    fill:"none", stroke:m.fg, "stroke-width":3, opacity:0.72 }));
+  // 面：字 + 大号符号 + 字
+  const fs = u * 0.185, ss = u * 0.30, gap = u * 0.075;
+  const total = fs + gap + ss + gap + fs, x0 = -total/2;
+  g.appendChild(txt(x0 + fs/2, -h*0.05, m.w1, fs, { weight:"bold", fill:m.fg }));
+  g.appendChild(txt(x0 + fs + gap + ss/2, -h*0.05, m.sym, ss, { weight:"bold", fill:m.fg, opacity:0.5 }));
+  g.appendChild(txt(x0 + fs + gap + ss + gap + fs/2, -h*0.05, m.w2, fs, { weight:"bold", fill:m.fg }));
+  // 英文行（70% 处）
+  g.appendChild(txt(0, h*0.22, m.en, u*0.055, { weight:"bold", fill:m.fg, ls:u*0.024, opacity:0.72 }));
+  // 左上角「大富翁」椭圆印章（rotate -12°）
+  const st = el("g", { transform:`translate(${-w/2 + u*0.16},${-h/2 + u*0.13}) rotate(-12)` });
+  st.appendChild(el("ellipse", { cx:0, cy:0, rx:u*0.115, ry:u*0.076, fill:"none",
+    stroke:m.fg, "stroke-width":2.5, "stroke-dasharray":"6 5", opacity:0.88 }));
+  st.appendChild(txt(0, 1, "大富翁", u*0.048, { weight:"bold", fill:m.fg }));
+  g.appendChild(st);
+  // 右下角小恶魔标（同 print.html 背面）
+  const s = u * 0.10 / 40;
+  const dv = el("g", { transform:`translate(${w/2 - u*0.115},${h/2 - u*0.075}) scale(${s}) translate(-20,-18)` });
+  dv.appendChild(el("path", { d:"M8 8 Q6 2 11 0 Q10 6 14 8 Z", fill:m.fg }));
+  dv.appendChild(el("path", { d:"M32 8 Q34 2 29 0 Q30 6 26 8 Z", fill:m.fg }));
+  dv.appendChild(el("path", { d:"M20 6 C11 6 5 12 5 19 C5 26 11 30 20 30 C29 30 35 26 35 19 C35 12 29 6 20 6 Z", fill:m.fg }));
+  ["M12 17 Q15 14 18 17","M22 17 Q25 14 28 17","M13 21 Q20 27 27 21"].forEach(d => {
+    dv.appendChild(el("path", { d, fill:"none", stroke:m.fg, "stroke-width":1.5, "stroke-linecap":"round" }));
+  });
+  g.appendChild(dv);
+  return g;
+}
+// 横版卡：宽 > 高（与实物牌堆平放的朝向一致）
+ROOT.appendChild(cardBack(465, 500, 430, 296, "fate", -14));     // 命运牌堆（左上）
+ROOT.appendChild(cardBack(1335, 1305, 430, 296, "chance", -14)); // 机会牌堆（右下）
+
+// ===== 跑道格子 =====
+// 四边同一套设计：色带在靠圆心一侧，内容依次 编号→国名→英文→国旗→$价格→首都，
+// 整格旋转：底 0° / 左 +90° / 顶 180° / 右 -90°（与原版照片一致）
+function tileGroup(col, row, side) {
+  let cx, cy, rot;
+  if (side === "top")         { cx = B + (col-1)*W + W/2; cy = B/2;              rot = 180; }
+  else if (side === "bottom") { cx = B + (col-1)*W + W/2; cy = L - B/2;           rot = 0;   }
+  else if (side === "left")   { cx = B/2;                 cy = B + (row-1)*W + W/2; rot = 90; }
+  else if (side === "right")  { cx = L - B/2;             cy = B + (row-1)*W + W/2; rot = -90; }
+  else if (col===0 && row===0)   { cx = B/2;   cy = B/2;   rot = 0; }
+  else if (col===16 && row===0)  { cx = L-B/2; cy = B/2;   rot = 0; }
+  else if (col===0 && row===16)  { cx = B/2;   cy = L-B/2; rot = 0; }
+  else                           { cx = L-B/2; cy = L-B/2; rot = 0; }  // 赤道
+  return el("g", { transform:`translate(${cx},${cy}) rotate(${rot})` });
+}
+// 局部坐标：x∈[-TW,TW]，y∈[-TH,TH]，色带在 y=-TH 一端（即靠圆心一侧）
+function propertyContent(g, id, name, nameEn, flag, capital, price, colorId) {
+  g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:BAND, fill:HEX[colorId] || "#cccccc" }));
+  g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
+  const ns = LP.nameSize || {};
+  if (name.length >= 6) {  // 国名过长（≥6 字）自动拆两行
+    const [y1, y2, y3] = LP.longNameY || [-40, -24, -8];
+    g.appendChild(txt(0, y1, name.slice(0, 4), 13, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, y2, name.slice(4), 13, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, y3, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+  } else {
+    const fs = name.length >= 5 ? (ns.ge5 ?? 13) : (name.length === 4 ? (ns.eq4 ?? 16) : (ns.le3 ?? 19));
+    g.appendChild(txt(0, LP.nameY ?? -36, name, fs, { weight:"bold", fill:"#111" }));
+    g.appendChild(txt(0, LP.nameEnY ?? -18, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+  }
+  g.appendChild(txt(0, LP.flagY ?? 26, flag || "🏳️", LP.flagSize ?? 30, {}));
+  g.appendChild(txt(0, LP.priceY ?? 58, "$" + price, LP.priceSize ?? 18, { weight:"bold", fill:"#1a55a5" }));
+  g.appendChild(txt(0, LP.capitalY ?? 80, capital, LP.capitalSize ?? 12, { fill:"#222" }));
+}
+// 机会 / 命运格：符号与 print.html 卡牌背面一致（？ / ！）
+function deckContent(g, id, name, nameEn, kind) {
+  const m = DECKS[kind];
+  g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
+  g.appendChild(txt(0, LD.nameY ?? -50, name, 24, { weight:"bold", fill:"#111" }));
+  g.appendChild(txt(0, LD.enY ?? -32, nameEn, 11, { weight:"bold", fill:m.ink, ls:2 }));
+  g.appendChild(txt(0, LD.symY ?? 20, m.sym, LD.symSize ?? 66, { weight:"bold", fill:m.ink, opacity:0.7 }));
+  g.appendChild(txt(0, LD.line1Y ?? 62, "抽取", 11, { fill:"#222" }));
+  g.appendChild(txt(0, LD.line2Y ?? 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill:"#222" }));
+}
+function oceanContent(g, id, name) {
+  g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
+  const blues = ["#6a8ad8", "#4a72c8", "#2e56b0"];
+  const chars = name.split("");
+  const mid = LO.offset ?? (BAND/2 + 6);   // 内容区（色带以下）垂直居中偏下
+  const gap = LO.gap ?? 46, r = LO.radius ?? 20;
+  chars.forEach((c, i) => {
+    const y = mid + (i - (chars.length-1)/2) * gap;
+    g.appendChild(el("circle", { cx:0, cy:y, r:r, fill:blues[i % 3] }));
+    g.appendChild(txt(0, y+1, c, 22, { weight:"bold", fill:"#fff" }));
+  });
+}
+// 角格图案（画在朝外那个角；朝向与文字一致 —— 图案「头顶」也朝圆心）
+function cornerIcon(side, rot) {
+  // 朝外的角：地中海(左下) -o,+o｜北极(左上) -o,-o｜夏威夷(右上) +o,-o
+  const o = LC.iconOffset ?? 37;
+  const pos = side === "corner-tr" ? [o, -o] : (side === "corner-tl" ? [-o, -o] : [-o, o]);
+  const g = el("g", { transform:`translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(${LC.iconScale ?? 0.85})` });
+  if (side === "corner-bl") {           // 地中海：帆船
+    g.appendChild(el("path", { d:"M-15,18 Q2,28 20,18 L15,10 L-9,10 Z", fill:"#2a4a8a" }));
+    g.appendChild(el("polygon", { points:"1,-26 1,6 -14,6", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
+    g.appendChild(el("polygon", { points:"7,-22 7,6 23,6", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
+    g.appendChild(el("line", { x1:7, y1:-14, x2:7, y2:6, stroke:"#d42a2a", "stroke-width":4 }));
+  } else if (side === "corner-tl") {    // 北极：冰屋
+    g.appendChild(el("path", { d:"M-22,18 A22,22 0 0 1 22,18 Z", fill:"#f2f4f6", stroke:"#9ab0c4", "stroke-width":2 }));
+    g.appendChild(el("path", { d:"M-7,18 A7,9 0 0 1 7,18 Z", fill:"#5a6a8a" }));
+    g.appendChild(el("path", { d:"M-16,6 Q0,-2 16,6 M-12,-7 Q0,-14 12,-7", fill:"none", stroke:"#b8c4d0", "stroke-width":2 }));
+  } else {                              // 夏威夷：棕榈
+    g.appendChild(el("ellipse", { cx:0, cy:28, rx:24, ry:5, fill:"#f0e0b8" }));
+    g.appendChild(el("path", { d:"M-5,28 Q-1,6 10,-8", fill:"none", stroke:"#8a5a2a", "stroke-width":5, "stroke-linecap":"round" }));
+    [-55,-25,5,35,65].forEach(a => {
+      g.appendChild(el("ellipse", { cx:10, cy:-8, rx:15, ry:5, fill:"#3aa54a",
+        transform:`rotate(${a} 10 -8) translate(0,-9)` }));
+    });
+  }
+  return g;
+}
+
+(DATA.tiles || []).forEach(t => {
+  const id = t.id, col = t.col, row = t.row, side = t.side, type = t.type;
+  const name = t.name, nameEn = t.nameEn;
+  const capital = t.capital, price = t.price, colorId = t.colorId;
+  if ((type || "property") === "property" && !t.flag) warnNoFlag(t);
+  const g = tileGroup(col, row, side);
+  // 筛选标记：跟另外两档布局用同一套属性，图例筛选才能三档通用
+  g.setAttribute("data-tile", "1");
+  if ((type || "property") === "property") g.setAttribute("data-color", GKEY[colorId] || t.color || "");
+  else g.setAttribute("data-special", type);
+  const tip = el("title", {});
+  tip.textContent = `${name}${nameEn ? " " + nameEn : ""}` +
+    `${capital ? " · 首都 " + capital : ""}${price ? " · $" + price : ""}`;
+  g.appendChild(tip);
+
+  if (type === "corner") {
+    g.appendChild(el("rect", { x:-TH, y:-TH, width:B, height:B, fill:"#A8CCE9", stroke:"#1a1a1a", "stroke-width":2 }));
+    if (side === "corner-br") {
+      // 赤道（起点）：样式照原图 —— 气泡字+右上黄五角星+深蓝字+宽蓝箭头（尖朝左）内嵌「起点」黄字
+      g.appendChild(idTag(TH-9, TH-7, id));
+      g.appendChild(bubble(0, -46, "赤道", 46, {}));
+      g.appendChild(txt(68, -66, "★", 34, { weight:"bold", fill:"#ffd400", stroke:"#e07800", sw:2 }));
+      g.appendChild(txt(0, 2, "起点/由此去得酬金$2000", 12, { weight:"bold", fill:"#1b3f7e" }));
+      // 宽箭头：尖头朝左（指向行进方向），尾部矩形
+      g.appendChild(el("polygon", {
+        points:"-70,40 -30,16 56,16 56,64 -30,64",
+        fill:"#2e6fd4", stroke:"#eef3fb", "stroke-width":3.5, "stroke-linejoin":"round"
+      }));
+      g.appendChild(bubble(-26, 41, "起点", 27, { fill:"#ffd400", dark:"#c8341f" }));
+    } else {
+      // 地中海 / 北极 / 夏威夷：文字、图案都「头顶朝圆心」
+      // 地中海(左下) 45°｜北极(左上) 135°｜夏威夷(右上) -135°
+      const rot = side === "corner-bl" ? 45 : (side === "corner-tl" ? 135 : -135);
+      const gg = el("g", { transform:`rotate(${rot})` });
+      gg.appendChild(bubble(0, LC.textY ?? -16, name, LC.textSize ?? 46, {}));  // 文字往圆心侧让一点，给朝外的图案留空间
+      g.appendChild(gg);
+      g.appendChild(cornerIcon(side, rot));
+      const ci = LC.idInset ?? 9;
+      g.appendChild(idTag(TH-ci, TH-ci-2, id));
+    }
+  } else {
+    g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:B, fill:"#ffffff", stroke:"#1a1a1a", "stroke-width":2 }));
+    if (type === "chance") deckContent(g, id, name, nameEn, "chance");
+    else if (type === "destiny") deckContent(g, id, name, nameEn, "fate");
+    else if (type === "ocean") oceanContent(g, id, name);
+    else propertyContent(g, id, name, nameEn, t.flag, capital, price, colorId);
+  }
+  ROOT.appendChild(g);
+});
+
+  // 外边框
+  ROOT.appendChild(el("rect", {
+    x:1, y:1, width:L-2, height:L-2, rx:2,
+    fill:"none", stroke:"#222", "stroke-width":4
+  }));
+
+  console.log("[map-svg] 打印版棋盘渲染完成，共 " + (DATA.tiles || []).length + " 格");
+}
+
+// ===== 打印尺寸（打印版用）=====
+// 成品边长取自 JSON 的 board.printMM（80cm 软垫 = 800）：@page 纸张跟着它变。
+// 只注入一次，切换布局反复渲染也不会堆积 <style>。
+function applyPrintSize(printMM) {
+  const mm = printMM || 800, cm = +(mm / 10).toFixed(1).replace(/\.0$/, "");
+  let st = document.getElementById("print-size-style");
+  if (!st) {
+    st = document.createElement("style");
+    st.id = "print-size-style";
+    document.head.appendChild(st);
+  }
+  st.textContent = `@page { size: ${mm}mm ${mm}mm; margin: 0; }`;
+  document.title = `大富翁 世界之旅 · ${cm}cm 软垫打印版`;
+  return cm;
+}
+
+function render(vg, DATA) {
+  // ROOT：打印版整块棋盘画进 viewport-group 里的这个 <g>，跟着页面一起缩放平移
+  ROOT = svgEl("g", {});
+  vg.appendChild(ROOT);
+  applyPrintSize(DATA.board && DATA.board.printMM);
+  renderBoard(DATA);
+};
+
+  return { render };
+})();
 
 // ===== 渲染地图 =====
 function renderMap(data) {
@@ -1436,6 +1822,9 @@ function renderMap(data) {
 function drawBoard(vg, data) {
   const bs = boardSize();
   const thick = isRingThick();
+
+  // 打印版：整块交给 PrintBoard（它自己画背景、中心、跑道、卡堆）
+  if (isPrintMode()) { PrintBoard.render(vg, data); return; }
 
   // 渐变定义：中空那块用的底色（原版档沿用最初那组的配色）
   const defs = svgEl("defs", {});
@@ -1826,14 +2215,32 @@ function initPanZoom() {
 }
 
 // ===== 工具栏：布局切换 + 导出 PNG =====
+function resetView() {                 // 换布局就回到整板视图
+  zoom = 1;
+  panX = 0;
+  panY = 0;
+}
+
 function initToolbar() {
-  document.getElementById("btn-layout").addEventListener("click", () => {
+  // 布局切换：加厚环 / 原版 / 打印版（三选一，点哪个切哪个）
+  document.querySelectorAll("#seg-layout .seg-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!mapData || btn.dataset.mode === layoutMode) return;
+      layoutMode = btn.dataset.mode;
+      resetView();
+      renderMap(mapData);
+    });
+  });
+
+  // 打印：先切到打印版（@page 尺寸随之注入），再开打印对话框
+  document.getElementById("btn-print").addEventListener("click", () => {
     if (!mapData) return;
-    layoutMode = isRingThick() ? "classic" : "thick";   // 加厚环 <-> 原版
-    zoom = 1;                                           // 换布局就回到整板视图
-    panX = 0;
-    panY = 0;
-    renderMap(mapData);
+    if (layoutMode !== "print") {
+      layoutMode = "print";
+      resetView();
+      renderMap(mapData);
+    }
+    setTimeout(() => window.print(), 120);   // 等重画完再弹对话框
   });
 
   document.getElementById("btn-png").addEventListener("click", exportPNG);
@@ -1843,7 +2250,7 @@ function initToolbar() {
 function exportScale(bs) { return Math.min(6, Math.max(1, Math.ceil(2400 / Math.max(bs.w, bs.h)))); }
 
 function exportFileName() {
-  const tag = isRingThick() ? "加厚环" : "原版";
+  const tag = isPrintMode() ? "打印版" : (isRingThick() ? "加厚环" : "原版");
   const filter = currentFilter === "all" ? "" : "-筛选";
   return `大富翁世界之旅地图-${tag}${filter}.png`;
 }

@@ -2,7 +2,7 @@
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-filter.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
   "board": {
     "size": 1800,
     "printMM": 800,

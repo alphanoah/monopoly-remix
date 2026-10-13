@@ -36,10 +36,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- data/cards.json data/props.json README.md index.html print.html original.html map-print-filter.html map-print-svg.html; then
+          if git diff --quiet -- data/cards.json data/props.json README.md index.html print.html original.html map-print-svg.html; then
             echo "没有变化，跳过提交"
             exit 0
           fi
-          git add data/cards.json data/props.json README.md index.html print.html original.html map-print-filter.html map-print-svg.html
+          git add data/cards.json data/props.json README.md index.html print.html original.html map-print-svg.html
           git commit -m "chore: 由 cards.csv / docs 规则 / original/ 重新生成页面"
           git push

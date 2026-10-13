@@ -166,7 +166,8 @@
     <button class="seg-btn on" data-mode="print-zoom" title="放大版：还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大，手机上也能看清">放大版</button>
   </span>
   <button id="btn-print" class="btn-print" title="切到打印版并开打印对话框：纸张 800×800mm、边距无、勾「背景图形」">打印</button>
-  <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片">导出图片</button>
+  <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片（7200×7200px，80cm 下约 229 DPI）">导出图片</button>
+  <button id="btn-svg" title="存成矢量 .svg 文件（画布 800×800mm），可给商家或用 Illustrator 打开">导出 SVG</button>
 </div>
 
 <div id="legend" class="legend"></div>
@@ -1792,14 +1793,39 @@ function initToolbar() {
     setTimeout(() => window.print(), 120);   // 等重画完再弹对话框
   });
   document.getElementById("btn-png").addEventListener("click", exportPNG);
+  document.getElementById("btn-svg").addEventListener("click", exportSVG);
 }
 
-function exportFileName() {
+function exportFileName(ext) {
   const tag = layoutMode === "print-zoom" ? "放大版" : "打印版";
   const filter = currentFilter === "all" ? "" : "-筛选";
-  return `大富翁世界之旅地图-${tag}${filter}.png`;
+  return `大富翁世界之旅地图-${tag}${filter}.${ext}`;
 }
-// 导出长边约 2400px（整板 1800 → ×2），上限 6 倍
+// 下载一个 Blob（导出图片 / 导出 SVG 共用）
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+// 导出 SVG：整板连同当前筛选状态一起存成矢量文件，画布按 JSON 的 printMM（80cm = 800mm）
+function exportSVG() {
+  const clone = document.getElementById("map").cloneNode(true);
+  clone.setAttribute("xmlns", SVG_NS);
+  clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+  const mm = (DATA.board && DATA.board.printMM) || 800;
+  clone.setAttribute("width", mm + "mm");       // 商家用 Illustrator 打开就是 80×80cm 的画布
+  clone.setAttribute("height", mm + "mm");
+  const xml = new XMLSerializer().serializeToString(clone);
+  downloadBlob(new Blob(["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xml],
+    { type: "image/svg+xml;charset=utf-8" }), exportFileName("svg"));
+}
+// 导出 PNG：成品 80cm，7200px ≈ 229 DPI（软垫喷绘够用，也不会大到浏览器画不出来）
+const EXPORT_LONG_EDGE = 7200;
 function exportPNG() {
   const btn = document.getElementById("btn-png");
   const restore = () => { btn.classList.remove("busy"); updateModeUI(); };
@@ -1823,7 +1849,7 @@ function exportPNG() {
   const img = new Image();
   img.onload = function () {
     try {
-      const scale = Math.min(6, Math.max(1, Math.ceil(2400 / Math.max(vw, vh))));
+      const scale = Math.min(6, Math.max(1, Math.ceil(EXPORT_LONG_EDGE / Math.max(vw, vh))));
       const cv = document.createElement("canvas");
       cv.width = Math.round(vw * scale);
       cv.height = Math.round(vh * scale);
@@ -1836,7 +1862,7 @@ function exportPNG() {
       const save = function (href, revoke) {
         const a = document.createElement("a");
         a.href = href;
-        a.download = exportFileName();
+        a.download = exportFileName("png");
         document.body.appendChild(a);
         a.click();
         a.remove();

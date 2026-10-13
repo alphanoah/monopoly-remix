@@ -507,7 +507,9 @@ def stats_type_table(data):
     counts = type_counts(data)
     rows = []
     for k, meta in data['tileTypes'].items():
-        rows.append([meta['name'], counts.get(k, 0), meta.get('desc', '')])
+        if counts.get(k, 0) == 0:
+            continue        # 只列棋盘上真有的类型（jail/shop 等 v2 变体类型别在原版资料页冒 0）
+        rows.append([meta['name'], counts[k], meta.get('desc', '')])
     return md_table(['类型', '数量', '说明'], rows)
 
 
@@ -515,7 +517,7 @@ def stats_overview(data):
     counts = type_counts(data)
     rows = [['总格数', len(data['tiles'])], ['地产格', '%d 个' % counts.get('property', 0)]]
     for k, meta in data['tileTypes'].items():
-        if k == 'property':
+        if k == 'property' or counts.get(k, 0) == 0:
             continue
         members = [t['name'] for t in data['tiles'] if (t.get('type') or 'property') == k]
         cell = '%d 个' % len(members)

@@ -232,4 +232,5 @@ richer/
 |---|---|
 | `csv-fields.md` | `content/cards.csv` 每一列怎么填、对应 JSON 哪个字段、脚本会拦哪些错 |
 | `card-diff.md` | 新版 40 张自制牌 vs 原版 40 张牌的逐张差异对照 |
+| `strategy.md` | 原版地图的胜率攻略：落点概率实测、选组优先级、卡牌期望、抵押与交易反制 |
 

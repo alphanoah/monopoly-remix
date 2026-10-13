@@ -131,6 +131,36 @@
     text-align: center;
   }
   .hint b { color: #2c2c2a; font-weight: 500; }
+  /* 给商家打印的说明卡片（只读文案，尺寸数字由脚本按 JSON 现填）*/
+  .deliver {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    border: 1px solid #e4e0d8;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: #55534e;
+    text-align: left;
+  }
+  .deliver-title { font-size: 13px; font-weight: 500; color: #2c2c2a; margin-bottom: 6px; }
+  .deliver-list { margin: 0; padding-left: 20px; }
+  .deliver-list li { margin-bottom: 5px; }
+  .deliver-list b { color: #2c2c2a; font-weight: 500; }
+  .deliver .dim { color: #8a8880; }
+  .deliver-warn {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #e4e0d8;
+    color: #8a5a2b;
+  }
+  .deliver-warn b { color: #8a5a2b; font-weight: 500; }
+  /* 放大版只是屏幕上看着用：打印和矢量导出只在打印版出现 */
+  body.mode-zoom #btn-print,
+  body.mode-zoom #btn-svg,
+  body.mode-zoom .deliver { display: none !important; }
   /* 手机上把边距压到最小，好让棋盘吃满屏宽 */
   @media (max-width: 640px) {
     body { padding: 10px 6px 28px; }
@@ -144,7 +174,7 @@
      筛选状态不会带进打印：g[data-tile] 一律还原不透明 */
   @media print {
     body { padding: 0 !important; background: #fff; }
-    h1, .home, .toolbar, .legend, .hint { display: none !important; }
+    h1, .home, .toolbar, .legend, .hint, .deliver { display: none !important; }
     svg { max-width: none !important; width: 100% !important; }
     g[data-tile] { opacity: 1 !important; }
     svg, svg * {
@@ -168,6 +198,20 @@
   <button id="btn-print" class="btn-print" title="切到打印版并开打印对话框：纸张 800×800mm、边距无、勾「背景图形」">打印</button>
   <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片（7200×7200px，80cm 下约 229 DPI）">导出图片</button>
   <button id="btn-svg" title="存成矢量 .svg 文件（画布 800×800mm），可给商家或用 Illustrator 打开">导出 SVG</button>
+</div>
+
+<!-- 给商家打印：三种交付方式（只在打印版显示；mm / DPI 由脚本按 JSON 现填）-->
+<div class="deliver" id="deliver">
+  <div class="deliver-title">给商家打印 · 怎么给文件（<span class="js-mm">800</span>×<span class="js-mm">800</span>mm = <span class="js-cm">80</span>×<span class="js-cm">80</span>cm）</div>
+  <ol class="deliver-list">
+    <li><b>首选：点「打印」→ 目标选「存储为 PDF」</b><br>
+      <span class="dim">纸张已经设成 <span class="js-mm">800</span>×<span class="js-mm">800</span>mm、边距 0，出来是矢量 PDF，商家放大多少倍都不失真。</span></li>
+    <li><b>商家要自己排版 / 改颜色：给「导出 SVG」</b><br>
+      <span class="dim">矢量文件，画布本身就是 <span class="js-mm">800</span>×<span class="js-mm">800</span>mm，Illustrator 打开即 <span class="js-cm">80</span>cm 见方。</span></li>
+    <li><b>商家说字体变了 / 国旗不显示：给「导出图片」</b><br>
+      <span class="dim"><span class="js-px">7200</span>×<span class="js-px">7200</span>px 位图（<span class="js-cm">80</span>cm 下约 <span class="js-dpi">229</span> DPI），没有字体问题，最保险。</span></li>
+  </ol>
+  <p class="deliver-warn">⚠️ 记得提醒商家<b>直接出图</b>，别再拿 AI / PS 二次编辑 —— 中文字体和国旗 emoji 在设计软件里可能被替换或掉字形。</p>
 </div>
 
 <div id="legend" class="legend"></div>
@@ -1753,7 +1797,7 @@ let layoutMode = "print-zoom";                  // print（打印版，一比一
 function defaultHint() {
   const pick = "悬停看首都和价格 · 点下方色块只看某一组";
   if (layoutMode === "print-zoom") {
-    return "放大版 · 还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大，手机上也能看清 · " + pick;
+    return "放大版 · 跑道加厚吃进中间空、文字竖排放大，手机上也能看清（只用来看，要打印请切「打印版」）· " + pick;
   }
   return "打印版 · 按实体棋盘一比一还原的 80cm 软垫图 · 点「打印」直接出 800×800mm（勾「背景图形」）· " + pick;
 }
@@ -1761,9 +1805,19 @@ function updateModeUI() {
   document.querySelectorAll("#seg-layout .seg-btn").forEach(b => {
     b.classList.toggle("on", b.dataset.mode === layoutMode);
   });
-  const btn = document.getElementById("btn-png");
-  if (!btn.classList.contains("busy")) btn.textContent = "导出图片";
+  // 放大版只留「导出图片」：打印和矢量导出按档位整块隐藏（见 CSS body.mode-zoom）
+  document.body.classList.toggle("mode-zoom", layoutMode === "print-zoom");
   if (currentFilter === "all") document.getElementById("hint").textContent = defaultHint();
+}
+// 说明卡片里的尺寸数字：一律按真源现算，不手写（mm 来自 board.printMM，DPI 由导出像素数算）
+function renderDeliver() {
+  const mm = (DATA.board && DATA.board.printMM) || 800;
+  const cm = Math.round(mm / 10);
+  const dpi = Math.round(EXPORT_LONG_EDGE / (mm / 25.4));
+  document.querySelectorAll("#deliver .js-mm").forEach(el => el.textContent = mm);
+  document.querySelectorAll("#deliver .js-cm").forEach(el => el.textContent = cm);
+  document.querySelectorAll("#deliver .js-px").forEach(el => el.textContent = EXPORT_LONG_EDGE);
+  document.querySelectorAll("#deliver .js-dpi").forEach(el => el.textContent = dpi);
 }
 // 打印纸张：边长取自 JSON 的 board.printMM（80cm 软垫 = 800）。只注入一次，切档不会堆积 <style>
 function applyPrintSize(printMM) {
@@ -1896,10 +1950,12 @@ fetch("./content/map-print-data.json")
   .then(data => {
     console.log("[map] 数据来源: content/map-print-data.json");
     renderMap(data);
+    renderDeliver();
   })
   .catch(err => {
     console.warn("[map] fetch map-print-data.json 失败，使用内置兜底数据:", err.message);
     renderMap(FALLBACK_DATA);
+    renderDeliver();
   });
 </script>
 

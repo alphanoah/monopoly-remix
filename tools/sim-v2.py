@@ -5,15 +5,18 @@
 规则 2 与原版的关键差异（本脚本按这些口径跑）：
   1. 骰子：1 枚十六面骰（1-16 等概率）。摇到 16 → 移动 16 格并结算，然后再摇一次；
      连续两次 16 → 移动结算后送进监狱 1 回合。
-  2. 起点：赤道顺时针四个角（#0 赤道 / #16 地中海 / #32 北极 / #48 夏威夷）随机；
-     单数顺时针、双数逆时针。
-  3. 监狱 = 北极 #32：被送进监狱时强制移动到这里，跳过若干回合，期间无法收租。
+  2. 起点：**统一赤道 #0**，所有人同起点、同方向（顺时针前进）。
+     （规则 v2 原文的「四角随机起点 + 单双定方向」是备选玩法，因为它会跟监狱冲突，
+       本脚本按用户 2026-10-13 的确认走「赤道统一起点」这一支。）
+  3. 地图：格子类型**不硬编码**，全部读 content/map-print-data.json 的 variants.v2.replace —
+     北极 #32 → 监狱、印度洋 #24 / 大西洋 #59 → 道具商店（太平洋 #10 仍是普通海洋格）。
+  4. 监狱 = 北极 #32：被送进监狱时强制移动到这里，跳过若干回合，期间无法收租。
      送监狱来源：双 16、命运 1/4/13、机会 15（名下无房时）。
-  4. 机会 / 命运牌：各 20 张，等概率；牌面含移动与坐牢效果（见 CHANCE / FATE）。
-  5. 赤道 #0：每次经过奖励 2000。
-  6. 过路费：空地 20% 地价；绿色 L 级 = 50% 地价 × L；红色 5 级 = 300% 地价。
+  5. 机会 / 命运牌：各 20 张，等概率；牌面含移动与坐牢效果（见 CHANCE / FATE）。
+  6. 赤道 #0：每次经过奖励 2000。
+  7. 过路费：空地 20% 地价；绿色 L 级 = 50% 地价 × L；红色 5 级 = 300% 地价。
      同颜色同归属连锁：总过路费 = 该色名下所有房屋过路费之和，向下取整十。
-  7. 升级费：绿色每级 50% 地价；红色（4→5）100% 地价。
+  8. 升级费：绿色每级 50% 地价；红色（4→5）100% 地价。
 
 用法：python3 tools/sim-v2.py
 """
@@ -26,13 +29,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAP_JSON = os.path.join(ROOT, "content", "map-print-data.json")
 
 N_CELLS = 64
-JAIL_CELL = 32          # 北极
-GO_CELL = 0             # 赤道
+GO_CELL = 0             # 赤道：统一起点（v2 备选口径）
 CORNERS = [0, 16, 32, 48]
+# 起点口径："equator" = 统一赤道起点（默认，用户 2026-10-13 确认）；
+#           "corners" = 四角随机起点 + 单双定方向（v2 原文的备选玩法，仅作对照）
+START_MODE = "equator"
+
+DICE_FACES = 16
 
 START_CASH = 15000      # 备选 20000
 GO_BONUS = 2000
-DICE_FACES = 16
 
 # 机会牌里影响「移动 / 回合 / 坐牢」的
 CHANCE_EXTRA_ROLL = {7, 14}       # 你骰子 +1
@@ -61,15 +67,54 @@ FATE = {
     20: {"rate": 0.50},
 }
 P_NO_HOUSE = 0.40            # 机会 15 时「名下无房」的概率
-# 自然走到北极（#32）算不算坐牢？规则 2 原文没写死，做成开关做 A/B。
-#   False = 只有被卡牌/双 16「送」进去才坐牢（本脚本默认，也是字面读法）
-#   True  = 走到北极也强制坐牢 1 回合（经典大富翁的「进监狱」读法）
-ARRIVE_JAIL_CELL_JAILS = False
+# 自然走到北极（#32）算不算坐牢？做成开关，默认 True（北极现在就是监狱格，
+# 站上去自然要坐牢；v1 的备选读法是「只有被送进去才坐牢」）。
+ARRIVE_JAIL_CELL_JAILS = True
 
 
 def load_map():
     with open(MAP_JSON, encoding="utf-8") as f:
         return json.load(f)
+
+
+def v2_replace(data):
+    """JSON 里 variants.v2.replace：{格子 id: 要覆盖的字段}。"""
+    var = (data.get("variants") or {}).get("v2") or {}
+    return {int(k): v for k, v in (var.get("replace") or {}).items()}
+
+
+def effective_tiles(data):
+    """把 variants.v2 覆盖到格子上，得到「规则 v2 的棋盘」。"""
+    patch = v2_replace(data)
+    out = []
+    for t in data["tiles"]:
+        t = dict(t)
+        t.update(patch.get(t["id"], {}))
+        out.append(t)
+    return out
+
+
+_MEM = {}
+
+
+def eff():
+    """缓存：v2 棋盘 + 监狱格 / 商店格（都从 JSON 推，脚本里不写死）。"""
+    if not _MEM:
+        data = load_map()
+        tiles = effective_tiles(data)
+        _MEM["data"] = data
+        _MEM["tiles"] = {t["id"]: t for t in tiles}
+        _MEM["jail"] = next(t["id"] for t in tiles if t["type"] == "jail")
+        _MEM["shops"] = sorted(t["id"] for t in tiles if t["type"] == "shop")
+    return _MEM
+
+
+def jail_cell():
+    return eff()["jail"]
+
+
+def shop_cells():
+    return set(eff()["shops"])
 
 
 def effective_average_step():
@@ -83,10 +128,37 @@ def moves_per_turn():
     return 1.0 / (1 - 1.0 / DICE_FACES)
 
 
+def probe_rolls(T):
+    """解析推演：从 #0 出发、单向、每步 1d16 连走 T 步后的落点相对频率。
+
+    只回答「统一的赤道起点会不会留下位置偏差」——不含 16 再摇、坐牢与卡牌移动。
+    """
+    st = [0.0] * N_CELLS
+    st[0] = 1.0
+    vis = [0.0] * N_CELLS
+    p = [(r, 1.0 / DICE_FACES) for r in range(1, DICE_FACES + 1)]
+    for _ in range(T):
+        nx = [0.0] * N_CELLS
+        for pos in range(N_CELLS):
+            w = st[pos]
+            if w <= 0:
+                continue
+            for r, pr in p:
+                q = (pos + r) % N_CELLS
+                vis[q] += w * pr
+                nx[q] += w * pr
+        st = nx
+    avg = T / N_CELLS
+    return [v / avg for v in vis]
+
+
 class Sim:
     def __init__(self, rng):
-        data = load_map()
-        self.tiles = {t["id"]: t for t in data["tiles"]}
+        m = eff()
+        data = m["data"]
+        self.tiles = m["tiles"]
+        self.jail = m["jail"]
+        self.shops = m["shops"]
         self.rng = rng
         self.cells = [0] * N_CELLS
         self.arrive_jail = ARRIVE_JAIL_CELL_JAILS
@@ -166,7 +238,7 @@ class Sim:
             pos = self.move(pos, direction, r)
             pos, j = self.resolve(pos)
             jail = max(jail, j)
-            if self.arrive_jail and pos == JAIL_CELL:
+            if self.arrive_jail and pos == self.jail:
                 s["jail_arrive"] += 1
                 jail = max(jail, 1)
                 break
@@ -183,21 +255,26 @@ class Sim:
                 continue
             break
         if jail:
-            pos = JAIL_CELL
+            pos = self.jail
         return pos, jail
 
 
 def simulate(trials=400, players=8, turns=250, seed=20261013,
-             arrive_jail=None):
+             arrive_jail=None, start=None):
     rng = random.Random(seed)
     sim = Sim(rng)
     if arrive_jail is not None:
         sim.arrive_jail = arrive_jail
+    mode = start or START_MODE
     for _ in range(trials):
         for _p in range(players):
-            first = sim.roll()
-            pos = CORNERS[(first - 1) % 4]
-            direction = 1 if first % 2 == 1 else -1
+            if mode == "corners":            # 对照口径：四角随机 + 单双定方向
+                first = sim.roll()
+                pos = CORNERS[(first - 1) % 4]
+                direction = 1 if first % 2 == 1 else -1
+            else:                            # 默认口径：统一赤道起点、单向
+                pos = GO_CELL
+                direction = 1
             jail_left = 0
             for _t in range(turns):
                 if jail_left > 0:
@@ -212,7 +289,8 @@ def simulate(trials=400, players=8, turns=250, seed=20261013,
     return sim
 
 
-def group_economy():
+def group_economy(share=None):
+    """share: {格子 id: 一次落点落在该格的概率}；不给就按完全均匀假设。"""
     data = load_map()
     tiles = {t["id"]: t for t in data["tiles"]}
     mpt = moves_per_turn()
@@ -225,10 +303,11 @@ def group_economy():
         for a, b in zip(ids, ids[1:]):
             if b != a + 1:
                 segs += 1
-        trigger = n / N_CELLS * mpt          # 每个对手回合踩中该组任一格的概率
+        freq = sum(share[i] for i in ids) if share else n / N_CELLS
+        trigger = freq * mpt                 # 每个对手回合踩中该组任一格的概率
         rows.append(dict(
             name=g["name"], icon=g["icon"], n=n, segs=segs,
-            avg=total / n, total=total,
+            avg=total / n, total=total, freq=freq,
             rent_max=3 * total, cost_max=4 * total,
             rent_land=0.2 * total, cost_land=total,
             trigger=trigger,
@@ -242,9 +321,12 @@ def group_economy():
 
 
 def main():
-    print("=" * 80)
-    print("规则 2 · 落点与收益模拟（1 枚十六面骰 · 四角起点 · 连锁过路费）")
-    print("=" * 80)
+    print("=" * 84)
+    print("规则 2 · 落点与收益模拟（1 枚十六面骰 · 统一赤道起点 · 连锁过路费）")
+    print("=" * 84)
+    m = eff()
+    print(f"  棋盘：已套用 v2 变体 —— 监狱 #{m['jail']}（北极）· "
+          f"道具商店 {m['shops']}（印度洋 / 大西洋）· 起点 #{GO_CELL}（赤道）")
 
     d, mpt = effective_average_step(), moves_per_turn()
     print("\n【一、移动学】")
@@ -255,21 +337,50 @@ def main():
           f"  → 期望 {d / N_CELLS * GO_BONUS:.0f} 元/回合 的固定收入")
     print(f"  （原版 2d6 对照：每回合平均 7 格、一圈 9.14 掷）")
 
+    print("\n【二、统一起点带来的位置偏差】解析推演"
+          "（从 #0 出发单向连走 T 步，不含 16 再摇 / 坐牢 / 卡牌）")
+    print(f"  {'走多少步':>8}{'≈圈':>6}{'  最热格':>16}{'  最冷格':>16}{'极差':>8}{'触达不到':>10}")
+    for T in (9, 18, 27, 45, 90, 250):
+        rel2 = probe_rolls(T)
+        hi = max(range(N_CELLS), key=lambda k: rel2[k])
+        reach = [k for k in range(N_CELLS) if rel2[k] > 0]
+        lo = min(reach, key=lambda k: rel2[k])
+        print("  %8d%6.1f  %14s  %14s%7.2f×%8d 格"
+              % (T, T / 9.14,
+                 "#%d %s" % (hi, m["tiles"][hi]["name"]),
+                 "#%d %s" % (lo, m["tiles"][lo]["name"]),
+                 rel2[hi] / rel2[lo], N_CELLS - len(reach)))
+
+    print("\n  对照：统一起点 vs 四角随机起点（同参数 8 人 × 250 回合 × 200 局）")
+    for mode, label in (("equator", "统一赤道起点（现行）"),
+                        ("corners", "四角随机 + 单双定方向")):
+        sm = simulate(trials=200, start=mode)
+        u = sm.s["landings"] / N_CELLS
+        r4 = [sm.cells[k] / u for k in range(N_CELLS)]
+        hi = max(range(N_CELLS), key=lambda k: r4[k])
+        lo = min(range(N_CELLS), key=lambda k: r4[k])
+        print(f"    {label:<24} 极差 {max(r4) / min(r4):.3f}×"
+              f"   最热 #{hi} {sm.tiles[hi]['name']} {r4[hi]:.3f}×"
+              f"   最冷 #{lo} {sm.tiles[lo]['name']} {r4[lo]:.3f}×")
+
     sim = simulate()
     s, cells = sim.s, sim.cells
     tot = s["landings"]
     uni = tot / N_CELLS
-    print(f"\n【二、落点分布】8 人 × 250 回合 × 400 局，共 {tot:,} 次落点")
+    rel = [cells[k] / uni for k in range(N_CELLS)]
+    share = [cells[k] / tot for k in range(N_CELLS)]
+    print(f"\n【三、落点分布实测】8 人 × 250 回合 × 400 局，共 {tot:,} 次落点")
     print(f"  完全均匀基准 = 1/64 = {1 / N_CELLS * 100:.4f}% / 落点   （{uni:,.0f} 次/格）")
-    z = [(abs(cells[k] - uni) / (uni ** 0.5), k) for k in range(N_CELLS)]
-    print(f"  偏离最大的 3 格：")
-    for zz, k in sorted(z)[::-1][:3]:
-        print(f"    #{k:2d} {sim.tiles[k]['name']:6s} {cells[k] / uni:.4f}×   "
-              f"（{zz:.1f}σ）")
-    print(f"  最大偏离 {max(abs(cells[k] / uni - 1) for k in range(N_CELLS)) * 100:.1f}%，"
-          f"完全落在统计噪声内 → 落点就是均匀")
+    print(f"  实测极差 {max(rel) / min(rel):.3f}×（含坐牢与卡牌移动后的削弱效果）")
+    print("  最热的 5 格：")
+    for k in sorted(range(N_CELLS), key=lambda k: -rel[k])[:5]:
+        print(f"    #{k:2d} {sim.tiles[k]['name']:6s} {rel[k]:.4f}×")
+    print("  最冷的 5 格：")
+    for k in sorted(range(N_CELLS), key=lambda k: rel[k])[:5]:
+        print(f"    #{k:2d} {sim.tiles[k]['name']:6s} {rel[k]:.4f}×")
+
     print(f"\n  坐牢 {s['jail_total']:,} 次（双16 {s['jail_double16']:,} / "
-          f"卡牌 {s['jail_card']:,}）")
+          f"卡牌 {s['jail_card']:,} / 走到监狱 {s['jail_arrive']:,}）")
     events = s["jail_total"] - s["skips"]
     print(f"    → 实际坐牢事件 {events:,} 次、被跳过的回合 {s['skips']:,} 个")
     print(f"    → 每回合坐牢概率 {events / (s['landings'] / mpt) * 100:.2f}%，"
@@ -280,47 +391,47 @@ def main():
     print(f"  经过赤道 {s['go_hits']:,} 次 → 合计 {s['go_hits'] * GO_BONUS:,} 元，"
           f"平均 {s['go_hits'] * GO_BONUS / (s['rolls'] / mpt):.0f} 元/回合")
 
-    print(f"\n  按组（每格落点相对均匀基准）：", end="")
-    data = load_map()
+    print(f"\n  按组（该组每格的平均落点相对值，1.00× = 完全均匀）：")
+    data = m["data"]
     out = []
     for g in data["colorGroups"]:
         ids = [t["id"] for t in data["tiles"] if t.get("colorId") == g["id"]]
-        rel = sum(cells[i] / uni for i in ids) / len(ids)
-        out.append((rel, g["icon"], g["name"], len(ids)))
+        r2 = sum(rel[i] for i in ids) / len(ids)
+        out.append((r2, g["icon"], g["name"], len(ids)))
     out.sort(reverse=True)
-    print()
-    for rel, ic, nm, n in out:
-        print(f"    {ic} {nm:9s} n={n}  {rel:.4f}×")
+    for r2, ic, nm, n in out:
+        print(f"    {ic} {nm:9s} n={n}  {r2:.4f}×")
 
-    print("\n【二·补 口径 A/B】自然走到北极（#32）算不算坐牢？")
+    print("\n【三·补 口径 A/B】自然走到监狱格（北极 #%d）算不算坐牢？" % m["jail"])
     for aj in (False, True):
         sim2 = simulate(trials=200, players=8, turns=250, arrive_jail=aj)
         s2, c2 = sim2.s, sim2.cells
         u2 = s2["landings"] / N_CELLS
         ev = s2["jail_total"] - s2["skips"]
         tt = s2["landings"] / mpt
-        rel = [c2[k] / u2 for k in range(N_CELLS)]
+        r3 = [c2[k] / u2 for k in range(N_CELLS)]
         print(f"  {'走到即坐牢' if aj else '只有被送才坐牢':<14}"
               f"坐牢 {ev:>7,} 次（{ev / tt * 100:5.2f}%/回合 · "
               f"每 {1 / (ev / tt) / (N_CELLS / d):>4.1f} 圈 1 次）"
               f"   来源 双16 {s2['jail_double16']:>5,}"
               f" / 卡牌 {s2['jail_card']:>5,}"
-              f" / 走到北极 {s2['jail_arrive']:>6,}"
-              f"   落点极差 {max(rel) / min(rel):.3f}×")
+              f" / 走到监狱 {s2['jail_arrive']:>6,}"
+              f"   落点极差 {max(r3) / min(r3):.3f}×")
 
-    print("\n【三、组经济（规则 2 连锁口径）】满级 = 5 级红房")
-    hdr = (f"  {'组':<11}{'格':>3}{'段':>3}{'均价':>7}{'总地价':>8}"
+    print("\n【四、组经济（规则 2 连锁口径）】满级 = 5 级红房")
+    hdr = (f"  {'组':<11}{'格':>3}{'段':>3}{'落点%':>7}{'均价':>7}{'总地价':>8}"
            f"{'满级连锁过路费':>14}{'满级投入':>10}"
            f"{'收益/对手回合':>14}{'回本圈':>8}")
     print(hdr)
-    print("  " + "-" * 74)
-    for r in group_economy():
+    print("  " + "-" * 82)
+    for r in group_economy(share):
         print(f"  {r['icon']}{r['name']:<10}{r['n']:>3}{r['segs']:>3}"
-              f"{r['avg']:>7.0f}{r['total']:>8.0f}{r['rent_max']:>14.0f}"
+              f"{r['freq'] * 100:>6.2f}%{r['avg']:>7.0f}{r['total']:>8.0f}"
+              f"{r['rent_max']:>14.0f}"
               f"{r['cost_max']:>10.0f}{r['exp_max']:>14.0f}"
               f"{r['pb_max'] / 7:>8.1f}")
     print("\n  只买空地不升级（0 级，过路费 20%）的回本圈数：")
-    for r in group_economy():
+    for r in group_economy(share):
         print(f"    {r['icon']}{r['name']:<10} {r['pb_land'] / 7:>5.1f} 圈")
 
 

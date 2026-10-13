@@ -9,6 +9,10 @@
 【模型口径 / 简化说明】
   · 骰子、起点、监狱、赤道酬金完全按 content/new-rule.md（1 枚十六面骰）。
     摇到 16 → 移动并结算后再摇一次；同一回合内连续两次 16 → 送进监狱 1 回合。
+  · **起点：统一赤道 #0，所有人同起点、同方向**（v2 原文的四角随机起点 + 单双定方向
+    会跟监狱冲突，按用户 2026-10-13 的确认不用）。
+  · **地图格子类型不硬编码**，全部读 JSON 的 variants.v2.replace：
+    北极 #32 → 监狱，印度洋 #24 / 大西洋 #59 → 道具商店（太平洋 #10 仍是普通海洋格）。
   · 过路费 / 升级费 / 连锁按规则 2；连锁只统计「同色且同归属」的房子。
   · 现金不够交过路费时按规则 2 拍卖：底价 = 已投入总额的 50%（向下取整十），
     你回收其中 75%（25% 上交银行）→ 实际只能拿回约 37.5%，卖完还不够 = 破产。
@@ -16,12 +20,12 @@
   · **卡牌已全量建模**：v7 的 20 张机会 + 20 张命运，含金钱、移动、坐牢、
     原地停留、禁言、下回合租金/过路费倍率、单双限行、与前方玩家对决等；
     条件牌的赢面直接用 cards.csv 的 rate。
-  · **道具已建模 14 种**：商店 = 三个海洋格（#10/#24/#59）——地图 64 格里没有
-    商店格，这是本脚本的假设，改 SHOP_CELLS 即可换口径。AI 只在「有确定性收益」
-    时买与用（遥控骰子推进自家地、工程机器人免费升级、导弹降级对手满级房…）。
+  · **道具已建模 14 种**：商店格 = JSON 里 type=shop 的两格（印度洋 #24 / 大西洋 #59）。
+    AI 只在「有确定性收益」时买与用（遥控骰子推进自家地、工程机器人免费升级、
+    导弹降级对手满级房…）。
   · **未建模**：路障（无效果）、拍卖场上的玩家竞价（按底价成交）、玩家之间的
     讨价还价与交易。因此本模拟的绝对破产圈数偏乐观，但**组与组之间的相对排名可信**。
-  · 8 名玩家各自锁定一个目标色组（政策相同），随机分配起点与方向。
+  · 8 名玩家各自锁定一个目标色组（政策相同），全部从赤道出发。
 
 用法：
   python3 tools/game.py               # 单配置：8 人各锁一组
@@ -39,9 +43,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAP_JSON = os.path.join(ROOT, "content", "map-print-data.json")
 
 N_CELLS = 64
-JAIL_CELL = 32
-GO_CELL = 0
-CORNERS = [0, 16, 32, 48]
+GO_CELL = 0             # 赤道：统一出生点
 DICE_FACES = 16
 GO_BONUS = 2000
 START_CASH = 15000
@@ -59,6 +61,24 @@ def load_map():
         return json.load(f)
 
 
+def v2_board(data):
+    """按 JSON 的 variants.v2.replace 覆盖格子，返回 (tiles, 监狱格, 商店格集合)。
+
+    ⚠️ 监狱 / 商店的位置**只由 JSON 决定**，脚本里不写死：
+       北极 #32 → 监狱；印度洋 #24 / 大西洋 #59 → 道具商店（太平洋 #10 仍是海洋）。
+    """
+    var = (data.get("variants") or {}).get("v2") or {}
+    patch = {int(k): v for k, v in (var.get("replace") or {}).items()}
+    tiles = []
+    for t in data["tiles"]:
+        t = dict(t)
+        t.update(patch.get(t["id"], {}))
+        tiles.append(t)
+    jail = next(t["id"] for t in tiles if t["type"] == "jail")
+    shops = {t["id"] for t in tiles if t["type"] == "shop"}
+    return {t["id"]: t for t in tiles}, jail, shops
+
+
 BUY_BUFFER = 1000        # 买地后至少留这么多现金
 UPGRADE_BUFFER = 2500    # 升级后至少留这么多现金
 OPPORTUNISTIC_CASH = 5000   # 手头超过这个数才会顺手买非目标组的地
@@ -70,10 +90,8 @@ AUCTION_RECOVERY = 0.375    # 拍卖实际回收比例（50% 底价 × 75% 归�
 EUROPE_CELLS = {21, 22, 23, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 39, 40}
 
 # ==================== 道具系统 ====================
-# ⚠️ 商店格口径：地图 64 格里没有专门的「商店」格，这里把三个**海洋格**当作商店
-#    （太平洋 #10 / 印度洋 #24 / 大西洋 #59）——理由是它们目前是唯一「走上去什么都不
-#    发生」的功能空缺格，且均匀分布在四条边上。若你们另有约定，改 SHOP_CELLS 即可。
-SHOP_CELLS = {10, 24, 59}
+# ⚠️ 商店格口径：直接读 JSON 的 variants.v2 —— 印度洋 #24 / 大西洋 #59 是道具商店。
+#    （open 时由 v2_board() 写入 Game.shop_cells；太平洋 #10 仍是普通海洋格。）
 PROPS = {
     "乌龟帽": 1000, "工程机器人": 2000, "导弹": 2000, "遥控骰子": 1000,
     "路障": 500, "嫁祸卡": 1000, "免责卡": 1000, "汽车": 1000,
@@ -85,14 +103,14 @@ MAX_PROPS = 3           # 每人最多同时持有 3 件（规则只说「进入
 RED_CARD_MIN = 3000     # 单次收租 ≥ 这个数才舍得用红卡
 GREEN_CARD_MIN = 3000   # 单次付款 ≥ 这个数才舍得用绿卡
 PROPS_ENABLED = True    # 道具总开关（跑 A/B 用）
-ARRIVE_JAIL_CELL_JAILS = False   # 自然走到北极（#32）是否也算坐牢
+ARRIVE_JAIL_CELL_JAILS = True    # 走到监狱格（北极 #32）也强制坐牢；False = 只有被送才坐牢
 
 
 class Game:
     def __init__(self, rng, data, targets):
         self.rng = rng
         self.data = data
-        self.tiles = {t["id"]: t for t in data["tiles"]}
+        self.tiles, self.jail, self.shop_cells = v2_board(data)
         self.owner = [None] * N_CELLS      # 玩家编号
         self.level = [0] * N_CELLS         # 0..5
         self.limit_parity = False          # 命运 15：下一回合单数原地停留
@@ -255,7 +273,7 @@ class Game:
             self.resolve_property(pl)
         elif t["type"] in ("chance", "destiny"):
             self.resolve_card(pl, t["type"])
-        elif self.props_enabled and pl["pos"] in SHOP_CELLS:
+        elif self.props_enabled and t["type"] == "shop":
             self.shop_visit(pl)
         return 0
 
@@ -576,7 +594,7 @@ class Game:
             v = self.ahead(pl)
             if v is not None:
                 v["jail"] = max(v["jail"], 1)
-                v["pos"] = JAIL_CELL
+                v["pos"] = self.jail
             return True
         return False
 
@@ -667,17 +685,17 @@ class Game:
                     return
                 if pl["jail"] > 0:               # 被卡牌送进监狱
                     if not self.avatar_escape(pl):
-                        pl["pos"] = JAIL_CELL
+                        pl["pos"] = self.jail
                         return
                     pl["jail"] = 0
-                if self.arrive_jail and pl["pos"] == JAIL_CELL:
-                    if not self.avatar_escape(pl):  # 走到北极也坐牢（A/B 口径）
+                if self.arrive_jail and pl["pos"] == self.jail:
+                    if not self.avatar_escape(pl):  # 走到监狱格也坐牢（默认口径，A/B 可关）
                         pl["jail"] = 1
                         return
                 if is16 and streak >= 2:         # 连续两次 16
                     if not self.avatar_escape(pl):
                         pl["jail"] = 1
-                        pl["pos"] = JAIL_CELL
+                        pl["pos"] = self.jail
                         return
                 if is16:
                     continue
@@ -697,10 +715,10 @@ def run_game(rng, data, targets, max_rounds=600, props=None, arrive_jail=None):
         g.props_enabled = props
     if arrive_jail is not None:
         g.arrive_jail = arrive_jail
-    for i, pl in enumerate(g.players):
-        first = g.roll()
-        pl["pos"] = CORNERS[(first - 1) % 4]
-        pl["direction"] = 1 if first % 2 == 1 else -1
+    # 统一起点：所有人赤道 #0 出发、单向顺时针（v2 的四角随机起点与监狱冲突，不用）
+    for pl in g.players:
+        pl["pos"] = GO_CELL
+        pl["direction"] = 1
     rounds_used = max_rounds
     for rd in range(max_rounds):
         alive = [p for p in g.players if p["alive"]]
@@ -729,7 +747,7 @@ def ab_main():
     order = [gid for _, gid in score][:8]
     trials = int(os.environ.get("TRIALS", "250"))
     print("=" * 90)
-    print(f"规则 2 · 完整对局 A/B：道具系统 × 北极坐牢口径（8 人混战 × {trials} 局/格）")
+    print(f"规则 2 · 完整对局 A/B：道具系统 × 监狱口径（8 人混战 × {trials} 局/格）")
     print("=" * 90)
     print(f"\n  {'配置':<24}{'平均回合':>9}{'打完比例':>9}{'黄绿夺冠':>9}"
           f"{'道具购买/局':>12}{'平均破产':>9}")
@@ -750,7 +768,7 @@ def ab_main():
                 bought.append(g.props_bought)
                 dead.append(sum(1 for p in g.players if not p["alive"]))
             results[(props, aj)] = wins
-            tag = ("道具" if props else "无道具") + " · " + ("走到北极坐牢"
+            tag = ("道具" if props else "无道具") + " · " + ("走到监狱格坐牢"
                                                         if aj else "只有被送才坐牢")
             print(f"  {tag:<24}{sum(rounds) / len(rounds):>9.0f}"
                   f"{sum(ended) / len(ended) * 100:>8.1f}%"
@@ -760,7 +778,7 @@ def ab_main():
     print("\n  逐组夺冠率：无道具 → 有道具（同一套北极口径）")
     for aj in (False, True):
         a, b = results[(False, aj)], results[(True, aj)]
-        print(f"    ▸ {'走到北极坐牢' if aj else '只有被送才坐牢'}：")
+        print(f"    ▸ {'走到监狱格坐牢' if aj else '只有被送才坐牢'}：")
         for gid in order:
             g = groups[gid]
             print(f"      {g['icon']}{g['name']:<10}"
@@ -848,10 +866,9 @@ def cohort_main():
         g = Game(rng, data, targets)
         for i, pl in enumerate(g.players):
             pl["spread"] = i >= 4
-        for pl in g.players:
-            first = g.roll()
-            pl["pos"] = CORNERS[(first - 1) % 4]
-            pl["direction"] = 1 if first % 2 == 1 else -1
+        for pl in g.players:          # 统一起点：赤道 #0、单向顺时针
+            pl["pos"] = GO_CELL
+            pl["direction"] = 1
         used = 600
         for rd in range(600):
             if sum(1 for p in g.players if p["alive"]) <= 1:

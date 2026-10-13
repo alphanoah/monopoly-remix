@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>大富翁「世界之旅」电子地图（加厚环 / 打印版 / 放大版）</title>
+<title>大富翁「世界之旅」电子地图（打印版 / 放大版）</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -53,28 +53,32 @@
   }
   .toolbar button:hover { border-color: #B06F88; color: #96597A; }
   .toolbar button:active { background: #f4f2ee; }
-  /* 下载按钮：给它一点主色，跟其余按钮区分开 */
+  /* 导出图片：给它一点主色，跟其余按钮区分开 */
   .toolbar button.primary { background: #B06F88; border-color: #B06F88; color: #fff; }
   .toolbar button.primary:hover { background: #96597A; border-color: #96597A; color: #fff; }
   .toolbar button.primary:active { background: #854f6c; border-color: #854f6c; }
-  .toolbar button[disabled], .toolbar button.busy { opacity: .55; cursor: default; }
-  /* 加厚环模式下整板一屏放得下，不需要缩放控件 */
-  .svg-container {
-    background: #fff;
-    padding: 8px;
-    border: 1px solid #e8e5df;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  .toolbar button.busy { opacity: .55; cursor: default; }
+  /* 布局切换：分段控件（打印版 / 放大版）*/
+  .seg { display: inline-flex; }
+  .seg-btn { margin-left: -1px; border-radius: 0; position: relative; }
+  .seg-btn:first-child { border-radius: 8px 0 0 8px; margin-left: 0; }
+  .seg-btn:last-child { border-radius: 0 8px 8px 0; }
+  .seg-btn:hover { z-index: 1; }
+  .seg-btn.on { background: #B06F88; border-color: #B06F88; color: #fff; z-index: 2; }
+  .seg-btn.on:hover { background: #96597A; border-color: #96597A; color: #fff; }
+  /* 打印按钮：蓝色实心，跟「导出图片」的粉紫主色区分开 */
+  .btn-print { background: #1a55a5; border-color: #1a55a5; color: #fff; }
+  .btn-print:hover { background: #14437f; border-color: #14437f; color: #fff; }
+  .btn-print:active { background: #0f3370; border-color: #0f3370; }
+  /* 棋盘本体：整板一屏放下，视图固定（不缩放不平移），所以不套边框不裁切 */
+  svg {
+    display: block;
     width: 100%;
-    max-width: 780px;      /* 环厚的板子是正方形，再宽手机上字会太小 */
-    overflow: hidden;
-    cursor: grab;
-    touch-action: none;
-    position: relative;
+    max-width: 900px;
+    height: auto;
+    user-select: none;
+    touch-action: auto;
   }
-  /* 加厚环：视图固定，不缩放也不平移。放开 touch-action，手指在棋盘上滑动才能正常滚页面 */
-  .svg-container.locked { cursor: default; touch-action: auto; }
-  svg { display: block; width: 100%; height: auto; user-select: none; }
   .legend {
     margin-top: 10px;
     display: flex;
@@ -123,52 +127,25 @@
   .hint {
     font-size: 12px;
     color: #8a8880;
-    margin-top: 10px;
+    margin-bottom: 10px;
     text-align: center;
   }
   .hint b { color: #2c2c2a; font-weight: 500; }
-
-  /* ===== 布局切换 = 分段控件（加厚环 / 打印版 / 放大版）===== */
-  .seg { display: inline-flex; }
-  .seg-btn {
-    margin-left: -1px;
-    border-radius: 0;
-    position: relative;
-  }
-  .seg-btn:first-child { border-radius: 8px 0 0 8px; margin-left: 0; }
-  .seg-btn:last-child { border-radius: 0 8px 8px 0; }
-  .seg-btn:hover { z-index: 1; }
-  .seg-btn.on {
-    background: #B06F88; border-color: #B06F88; color: #fff; z-index: 2;
-  }
-  .seg-btn.on:hover { background: #96597A; border-color: #96597A; color: #fff; }
-  /* 打印按钮：蓝色实心，跟「下载 PNG」的粉紫主色区分开 */
-  .btn-print {
-    background: #1a55a5; border-color: #1a55a5; color: #fff;
-  }
-  .btn-print:hover { background: #14437f; border-color: #14437f; color: #fff; }
-  .btn-print:active { background: #0f3370; border-color: #0f3370; }
   /* 手机上把边距压到最小，好让棋盘吃满屏宽 */
   @media (max-width: 640px) {
     body { padding: 10px 6px 28px; }
     h1 { font-size: 18px; }
-    .svg-container { padding: 4px; border-radius: 8px; }
     .legend-label { min-width: 0; }
     .toolbar { gap: 6px; padding: 7px 8px; }
     .toolbar button, .seg-btn { padding: 6px 10px; font-size: 12.5px; }
   }
 
-  /* ===== 打印：只出棋盘本体（尺寸按 JSON 的 board.printMM，运行时注入 @page）=====
+  /* ===== 打印：只出棋盘本体（纸张尺寸按 JSON 的 board.printMM，运行时注入 @page）=====
      筛选状态不会带进打印：g[data-tile] 一律还原不透明 */
   @media print {
     body { padding: 0 !important; background: #fff; }
     h1, .home, .toolbar, .legend, .hint { display: none !important; }
-    .svg-container {
-      width: 100% !important; max-width: none !important;
-      border: 0 !important; border-radius: 0 !important; padding: 0 !important;
-      box-shadow: none !important; overflow: visible !important;
-    }
-    #viewport-group { transform: none !important; }
+    svg { max-width: none !important; width: 100% !important; }
     g[data-tile] { opacity: 1 !important; }
     svg, svg * {
       -webkit-print-color-adjust: exact;
@@ -181,99 +158,40 @@
 
 <a class="home" href="index.html">← 返回首页</a>
 <h1>大富翁「世界之旅」 WORLD TOUR</h1>
-<div class="hint" id="hint">加厚环 · 整板一屏放下，不用缩放 · 鼠标悬停看首都和价格 · 点下方色块只看某一组</div>
+<p class="hint" id="hint"></p>
 
 <div class="toolbar" id="toolbar">
   <span class="seg" id="seg-layout">
-    <button class="seg-btn on" data-mode="thick" title="360° 加厚环：格子吃进中间空，手机上字最大">加厚环</button>
     <button class="seg-btn" data-mode="print" title="打印版：按实体棋盘一比一还原的 80cm 软垫图，点「打印」直接出 800×800mm">打印版</button>
-    <button class="seg-btn" data-mode="print-zoom" title="放大版：还是打印版那张图，但格子吃进中间空、文字竖排放大，手机上也能看清">放大版</button>
+    <button class="seg-btn on" data-mode="print-zoom" title="放大版：还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大，手机上也能看清">放大版</button>
   </span>
   <button id="btn-print" class="btn-print" title="切到打印版并开打印对话框：纸张 800×800mm、边距无、勾「背景图形」">打印</button>
-  <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片">下载 PNG</button>
+  <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片">导出图片</button>
 </div>
 
 <div id="legend" class="legend"></div>
 
-<div class="svg-container" id="svg-container">
-  <svg id="map" xmlns="http://www.w3.org/2000/svg">
-    <g id="viewport-group"></g>
-  </svg>
-</div>
+<svg id="map" xmlns="http://www.w3.org/2000/svg"></svg>
 
 <script>
-// ===== 颜色映射 =====
-// 色值一律从 map-print-data.json 读：国家色带 = colorGroups[].hex，机会/命运 = decks[].bg，
-// 其余特殊格 = tileTypes[].hex（用 deck 字段指回 decks 时就不重复写同一个颜色）。
-let DATA = null;         // 当前数据（fetch 拿到的真源，或内置兜底）
-let HEX = {};            // 颜色组 id → 色值
-let HEXBYKEY = {};       // 颜色组 key（如 "red"）→ 色值
-function loadPalette(data) {
-  HEX = {}; HEXBYKEY = {};
-  (data.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; });
-}
-// 地产格：按 colorId（现在的数据）或 color 字符串（没 colorId 的老数据）取所在组的色值
-function tileColor(t) {
-  return (t.colorId != null ? HEX[t.colorId] : HEXBYKEY[t.color]) || specialColor(t.type);
-}
-// 特殊格（非地产）的色值：tileTypes 里要么直接给 hex，要么用 deck 指回 decks
-function specialColor(type) {
-  const tt = ((DATA && DATA.tileTypes) || {})[type] || {};
-  if (tt.deck && DATA.decks && DATA.decks[tt.deck]) return DATA.decks[tt.deck].bg;
-  return tt.hex || "#b3afa6";
-}
-// 数据的地产格也带 type:"property"，判断「是不是特殊格」得排除它
-function isSpecial(t) { return !!t.type && t.type !== "property"; }
-// 有几格（图例用；JSON 不存这些派生数字，全部现算）
-function countOf(pred) { return DATA.tiles.filter(pred).length; }
-
+// ===================================================================
+// 大富翁「世界之旅」电子地图
+// 唯一真源：content/map-print-data.json（线上 fetch，本地 file:// 打开用内置兜底）
+// 两档布局：
+//   print      打印版 —— 按实体棋盘照片一比一还原的 80cm 软垫图
+//   print-zoom 放大版 —— 同一张图，跑道加厚吃进中间空、文字竖排放大（手机上可读）
+// 两档结构相同（每边 15 格 + 4 个角格、角格在四角、顺时针），只有画法不同。
+// 视图固定：整板一屏放下，不缩放也不平移。
+// ===================================================================
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-// ===== 布局参数 =====
-// 结构照旧：每边 16 格（角格 + 15）、角格仍在四角、顺时针、首尾接壤；
-// 只是把环「加厚」：每个格子沿径向往中间伸长 RING_T 个单位，中间的空被吃掉，格子随之变大。
-const N_POS = 17;                                 // 每边的位置数（角格 + 15 + 角格）
-const U = 20;                                     // 1 个单位 = 20 用户坐标（整板 340）
-const RING_T = 4;                                 // 加厚环的环厚（1 = 薄环；1~8 任意取值）
-const SVG_W = N_POS * U;                          // 加厚环整板正方形 = 340
-const SVG_H = SVG_W;
-
-// 中空边长 = 整板 − 两侧环厚（随 RING_T 变化，所以做成函数）
-function holeSize() { return (N_POS - 2 * RING_T) * U; }
-
-// ===== 格子位置：每边 16 格（角格 + 15），顺时针 =====
-// 赤道(右下·起点) → 底边向左 → 地中海(左下) → 左边向上 → 北极(左上) → 顶边向右 → 夏威夷(右上) → 右边向下 → 回起点
-function tileRectUnit(id) {
-  const L = N_POS - 2 * RING_T, ew = L / 15;
-  if (id === 0)  return { x: N_POS - RING_T, y: N_POS - RING_T, w: RING_T, h: RING_T };
-  if (id <= 15) { const k = id - 1;  return { x: N_POS - RING_T - (k + 1) * ew, y: N_POS - RING_T, w: ew, h: RING_T }; }
-  if (id === 16) return { x: 0, y: N_POS - RING_T, w: RING_T, h: RING_T };
-  if (id <= 31) { const k = id - 17; return { x: 0, y: N_POS - RING_T - (k + 1) * ew, w: RING_T, h: ew }; }
-  if (id === 32) return { x: 0, y: 0, w: RING_T, h: RING_T };
-  if (id <= 47) { const k = id - 33; return { x: RING_T + k * ew, y: 0, w: ew, h: RING_T }; }
-  if (id === 48) return { x: N_POS - RING_T, y: 0, w: RING_T, h: RING_T };
-  const k = id - 49; return { x: N_POS - RING_T, y: RING_T + k * ew, w: RING_T, h: ew };
-}
-// 色带贴「最外圈」那一边：四个角格各接自己那一条边，整圈连成一条
-function tileEdge(id) {
-  if (id <= 15) return "bottom";   // 赤道(0) + 底边
-  if (id <= 31) return "left";     // 地中海(16) + 左边
-  if (id <= 47) return "top";      // 北极(32) + 顶边
-  return "right";                  // 夏威夷(48) + 右边
-}
-// 三种排法里取字号最大的：竖排（字叠起来）/ 横排两行 / 横排一行
-function pickText(name, price, W, H) {
-  const n = name.length, pl = price ? price.length : 0;
-  const stackPrice = price ? (W * 0.94 / (pl * 0.58 + 0.2) < 6.5) : false;
-  const kP = price ? (stackPrice ? pl * 1.08 * 0.92 * 0.95 : 1.9) : 0.25;
-  const c = [
-    { m: "v",  f: Math.min(W * 0.84, H * 0.94 / (n * 1.08 + kP)), stackPrice: stackPrice },
-    { m: "h2", f: Math.min(W * 0.94 / Math.max(1, n), H * 0.465) },
-    { m: "h1", f: Math.min(W * 0.94 / (n + pl * 0.58 + 0.3), H * 0.80) }
-  ].sort(function (a, b) { return b.f - a.f; })[0];
-  c.f = Math.max(3, Math.min(c.f, 15));
-  return c;
-}
+let DATA = null;                 // 当前数据（fetch 拿到的真源，或内置兜底）
+let HEX = {}, HEXBYKEY = {}, GKEY = {}, DECKS = {}, LAY = {};
+let LP, LD, LO, LI, LC, ZL;      // layout 里的各段排版参数
+let L, B, W, TW, TH, BAND;       // 整板边长 / 跑道宽 / 格宽 / 半格 / 半跑道 / 色带宽
+let ZOOM = false;                // 当前是不是放大版
+let currentFilter = "all";
+let hashApplied = false;         // #f= 的筛选只吃一次
 
 // ===== 内置兜底数据（同 content/map-print-data.json；由 tools/update.py 生成，勿手改）=====
 const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改
@@ -1328,145 +1246,9 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
 }
 /* MAP_FALLBACK:END */;
 
-// ===== SVG 辅助函数 =====
-function svgEl(tag, attrs) {
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    el.setAttribute(k, v);
-  }
-  return el;
-}
-
-function svgText(x, y, text, fontSize, opts = {}) {
-  const t = svgEl("text", {
-    x: x,
-    y: y,
-    "font-size": fontSize,
-    "font-family": opts.fontFamily || "-apple-system, PingFang SC, Microsoft YaHei, sans-serif",
-    "font-weight": opts.weight || "normal",
-    fill: opts.color || "#333",
-    "text-anchor": "middle",
-    "dominant-baseline": "middle"
-  });
-  if (opts.letterSpacing) t.setAttribute("letter-spacing", opts.letterSpacing);
-  t.textContent = text;
-  return t;
-}
-
-// ===== 图例筛选 =====
-let currentFilter = "all";
-let mapData = null;                               // 缓存当前数据，切换布局时用它重画
-let hashApplied = false;                          // #f= 的hash筛选只吃一次
-
-// 顶上的提示语随布局而变：加厚环一屏放下不用缩放，薄环才需要那套操作
-function defaultHint() {
-  if (isPrintZoom()) {
-    return "放大版 · 还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大 · 整板一屏放下 · 悬停看首都和价格 · 点下方色块只看某一组";
-  }
-  if (isPrintMode()) {
-    return "打印版 · 按实体棋盘一比一还原的 80cm 软垫图 · 整板一屏放下 · 悬停看首都和价格 · 点「打印」直接出 800×800mm（勾「背景图形」）· 点下方色块只看某一组";
-  }
-  return "加厚环 · 整板已固定一屏，不用缩放平移 · 鼠标悬停看首都和价格 · 点下方色块只看某一组";
-}
-
-function setFilter(key, name) {
-  currentFilter = (key === currentFilter) ? "all" : key;   // 再点一次就取消
-  applyFilter(name);
-}
-
-// 把当前 currentFilter 落到棋盘上（重画之后也要重新调用一次）
-function applyFilter(name) {
-  document.querySelectorAll(".legend-item").forEach(el => {
-    el.classList.toggle("on", el.dataset.filter === currentFilter);
-  });
-  const pair = currentFilter.split(":");
-  const kind = pair[0], val = pair[1];
-  let hits = 0;
-  document.querySelectorAll("g[data-tile]").forEach(g => {
-    const match = currentFilter === "all" ||
-      (kind === "color" ? g.getAttribute("data-color") === val : g.getAttribute("data-special") === val);
-    g.setAttribute("opacity", match ? "1" : "0.12");
-    if (match) hits++;
-  });
-  const hint = document.getElementById("hint");
-  if (currentFilter === "all") {
-    hint.textContent = defaultHint();
-    return;
-  }
-  const label = name || (currentFilter.split(":")[1] || "");
-  hint.innerHTML = `只看 <b>${label}</b> · ${hits} 格 —— 再点一次取消筛选`;
-}
-
-// 按钮文字 / 缩放控件的显示，跟着当前布局走
-function updateModeUI() {
-  const thick = isRingThick(), print = isPrintMode(), zoom = isPrintZoom();
-  // 三档都是正方板：加厚环 780 就够（板小字大），打印版/放大版放开到 900
-  const container = document.getElementById("svg-container");
-  container.style.maxWidth = thick ? "780px" : "900px";
-  // 视图固定：收回抓手光标 + 放开 touch-action，让手指在棋盘上也能正常滚页面
-  container.classList.add("locked");
-  // 分段控件：当前档位高亮
-  document.querySelectorAll("#seg-layout .seg-btn").forEach(b => {
-    b.classList.toggle("on", b.dataset.mode === layoutMode);
-  });
-  document.getElementById("btn-png").textContent = print ? ("下载 PNG（" + (zoom ? "放大版" : "打印版") + "）") : "下载 PNG";
-  // 标题跟着档位走：打印档是「软垫打印版」，其余档位还原成电子地图
-  if (!print) document.title = "大富翁「世界之旅」电子地图（加厚环 / 打印版 / 放大版）";
-  const hint = document.getElementById("hint");
-  if (currentFilter === "all") hint.textContent = defaultHint();
-}
-
-// ===== 三种布局 =====
-// "thick"       加厚环（默认）：N_POS=17 / RING_T=4，整板 340×340 正方形，格子吃进中间空 → 手机上字够大
-// "print"       打印版：整板 1800×1800，按实体棋盘照片一比一还原的 80cm 软垫图（见上面的 PrintBoard）
-// "print-zoom"  放大版：还是打印版那张图，但跑道加厚吃进中间空、格子内容竖排放大，手机上也能看清
-let layoutMode = "thick";
-
-function isRingThick() { return layoutMode === "thick"; }
-function isPrintMode() { return layoutMode === "print" || layoutMode === "print-zoom"; }
-function isPrintZoom() { return layoutMode === "print-zoom"; }
-// 打印版 / 放大版整板都是 JSON 里 board.size 的正方形（80cm 软垫那张 = 1800）
-function printSize() { return (DATA && DATA.board && DATA.board.size) || 1800; }
-function boardSize() {
-  if (isPrintMode()) return { w: printSize(), h: printSize() };
-  return { w: SVG_W, h: SVG_H };
-}
-// 三档都是「整板一屏放下」的固定视图：不给缩放平移（板子拖歪了没有重置按钮，回不来）
-function viewLocked() { return true; }
-
-// 格子容器：transform + 筛选属性 + 悬停提示（加厚环 / 打印版 / 放大版共用）
-function tileGroup(t, x, y) {
-  const g = svgEl("g", { transform: `translate(${x},${y})` });
-  g.setAttribute("data-tile", "1");
-  if (isSpecial(t)) { g.setAttribute("data-special", t.type); } else { g.setAttribute("data-color", t.color); }
-  const tip = svgEl("title", {});
-  tip.textContent = `${t.name}${t.nameEn ? " " + t.nameEn : ""}` +
-    `${t.capital ? " · 首都 " + t.capital : ""}${t.price ? " · $" + t.price : ""}${t.sub ? " · " + t.sub : ""}`;
-  g.appendChild(tip);
-  return g;
-}
-
-// ===== 打印版棋盘（第三种布局：按实体棋盘照片一比一还原的 80cm 软垫图）=====
-// 整套绘制代码自成一家（内部自带 el/txt/bubble…），只对外暴露 render()，
-// 不跟本页原有的 svgEl/svgText/tileGroup 撞车。
-const PrintBoard = (function () {
-  const NS = "http://www.w3.org/2000/svg";
-  let ROOT = null;                 // 画到哪（viewport-group 里的 <g>）
-  let L, B, W, TW, TH, BAND;       // 边长 / 跑道宽 / 格宽 / 半格 / 色带宽
-  let HEX = {}, HEXBYKEY = {}, GKEY = {}, DECKS = {}, LAY = {};
-  let LP, LD, LO, LI, LC;
-  let ZOOM = false, ZL = {};       // 放大版开关 + 放大版专用排版参数（layout.zoom）
-
-// ===== 国旗 emoji =====
-// 不再在页面里维护对照表：每个地产格自带 flag 字段（见 content/map-print-data.json），
-// 渲染时直接读即可 —— 改国旗改 JSON 那一个数就行。
-// 万一哪格漏填（update.py 会校验拦截），这里给个白旗兜底并在控制台喊一声。
-function warnNoFlag(t) {
-  console.warn("[map-print] 格子 #" + t.id + "（" + t.name + "）没有 flag 字段，去 JSON 里补一下");
-}
-
+// ===== SVG 小工具 =====
 function el(tag, attrs, children) {
-  const e = document.createElementNS(NS, tag);
+  const e = document.createElementNS(SVG_NS, tag);
   for (const k in attrs) e.setAttribute(k, attrs[k]);
   if (children) children.forEach(c => e.appendChild(c));
   return e;
@@ -1488,10 +1270,10 @@ function txt(x, y, str, size, opts = {}) {
   t.textContent = str;
   return t;
 }
-// 气泡字：白色外晕 + 深色描边 + 彩色填充（角格「赤道/地中海/北极/夏威夷」「起点」「大富翁」用）
+// 气泡字：白色外晕 + 深色描边 + 彩色填充（角格「地中海/北极/夏威夷」用）
 function bubble(x, y, str, size, opts = {}) {
   const g = el("g");
-  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight:"bold", fill, stroke:sc, sw, ...opts });
+  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight: "bold", fill, stroke: sc, sw, ...opts });
   g.appendChild(mk("#ffffff", size * 0.38, "#ffffff"));
   g.appendChild(mk(opts.dark || "#1b3f7e", size * 0.16, opts.dark || "#1b3f7e"));
   g.appendChild(mk(opts.dark || "#1b3f7e", size * 0.02, opts.fill || "#2e8fd4"));
@@ -1504,19 +1286,40 @@ function idTag(x, y, id) {
     fill: "#55606e", stroke: "#ffffff", sw: 2, opacity: LI.opacity ?? 0.55
   });
 }
+// 竖排要一个「字」一格。国旗 emoji 是两个 regional indicator 拼出来的，
+// 直接按字符拆会拆成两个半拉字母（就是之前看到的乱码）—— 所以按字形簇拆。
+function graphemes(str) {
+  if (typeof Intl !== "undefined" && Intl.Segmenter) {
+    return Array.from(new Intl.Segmenter("zh", { granularity: "grapheme" }).segment(str), s => s.segment);
+  }
+  return str.match(/\p{RI}\p{RI}|[\s\S]/gu) || [str];   // 老浏览器兜底：至少别把国旗拆开
+}
 
-// ===== 渲染：整块棋盘都按 renderBoard(DATA) 画一遍 =====
-function renderBoard(DATA, zoom) {
-  // —— 参数全部取自 JSON ——
-  ZOOM = !!zoom;
+// ===== 渲染 main =====
+function renderMap(data) {
+  DATA = data;
+  drawBoard();
+  renderLegend();
+  updateModeUI();
+  applyFilter();
+  if (!hashApplied && location.hash.startsWith("#f=")) {
+    hashApplied = true;
+    const chip = document.querySelector('.legend-item[data-filter="' + decodeURIComponent(location.hash.slice(3)) + '"]');
+    if (chip) chip.click();
+  }
+}
+
+function drawBoard() {
   const bd = DATA.board || {};
+  ZOOM = layoutMode === "print-zoom";
   L = bd.size || 1800;
   // 放大版把跑道加厚（吃掉中间空），格子变窄变深 → 内容改竖排，字就能大好几倍
   B = ZOOM ? (bd.zoomTrackWidth || 570) : (bd.trackWidth || 190);
-  W = (L - 2*B) / (bd.tilesPerSide || 15);
+  W = (L - 2 * B) / (bd.tilesPerSide || 15);
   TW = W / 2; TH = B / 2;
   BAND = ZOOM ? (bd.zoomBand || Math.round(B * 0.11)) : (bd.band || 38);
   applyPrintSize(bd.printMM);
+
   HEX = {}; HEXBYKEY = {}; GKEY = {};     // GKEY：颜色组 id → key（筛选时给格子打标记用）
   (DATA.colorGroups || []).forEach(g => { HEX[g.id] = g.hex; HEXBYKEY[g.key] = g.hex; GKEY[g.id] = g.key; });
   DECKS = DATA.decks || {};
@@ -1525,103 +1328,101 @@ function renderBoard(DATA, zoom) {
   LI = LAY.id || {};       LC = LAY.corner || {};
   ZL = ZOOM ? (LAY.zoom || {}) : {};
 
-  ROOT.innerHTML = "";  // 重绘前清空（renderMap 已把 viewport-group 清空重建）
+  const svg = document.getElementById("map");
+  svg.setAttribute("viewBox", `0 0 ${L} ${L}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
 
   // ===== 背景 =====
-  ROOT.appendChild(el("rect", { x:0, y:0, width:L, height:L, fill:"#ffffff" }));
+  svg.appendChild(el("rect", { x: 0, y: 0, width: L, height: L, fill: "#ffffff" }));
 
   // ===== 中心区（深蓝底 + 大富翁 + 两张卡堆）=====
   const hole = L - 2 * B;                 // 中间那块空白的边长
-  ROOT.appendChild(el("rect", { x:B, y:B, width:hole, height:hole, fill:"#5B7FC6" }));
+  svg.appendChild(el("rect", { x: B, y: B, width: hole, height: hole, fill: "#5B7FC6" }));
   if (ZOOM) {
-    // 放大版的中间被格子吃掉大半，标题和卡堆都按剩下的空间重新排一遍
-    ROOT.appendChild(el("polygon", { points:`${B+hole*0.08},${B} ${B+hole*0.30},${B} ${L/2+hole*0.10},${L/2} ${L/2-hole*0.22},${L/2}`, fill:"#ffffff", opacity:0.06 }));
-    ROOT.appendChild(el("polygon", { points:`${B+hole*0.70},${B} ${B+hole*0.92},${B} ${L/2+hole*0.05},${L/2} ${L/2-hole*0.14},${L/2}`, fill:"#ffffff", opacity:0.05 }));
+    // 放大版的中间被格子吃掉大半，装饰斜条按剩下的空间重排
+    svg.appendChild(el("polygon", { points: `${B+hole*0.08},${B} ${B+hole*0.30},${B} ${L/2+hole*0.10},${L/2} ${L/2-hole*0.22},${L/2}`, fill: "#ffffff", opacity: 0.06 }));
+    svg.appendChild(el("polygon", { points: `${B+hole*0.70},${B} ${B+hole*0.92},${B} ${L/2+hole*0.05},${L/2} ${L/2-hole*0.14},${L/2}`, fill: "#ffffff", opacity: 0.05 }));
+    svg.appendChild(silverTitle(L / 2, L / 2 - hole * 0.04, "大富翁", ZL.titleSize || Math.round(hole * 0.17)));
+    const cw = hole * (ZL.cardW || 0.42), ch = cw * 0.688, m = hole * 0.05;
+    svg.appendChild(cardBack(B + m + cw / 2, B + m + ch / 2, cw, ch, "fate", -14));            // 命运牌堆（左上）
+    svg.appendChild(cardBack(L - B - m - cw / 2, L - B - m - ch / 2, cw, ch, "chance", -14));  // 机会牌堆（右下）
   } else {
-    ROOT.appendChild(el("polygon", { points:`620,${B} 780,${B} 990,900 720,900`, fill:"#ffffff", opacity:0.06 }));
-    ROOT.appendChild(el("polygon", { points:`1020,${B} 1180,${B} 1090,900 840,900`, fill:"#ffffff", opacity:0.05 }));
+    svg.appendChild(el("polygon", { points: `620,${B} 780,${B} 990,900 720,900`, fill: "#ffffff", opacity: 0.06 }));
+    svg.appendChild(el("polygon", { points: `1020,${B} 1180,${B} 1090,900 840,900`, fill: "#ffffff", opacity: 0.05 }));
+    svg.appendChild(silverTitle(900, 900, "大富翁", 168));
+    svg.appendChild(cardBack(465, 500, 430, 296, "fate", -14));      // 命运牌堆（左上）
+    svg.appendChild(cardBack(1335, 1305, 430, 296, "chance", -14));  // 机会牌堆（右下）
   }
+
+  // ===== 跑道 64 格 =====
+  (DATA.tiles || []).forEach(t => svg.appendChild(drawTile(t)));
+
+  // ===== 外边框 =====
+  svg.appendChild(el("rect", { x: 1, y: 1, width: L - 2, height: L - 2, rx: 2,
+    fill: "none", stroke: "#222", "stroke-width": 4 }));
+}
+
 // —— 大富翁（正中）——
 // ⚠️ 别用渐变填充：打印预览默认不开「背景图形」，SVG 渐变会被整个丢掉，
 // 字就只剩底下的深蓝描边层 —— 看起来就是「一坨蓝色」。
 // 这里用「上半亮银 + 下半中银」两段实色拼出金属感，任何打印设置都不会丢。
 function silverTitle(x, y, str, size) {
   const g = el("g");
-  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight:"bold", fill, stroke:sc, sw });
+  const mk = (sc, sw, fill) => txt(x, y, str, size, { weight: "bold", fill, stroke: sc, sw });
   g.appendChild(mk("#ffffff", size * 0.38, "#ffffff"));   // 白色外晕
   g.appendChild(mk("#1b3f7e", size * 0.16, "#1b3f7e"));   // 深蓝衬底
   g.appendChild(mk("#1b3f7e", size * 0.02, "#c9d2e2"));   // 银字主体（＝原渐变中间色）
   // 上半段亮银：同一行字再画一遍，用 clipPath 裁掉下半（≈原渐变 0~45% 的效果）
   const w = str.length * size;
-  const cp = el("clipPath", { id:"silver-top" });
-  cp.appendChild(el("rect", { x:x-w, y:y-size*0.8, width:w*2, height:size*0.6 }));
+  const cp = el("clipPath", { id: "silver-top" });
+  cp.appendChild(el("rect", { x: x - w, y: y - size * 0.8, width: w * 2, height: size * 0.6 }));
   const defs = el("defs", {}); defs.appendChild(cp); g.appendChild(defs);
-  const hi = el("g", { "clip-path":"url(#silver-top)" });
+  const hi = el("g", { "clip-path": "url(#silver-top)" });
   hi.appendChild(mk("#1b3f7e", size * 0.02, "#f4f6fa"));
   g.appendChild(hi);
   return g;
 }
-ROOT.appendChild(ZOOM
-  ? silverTitle(L/2, L/2 - hole * 0.04, "大富翁", ZL.titleSize || Math.round(hole * 0.17))
-  : silverTitle(900, 900, "大富翁", 168));
 
 // —— 卡牌背面样式的两个卡堆（样式完全照 print.html 卡牌背面）——
 function cardBack(x, y, w, h, kind, rot) {
   const m = DECKS[kind];
-  const g = el("g", { transform:`translate(${x},${y}) rotate(${rot})` });
-  // 下面垫两张，做出「牌堆」的厚度感
-  [[16, 14], [8, 7]].forEach(([ox, oy], i) => {
-    g.appendChild(el("rect", { x:-w/2+ox, y:-h/2+oy, width:w, height:h, rx:10,
-      fill:m.bg, stroke:"rgba(0,0,0,.22)", "stroke-width":2, opacity: i ? 0.75 : 0.55 }));
+  const g = el("g", { transform: `translate(${x},${y}) rotate(${rot})` });
+  [[16, 14], [8, 7]].forEach(([ox, oy], i) => {           // 下面垫两张，做出「牌堆」的厚度感
+    g.appendChild(el("rect", { x: -w/2+ox, y: -h/2+oy, width: w, height: h, rx: 10,
+      fill: m.bg, stroke: "rgba(0,0,0,.22)", "stroke-width": 2, opacity: i ? 0.75 : 0.55 }));
   });
-  // 卡面
-  g.appendChild(el("rect", { x:-w/2, y:-h/2, width:w, height:h, rx:10, fill:m.bg, stroke:"rgba(0,0,0,.22)", "stroke-width":2 }));
-  // 尺寸基准 = 短边（横版也能保持和竖版一致的视觉比例）
-  const u = Math.min(w, h);
-  // 内框（inset 3mm ≈ 短边的 4.8%）
-  const ins = u * 0.048;
-  g.appendChild(el("rect", { x:-w/2+ins, y:-h/2+ins, width:w-2*ins, height:h-2*ins, rx:6,
-    fill:"none", stroke:m.fg, "stroke-width":3, opacity:0.72 }));
-  // 面：字 + 大号符号 + 字
-  const fs = u * 0.185, ss = u * 0.30, gap = u * 0.075;
-  const total = fs + gap + ss + gap + fs, x0 = -total/2;
-  g.appendChild(txt(x0 + fs/2, -h*0.05, m.w1, fs, { weight:"bold", fill:m.fg }));
-  g.appendChild(txt(x0 + fs + gap + ss/2, -h*0.05, m.sym, ss, { weight:"bold", fill:m.fg, opacity:0.5 }));
-  g.appendChild(txt(x0 + fs + gap + ss + gap + fs/2, -h*0.05, m.w2, fs, { weight:"bold", fill:m.fg }));
-  // 英文行（70% 处）
-  g.appendChild(txt(0, h*0.22, m.en, u*0.055, { weight:"bold", fill:m.fg, ls:u*0.024, opacity:0.72 }));
-  // 左上角「大富翁」椭圆印章（rotate -12°）
-  const st = el("g", { transform:`translate(${-w/2 + u*0.16},${-h/2 + u*0.13}) rotate(-12)` });
-  st.appendChild(el("ellipse", { cx:0, cy:0, rx:u*0.115, ry:u*0.076, fill:"none",
-    stroke:m.fg, "stroke-width":2.5, "stroke-dasharray":"6 5", opacity:0.88 }));
-  st.appendChild(txt(0, 1, "大富翁", u*0.048, { weight:"bold", fill:m.fg }));
+  g.appendChild(el("rect", { x: -w/2, y: -h/2, width: w, height: h, rx: 10, fill: m.bg, stroke: "rgba(0,0,0,.22)", "stroke-width": 2 }));
+  const u = Math.min(w, h);                                // 尺寸基准 = 短边（横版也保持比例）
+  const ins = u * 0.048;                                   // 内框（inset 3mm ≈ 短边的 4.8%）
+  g.appendChild(el("rect", { x: -w/2+ins, y: -h/2+ins, width: w-2*ins, height: h-2*ins, rx: 6,
+    fill: "none", stroke: m.fg, "stroke-width": 3, opacity: 0.72 }));
+  const fs = u * 0.185, ss = u * 0.30, gap = u * 0.075;    // 面：字 + 大号符号 + 字
+  const total = fs + gap + ss + gap + fs, x0 = -total / 2;
+  g.appendChild(txt(x0 + fs/2, -h*0.05, m.w1, fs, { weight: "bold", fill: m.fg }));
+  g.appendChild(txt(x0 + fs + gap + ss/2, -h*0.05, m.sym, ss, { weight: "bold", fill: m.fg, opacity: 0.5 }));
+  g.appendChild(txt(x0 + fs + gap + ss + gap + fs/2, -h*0.05, m.w2, fs, { weight: "bold", fill: m.fg }));
+  g.appendChild(txt(0, h*0.22, m.en, u*0.055, { weight: "bold", fill: m.fg, ls: u*0.024, opacity: 0.72 }));
+  const st = el("g", { transform: `translate(${-w/2 + u*0.16},${-h/2 + u*0.13}) rotate(-12)` });   // 左上角印章
+  st.appendChild(el("ellipse", { cx: 0, cy: 0, rx: u*0.115, ry: u*0.076, fill: "none",
+    stroke: m.fg, "stroke-width": 2.5, "stroke-dasharray": "6 5", opacity: 0.88 }));
+  st.appendChild(txt(0, 1, "大富翁", u*0.048, { weight: "bold", fill: m.fg }));
   g.appendChild(st);
-  // 右下角小恶魔标（同 print.html 背面）
-  const s = u * 0.10 / 40;
-  const dv = el("g", { transform:`translate(${w/2 - u*0.115},${h/2 - u*0.075}) scale(${s}) translate(-20,-18)` });
-  dv.appendChild(el("path", { d:"M8 8 Q6 2 11 0 Q10 6 14 8 Z", fill:m.fg }));
-  dv.appendChild(el("path", { d:"M32 8 Q34 2 29 0 Q30 6 26 8 Z", fill:m.fg }));
-  dv.appendChild(el("path", { d:"M20 6 C11 6 5 12 5 19 C5 26 11 30 20 30 C29 30 35 26 35 19 C35 12 29 6 20 6 Z", fill:m.fg }));
-  ["M12 17 Q15 14 18 17","M22 17 Q25 14 28 17","M13 21 Q20 27 27 21"].forEach(d => {
-    dv.appendChild(el("path", { d, fill:"none", stroke:m.fg, "stroke-width":1.5, "stroke-linecap":"round" }));
+  const s = u * 0.10 / 40;                                 // 右下角小恶魔标
+  const dv = el("g", { transform: `translate(${w/2 - u*0.115},${h/2 - u*0.075}) scale(${s}) translate(-20,-18)` });
+  dv.appendChild(el("path", { d: "M8 8 Q6 2 11 0 Q10 6 14 8 Z", fill: m.fg }));
+  dv.appendChild(el("path", { d: "M32 8 Q34 2 29 0 Q30 6 26 8 Z", fill: m.fg }));
+  dv.appendChild(el("path", { d: "M20 6 C11 6 5 12 5 19 C5 26 11 30 20 30 C29 30 35 26 35 19 C35 12 29 6 20 6 Z", fill: m.fg }));
+  ["M12 17 Q15 14 18 17", "M22 17 Q25 14 28 17", "M13 21 Q20 27 27 21"].forEach(d => {
+    dv.appendChild(el("path", { d, fill: "none", stroke: m.fg, "stroke-width": 1.5, "stroke-linecap": "round" }));
   });
   g.appendChild(dv);
   return g;
-}
-// 横版卡：宽 > 高（与实物牌堆平放的朝向一致）
-if (ZOOM) {
-  const cw = hole * (ZL.cardW || 0.42), ch = cw * 0.688, m = hole * 0.05;
-  ROOT.appendChild(cardBack(B + m + cw/2, B + m + ch/2, cw, ch, "fate", -14));            // 命运牌堆（左上）
-  ROOT.appendChild(cardBack(L - B - m - cw/2, L - B - m - ch/2, cw, ch, "chance", -14));  // 机会牌堆（右下）
-} else {
-  ROOT.appendChild(cardBack(465, 500, 430, 296, "fate", -14));     // 命运牌堆（左上）
-  ROOT.appendChild(cardBack(1335, 1305, 430, 296, "chance", -14)); // 机会牌堆（右下）
 }
 
 // ===== 跑道格子 =====
 // 四边的整格旋转角（底 0 / 左 +90 / 顶 180 / 右 -90），放大版的内容反向旋转要用
 const ROTV = { bottom: 0, left: 90, top: 180, right: -90 };
-// 四边同一套设计：色带在靠圆心一侧，内容依次 编号→国名→英文→国旗→$价格→首都，
 // 整格旋转：底 0° / 左 +90° / 顶 180° / 右 -90°（与原版照片一致）
 function tileGroup(col, row, side) {
   let cx, cy, rot;
@@ -1629,86 +1430,101 @@ function tileGroup(col, row, side) {
   else if (side === "bottom") { cx = B + (col-1)*W + W/2; cy = L - B/2;           rot = 0;   }
   else if (side === "left")   { cx = B/2;                 cy = B + (row-1)*W + W/2; rot = 90; }
   else if (side === "right")  { cx = L - B/2;             cy = B + (row-1)*W + W/2; rot = -90; }
-  else if (col===0 && row===0)   { cx = B/2;   cy = B/2;   rot = 0; }
-  else if (col===16 && row===0)  { cx = L-B/2; cy = B/2;   rot = 0; }
-  else if (col===0 && row===16)  { cx = B/2;   cy = L-B/2; rot = 0; }
-  else                           { cx = L-B/2; cy = L-B/2; rot = 0; }  // 赤道
-  return el("g", { transform:`translate(${cx},${cy}) rotate(${rot})` });
+  else if (col === 0 && row === 0)   { cx = B/2;   cy = B/2;   rot = 0; }
+  else if (col === 16 && row === 0)  { cx = L-B/2; cy = B/2;   rot = 0; }
+  else if (col === 0 && row === 16)  { cx = B/2;   cy = L-B/2; rot = 0; }
+  else                               { cx = L-B/2; cy = L-B/2; rot = 0; }  // 赤道
+  return el("g", { transform: `translate(${cx},${cy}) rotate(${rot})` });
 }
 // 局部坐标：x∈[-TW,TW]，y∈[-TH,TH]，色带在 y=-TH 一端（即靠圆心一侧）
 function propertyContent(g, id, name, nameEn, flag, capital, price, colorId) {
-  g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:BAND, fill:HEX[colorId] || "#cccccc" }));
+  g.appendChild(el("rect", { x: -TW, y: -TH, width: W, height: BAND, fill: HEX[colorId] || "#cccccc" }));
   g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
   const ns = LP.nameSize || {};
   if (name.length >= 6) {  // 国名过长（≥6 字）自动拆两行
     const [y1, y2, y3] = LP.longNameY || [-40, -24, -8];
-    g.appendChild(txt(0, y1, name.slice(0, 4), 13, { weight:"bold", fill:"#111" }));
-    g.appendChild(txt(0, y2, name.slice(4), 13, { weight:"bold", fill:"#111" }));
-    g.appendChild(txt(0, y3, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+    g.appendChild(txt(0, y1, name.slice(0, 4), 13, { weight: "bold", fill: "#111" }));
+    g.appendChild(txt(0, y2, name.slice(4), 13, { weight: "bold", fill: "#111" }));
+    g.appendChild(txt(0, y3, nameEn, 8.5, { fill: "#444", family: 'Georgia,"Times New Roman",serif' }));
   } else {
     const fs = name.length >= 5 ? (ns.ge5 ?? 13) : (name.length === 4 ? (ns.eq4 ?? 16) : (ns.le3 ?? 19));
-    g.appendChild(txt(0, LP.nameY ?? -36, name, fs, { weight:"bold", fill:"#111" }));
-    g.appendChild(txt(0, LP.nameEnY ?? -18, nameEn, 8.5, { fill:"#444", family:'Georgia,"Times New Roman",serif' }));
+    g.appendChild(txt(0, LP.nameY ?? -36, name, fs, { weight: "bold", fill: "#111" }));
+    g.appendChild(txt(0, LP.nameEnY ?? -18, nameEn, 8.5, { fill: "#444", family: 'Georgia,"Times New Roman",serif' }));
   }
   g.appendChild(txt(0, LP.flagY ?? 26, flag || "🏳️", LP.flagSize ?? 30, {}));
-  g.appendChild(txt(0, LP.priceY ?? 58, "$" + price, LP.priceSize ?? 18, { weight:"bold", fill:"#1a55a5" }));
-  g.appendChild(txt(0, LP.capitalY ?? 80, capital, LP.capitalSize ?? 12, { fill:"#222" }));
+  g.appendChild(txt(0, LP.priceY ?? 58, "$" + price, LP.priceSize ?? 18, { weight: "bold", fill: "#1a55a5" }));
+  g.appendChild(txt(0, LP.capitalY ?? 80, capital, LP.capitalSize ?? 12, { fill: "#222" }));
 }
 // 机会 / 命运格：符号与 print.html 卡牌背面一致（？ / ！）
 function deckContent(g, id, name, nameEn, kind) {
   const m = DECKS[kind];
   g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
-  g.appendChild(txt(0, LD.nameY ?? -50, name, 24, { weight:"bold", fill:"#111" }));
-  g.appendChild(txt(0, LD.enY ?? -32, nameEn, 11, { weight:"bold", fill:m.ink, ls:2 }));
-  g.appendChild(txt(0, LD.symY ?? 20, m.sym, LD.symSize ?? 66, { weight:"bold", fill:m.ink, opacity:0.7 }));
-  g.appendChild(txt(0, LD.line1Y ?? 62, "抽取", 11, { fill:"#222" }));
-  g.appendChild(txt(0, LD.line2Y ?? 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill:"#222" }));
+  g.appendChild(txt(0, LD.nameY ?? -50, name, 24, { weight: "bold", fill: "#111" }));
+  g.appendChild(txt(0, LD.enY ?? -32, nameEn, 11, { weight: "bold", fill: m.ink, ls: 2 }));
+  g.appendChild(txt(0, LD.symY ?? 20, m.sym, LD.symSize ?? 66, { weight: "bold", fill: m.ink, opacity: 0.7 }));
+  g.appendChild(txt(0, LD.line1Y ?? 62, "抽取", 11, { fill: "#222" }));
+  g.appendChild(txt(0, LD.line2Y ?? 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill: "#222" }));
 }
 function oceanContent(g, id, name) {
   g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
   const blues = ["#6a8ad8", "#4a72c8", "#2e56b0"];
-  const chars = name.split("");
-  const mid = LO.offset ?? (BAND/2 + 6);   // 内容区（色带以下）垂直居中偏下
+  const mid = LO.offset ?? (BAND / 2 + 6);   // 内容区（色带以下）垂直居中偏下
   const gap = LO.gap ?? 46, r = LO.radius ?? 20;
-  chars.forEach((c, i) => {
-    const y = mid + (i - (chars.length-1)/2) * gap;
-    g.appendChild(el("circle", { cx:0, cy:y, r:r, fill:blues[i % 3] }));
-    g.appendChild(txt(0, y+1, c, 22, { weight:"bold", fill:"#fff" }));
+  name.split("").forEach((c, i) => {
+    const y = mid + (i - (name.length - 1) / 2) * gap;
+    g.appendChild(el("circle", { cx: 0, cy: y, r: r, fill: blues[i % 3] }));
+    g.appendChild(txt(0, y + 1, c, 22, { weight: "bold", fill: "#fff" }));
   });
 }
+
+// ===== 角格 =====
 // 角格图案（画在朝外那个角；朝向与文字一致 —— 图案「头顶」也朝圆心）
 function cornerIcon(side, rot) {
-  // 朝外的角：地中海(左下) -o,+o｜北极(左上) -o,-o｜夏威夷(右上) +o,-o
   const o = LC.iconOffset ?? 37;
   const pos = side === "corner-tr" ? [o, -o] : (side === "corner-tl" ? [-o, -o] : [-o, o]);
-  const g = el("g", { transform:`translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(${LC.iconScale ?? 0.85})` });
+  const g = el("g", { transform: `translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(${LC.iconScale ?? 0.85})` });
   if (side === "corner-bl") {           // 地中海：帆船
-    g.appendChild(el("path", { d:"M-15,18 Q2,28 20,18 L15,10 L-9,10 Z", fill:"#2a4a8a" }));
-    g.appendChild(el("polygon", { points:"1,-26 1,6 -14,6", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
-    g.appendChild(el("polygon", { points:"7,-22 7,6 23,6", fill:"#ffffff", stroke:"#8a9ab5", "stroke-width":1.5 }));
-    g.appendChild(el("line", { x1:7, y1:-14, x2:7, y2:6, stroke:"#d42a2a", "stroke-width":4 }));
+    g.appendChild(el("path", { d: "M-15,18 Q2,28 20,18 L15,10 L-9,10 Z", fill: "#2a4a8a" }));
+    g.appendChild(el("polygon", { points: "1,-26 1,6 -14,6", fill: "#ffffff", stroke: "#8a9ab5", "stroke-width": 1.5 }));
+    g.appendChild(el("polygon", { points: "7,-22 7,6 23,6", fill: "#ffffff", stroke: "#8a9ab5", "stroke-width": 1.5 }));
+    g.appendChild(el("line", { x1: 7, y1: -14, x2: 7, y2: 6, stroke: "#d42a2a", "stroke-width": 4 }));
   } else if (side === "corner-tl") {    // 北极：冰屋
-    g.appendChild(el("path", { d:"M-22,18 A22,22 0 0 1 22,18 Z", fill:"#f2f4f6", stroke:"#9ab0c4", "stroke-width":2 }));
-    g.appendChild(el("path", { d:"M-7,18 A7,9 0 0 1 7,18 Z", fill:"#5a6a8a" }));
-    g.appendChild(el("path", { d:"M-16,6 Q0,-2 16,6 M-12,-7 Q0,-14 12,-7", fill:"none", stroke:"#b8c4d0", "stroke-width":2 }));
+    g.appendChild(el("path", { d: "M-22,18 A22,22 0 0 1 22,18 Z", fill: "#f2f4f6", stroke: "#9ab0c4", "stroke-width": 2 }));
+    g.appendChild(el("path", { d: "M-7,18 A7,9 0 0 1 7,18 Z", fill: "#5a6a8a" }));
+    g.appendChild(el("path", { d: "M-16,6 Q0,-2 16,6 M-12,-7 Q0,-14 12,-7", fill: "none", stroke: "#b8c4d0", "stroke-width": 2 }));
   } else {                              // 夏威夷：棕榈
-    g.appendChild(el("ellipse", { cx:0, cy:28, rx:24, ry:5, fill:"#f0e0b8" }));
-    g.appendChild(el("path", { d:"M-5,28 Q-1,6 10,-8", fill:"none", stroke:"#8a5a2a", "stroke-width":5, "stroke-linecap":"round" }));
-    [-55,-25,5,35,65].forEach(a => {
-      g.appendChild(el("ellipse", { cx:10, cy:-8, rx:15, ry:5, fill:"#3aa54a",
-        transform:`rotate(${a} 10 -8) translate(0,-9)` }));
+    g.appendChild(el("ellipse", { cx: 0, cy: 28, rx: 24, ry: 5, fill: "#f0e0b8" }));
+    g.appendChild(el("path", { d: "M-5,28 Q-1,6 10,-8", fill: "none", stroke: "#8a5a2a", "stroke-width": 5, "stroke-linecap": "round" }));
+    [-55, -25, 5, 35, 65].forEach(a => {
+      g.appendChild(el("ellipse", { cx: 10, cy: -8, rx: 15, ry: 5, fill: "#3aa54a",
+        transform: `rotate(${a} 10 -8) translate(0,-9)` }));
     });
   }
   return g;
 }
+// 赤道（起点）：气泡字 + 右上黄五角星 + 深蓝说明 + 宽蓝箭头（尖朝左）内嵌白色「起点」
+function equatorContent(cg, id) {
+  const RT = 95;
+  cg.appendChild(idTag(RT - 9, RT - 7, id));
+  cg.appendChild(bubble(0, -46, "赤道", 46, {}));
+  cg.appendChild(txt(68, -66, "★", 34, { weight: "bold", fill: "#ffd400", stroke: "#e07800", sw: 2 }));
+  cg.appendChild(txt(0, 2, "由此去得酬金$2000", 12, { weight: "bold", fill: "#1b3f7e" }));
+  // 宽箭头：尖头朝左（指向行进方向），尾部矩形
+  cg.appendChild(el("polygon", {
+    points: "-70,40 -30,16 56,16 56,64 -30,64",
+    fill: "#2e6fd4", stroke: "#eef3fb", "stroke-width": 3.5, "stroke-linejoin": "round"
+  }));
+  // 白字「起点」：放在箭头（尖 + 尾）的几何中心，x=2 / y=40
+  cg.appendChild(txt(2, 40, "起点", 27, { weight: "bold", fill: "#ffffff" }));
+}
 
 // ===== 放大版：格子内容 =====
 // 跑道加厚之后格子是「窄而深」的（宽 ~44、深 ~570），横排塞不下几个字，
-// 所以参考加厚环：格子不旋转、文字全部正立 —— 底/顶边竖排（一字一行），
-// 左/右边横排（一行排开），字号按格子大小自适应，短名字的字更大。
+// 所以：格子照旧整格旋转，内容反向旋转转正立 —— 文字永远头朝上，
+// 底/顶边竖排（一字一行），左/右边横排（一行排开），字号按格子自适应。
 // 色带贴「靠圆心」的一端（与打印版同一个约定），只是不再靠旋转、改按 side 直接摆。
 
-// 色带矩形（内容坐标系 = 屏幕方向，格心为原点；格子本身仍按打印版整格旋转）
+// 色带矩形（内容坐标系 = 屏幕方向，格心为原点）
 function zoomBandRect(side) {
   // 注意左右边：径向是屏幕 x（半长 TH），沿边是屏幕 y（半宽 TW）—— 跟顶/底边正好互换
   if (side === "top")   return { x: -TW, y: TH - BAND, width: W, height: BAND };   // 顶边：圆心在下
@@ -1729,7 +1545,7 @@ function zoomFlow(g, rows, box, vertical) {
   const widthK = ZL.widthK || 0.94;
   let units = 0;
   rows.forEach(r => {
-    const n = (r.text || "").length;
+    const n = graphemes(r.text || "").length;
     if (!n) return;
     units += vertical
       ? n * r.k * LINE + (n - 1) * r.k * INNER + GROUP
@@ -1743,18 +1559,18 @@ function zoomFlow(g, rows, box, vertical) {
   let pos = (vertical ? box.y0 : box.x0)
     + ((vertical ? box.y1 - box.y0 : box.x1 - box.x0) - units * f) / 2;   // 沿长轴居中
   rows.forEach((r, ri) => {
-    const n = (r.text || "").length;
-    if (!n) return;
+    const chars = graphemes(r.text || "");
+    if (!chars.length) return;
     const fs = f * r.k;
     if (ri) pos += f * GROUP;
     if (vertical) {
       const lh = fs * LINE;
-      for (let i = 0; i < n; i++) {
-        g.appendChild(txt(0, pos + lh / 2, r.text[i], fs, r.opts || {}));
+      chars.forEach(c => {
+        g.appendChild(txt(0, pos + lh / 2, c, fs, r.opts || {}));
         pos += lh + fs * INNER;
-      }
+      });
     } else {
-      const wpx = n * fs * (r.w || 1);
+      const wpx = chars.length * fs * (r.w || 1);
       g.appendChild(txt(pos + wpx / 2, 0, r.text, fs, r.opts || {}));
       pos += wpx + fs * INNER;
     }
@@ -1763,288 +1579,92 @@ function zoomFlow(g, rows, box, vertical) {
 // 地产格四行的内容定义（竖排/横排共用）
 function zoomRows(name, flag, price, capital) {
   return [
-    { text: name || "", k: 1, w: 1.0, opts: { weight: "bold", fill: "#111" } },
-    { text: flag || "🏳️", k: ZL.flagK || 0.95, w: 1.15, opts: {} },
-    { text: price ? "$" + price : "", k: ZL.priceK || 0.62, w: 0.66, opts: { weight: "bold", fill: "#1a55a5" } },
-    { text: capital || "", k: ZL.capitalK || 0.42, w: 0.6, opts: { fill: "#444" } }
+    { text: name || "",     k: 1,                  w: 1.0,  opts: { weight: "bold", fill: "#111" } },
+    { text: flag || "🏳️", k: ZL.flagK || 0.95,   w: 1.15, opts: {} },
+    { text: price ? "$" + price : "", k: ZL.priceK || 0.62,   w: 0.66, opts: { weight: "bold", fill: "#1a55a5" } },
+    { text: capital || "",  k: ZL.capitalK || 0.42, w: 0.6,  opts: { fill: "#444" } }
   ];
 }
 
-(DATA.tiles || []).forEach(t => {
-  const id = t.id, col = t.col, row = t.row, side = t.side, type = t.type;
+// ===== 一格 =====
+function drawTile(t) {
+  const id = t.id, side = t.side, type = t.type || "property";
   const name = t.name, nameEn = t.nameEn;
-  const capital = t.capital, price = t.price, colorId = t.colorId;
-  if ((type || "property") === "property" && !t.flag) warnNoFlag(t);
-  const g = tileGroup(col, row, side);
-  // 筛选标记：跟另外两档布局用同一套属性，图例筛选才能三档通用
+  if (type === "property" && !t.flag) {
+    console.warn("[map] 格子 #" + id + "（" + name + "）没有 flag 字段，去 JSON 里补一下");
+  }
+  const g = tileGroup(t.col, t.row, side);
+  // 筛选标记：给图例筛选用
   g.setAttribute("data-tile", "1");
-  if ((type || "property") === "property") g.setAttribute("data-color", GKEY[colorId] || t.color || "");
+  if (type === "property") g.setAttribute("data-color", GKEY[t.colorId] || t.color || "");
   else g.setAttribute("data-special", type);
   const tip = el("title", {});
   tip.textContent = `${name}${nameEn ? " " + nameEn : ""}` +
-    `${capital ? " · 首都 " + capital : ""}${price ? " · $" + price : ""}`;
+    `${t.capital ? " · 首都 " + t.capital : ""}${t.price ? " · $" + t.price : ""}`;
   g.appendChild(tip);
 
   if (type === "corner") {
     // 角格内容是按「跑道宽 190」画的，放大版整体 scale 一下就跟着变大（B=570 → ×3）
-    const cg = ZOOM ? el("g", { transform:`scale(${B / 190})` }) : g;
+    const cg = ZOOM ? el("g", { transform: `scale(${B / 190})` }) : g;
     const RB = ZOOM ? 190 : B, RT = ZOOM ? 95 : TH;  // 基准尺寸：scale 之前的坐标都按 190 跑道算
     const sw = ZOOM ? 2 * 190 / B : 2;              // 边框要跟边格的 2px 对齐，不能跟着放大
-    cg.appendChild(el("rect", { x:-RT, y:-RT, width:RB, height:RB, fill:"#A8CCE9", stroke:"#1a1a1a", "stroke-width":sw }));
+    cg.appendChild(el("rect", { x: -RT, y: -RT, width: RB, height: RB, fill: "#A8CCE9", stroke: "#1a1a1a", "stroke-width": sw }));
     if (side === "corner-br") {
-      // 赤道（起点）：样式照原图 —— 气泡字+右上黄五角星+深蓝字+宽蓝箭头（尖朝左）内嵌「起点」黄字
-      cg.appendChild(idTag(RT-9, RT-7, id));
-      cg.appendChild(bubble(0, -46, "赤道", 46, {}));
-      cg.appendChild(txt(68, -66, "★", 34, { weight:"bold", fill:"#ffd400", stroke:"#e07800", sw:2 }));
-      cg.appendChild(txt(0, 2, "起点/由此去得酬金$2000", 12, { weight:"bold", fill:"#1b3f7e" }));
-      // 宽箭头：尖头朝左（指向行进方向），尾部矩形
-      cg.appendChild(el("polygon", {
-        points:"-70,40 -30,16 56,16 56,64 -30,64",
-        fill:"#2e6fd4", stroke:"#eef3fb", "stroke-width":3.5, "stroke-linejoin":"round"
-      }));
-      cg.appendChild(bubble(-26, 41, "起点", 27, { fill:"#ffd400", dark:"#c8341f" }));
+      equatorContent(cg, id);
     } else {
       // 地中海 / 北极 / 夏威夷：文字、图案都「头顶朝圆心」
       // 地中海(左下) 45°｜北极(左上) 135°｜夏威夷(右上) -135°
       const rot = side === "corner-bl" ? 45 : (side === "corner-tl" ? 135 : -135);
-      const gg = el("g", { transform:`rotate(${rot})` });
+      const gg = el("g", { transform: `rotate(${rot})` });
       gg.appendChild(bubble(0, LC.textY ?? -16, name, LC.textSize ?? 46, {}));  // 文字往圆心侧让一点，给朝外的图案留空间
       cg.appendChild(gg);
       cg.appendChild(cornerIcon(side, rot));
-      const ci = LC.idInset ?? 9;
-      cg.appendChild(idTag(RT-ci, RT-ci-2, id));
+      cg.appendChild(idTag(RT - (LC.idInset ?? 9), RT - (LC.idInset ?? 9) - 2, id));
     }
     if (cg !== g) g.appendChild(cg);
-  } else {
-    g.appendChild(el("rect", { x:-TW, y:-TH, width:W, height:B, fill:"#ffffff", stroke:"#1a1a1a", "stroke-width":2 }));
-    if (ZOOM) {
-      // 格子按打印版整格旋转，内容包一层反向旋转转回正立 —— 文字永远头朝上，
-      // 底/顶边竖排（长轴在屏幕 y）、左右边横排（长轴在屏幕 x），色带贴圆心一侧
-      const inner = el("g", { transform:`rotate(${-(ROTV[side] || 0)})` });
-      g.appendChild(inner);
-      const box = zoomContentBox(side);
-      const vert = side === "top" || side === "bottom";
-      if (type === "chance" || type === "destiny") {
-        const m = DECKS[type === "chance" ? "chance" : "fate"];
-        inner.appendChild(el("rect", { ...zoomBandRect(side), fill: m.bg }));
-        zoomFlow(inner, [
-          { text: m.sym, k: 1.5, w: 0.9, opts: { weight: "bold", fill: m.ink, opacity: 0.8 } },
-          { text: name, k: 1, w: 1.0, opts: { weight: "bold", fill: "#111" } }
-        ], box, vert);
-      } else if (type === "ocean") {
-        inner.appendChild(el("rect", { ...zoomBandRect(side), fill: "#9BB6C4" }));
-        zoomFlow(inner, [{ text: name, k: 1, w: 1.0, opts: { weight: "bold", fill: "#2e56b0" } }], box, vert);
-      } else {
-        inner.appendChild(el("rect", { ...zoomBandRect(side), fill: HEX[colorId] || "#cccccc" }));
-        zoomFlow(inner, zoomRows(name, t.flag, price, capital), box, vert);
-      }
-      // 编号放色带那一端的角落（内容系里四边的「圆心侧」方向不同）
-      const idPos = side === "left" ? [TH - 4, TW - 4]
-        : (side === "right" ? [-TH + BAND - 4, TW - 4] : [TW - 4, TH - 4]);
-      inner.appendChild(idTag(idPos[0], idPos[1], id));
-    } else {
-      if (type === "chance") deckContent(g, id, name, nameEn, "chance");
-      else if (type === "destiny") deckContent(g, id, name, nameEn, "fate");
-      else if (type === "ocean") oceanContent(g, id, name);
-      else propertyContent(g, id, name, nameEn, t.flag, capital, price, colorId);
-    }
-  }
-  ROOT.appendChild(g);
-});
-
-  // 外边框
-  ROOT.appendChild(el("rect", {
-    x:1, y:1, width:L-2, height:L-2, rx:2,
-    fill:"none", stroke:"#222", "stroke-width":4
-  }));
-
-  console.log("[map-svg] 打印版棋盘渲染完成，共 " + (DATA.tiles || []).length + " 格");
-}
-
-// ===== 打印尺寸（打印版用）=====
-// 成品边长取自 JSON 的 board.printMM（80cm 软垫 = 800）：@page 纸张跟着它变。
-// 只注入一次，切换布局反复渲染也不会堆积 <style>。
-function applyPrintSize(printMM) {
-  const mm = printMM || 800, cm = +(mm / 10).toFixed(1).replace(/\.0$/, "");
-  let st = document.getElementById("print-size-style");
-  if (!st) {
-    st = document.createElement("style");
-    st.id = "print-size-style";
-    document.head.appendChild(st);
-  }
-  st.textContent = `@page { size: ${mm}mm ${mm}mm; margin: 0; }`;
-  document.title = `大富翁 世界之旅 · ${cm}cm 软垫打印版`;
-  return cm;
-}
-
-function render(vg, DATA, opts) {
-  // ROOT：打印版整块棋盘画进 viewport-group 里的这个 <g>
-  ROOT = svgEl("g", {});
-  vg.appendChild(ROOT);
-  applyPrintSize(DATA.board && DATA.board.printMM);
-  renderBoard(DATA, !!(opts && opts.zoom));
-};
-
-  return { render };
-})();
-
-// ===== 渲染地图 =====
-function renderMap(data) {
-  mapData = data;
-  DATA = data;
-  loadPalette(data);
-  const svg = document.getElementById("map");
-  const bs = boardSize();
-  svg.setAttribute("viewBox", `0 0 ${bs.w} ${bs.h}`);
-  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-  const vg = document.getElementById("viewport-group");
-  vg.innerHTML = "";
-  drawBoard(vg, data);
-  renderLegend(data);
-
-  updateModeUI();
-  applyFilter();
-
-  if (!hashApplied && location.hash.startsWith("#f=")) {
-    hashApplied = true;
-    const k = decodeURIComponent(location.hash.slice(3));
-    const chip = document.querySelector('.legend-item[data-filter="' + k + '"]');
-    if (chip) chip.click();
-  }
-}
-
-// 整块棋盘：背景 + 中空 + 64 格，按当前布局走两种画法
-function drawBoard(vg, data) {
-  const bs = boardSize();
-
-  // 打印版 / 放大版：整块交给 PrintBoard（它自己画背景、中心、跑道、卡堆）
-  if (isPrintMode()) { PrintBoard.render(vg, data, { zoom: isPrintZoom() }); return; }
-
-  // 渐变定义：中空那块用的底色
-  const defs = svgEl("defs", {});
-  const grad = svgEl("linearGradient", { id: "centerGrad", x1: "0%", y1: "0%", x2: "100%", y2: "100%" });
-  grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "#fdfcfa" }));
-  grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": "#f6f4f0" }));
-  defs.appendChild(grad);
-  vg.appendChild(defs);
-
-  vg.appendChild(svgEl("rect", { x: 0, y: 0, width: bs.w, height: bs.h, fill: "#f4f2ee", rx: 4 }));
-
-  // 中空：加厚环是 (17-2*RING_T)² 的方块
-  const hole = drawThickCenter(vg);
-  const cx = hole.x + hole.w / 2, cy = hole.y + hole.h / 2;
-  if (hole.h > 90) {
-    vg.appendChild(svgText(cx, cy - 6, "世界之旅", Math.min(22, hole.h * 0.13),
-      { weight: "bold", color: "#2c2c2a", letterSpacing: "4" }));
-    vg.appendChild(svgText(cx, cy + 12, "WORLD TOUR", Math.min(11, hole.h * 0.065),
-      { color: "#8a8880", letterSpacing: "2" }));
+    return g;
   }
 
-  data.tiles.forEach(t => {
-    const r = tileRectUnit(t.id);
-    const W = r.w * U, H = r.h * U;
-    const g = tileGroup(t, r.x * U, r.y * U);
-    drawThickTile(g, t, W, H);
-    vg.appendChild(g);
-  });
-}
-
-function drawThickCenter(vg) {
-  const hs = holeSize(), hx = RING_T * U;
-  if (hs > 4) {
-    vg.appendChild(svgEl("rect", {
-      x: hx, y: hx, width: hs, height: hs,
-      fill: "url(#centerGrad)", stroke: "#e8e5df", "stroke-width": 1, rx: 2
-    }));
+  g.appendChild(el("rect", { x: -TW, y: -TH, width: W, height: B, fill: "#ffffff", stroke: "#1a1a1a", "stroke-width": 2 }));
+  if (!ZOOM) {
+    if (type === "chance") deckContent(g, id, name, nameEn, "chance");
+    else if (type === "destiny") deckContent(g, id, name, nameEn, "fate");
+    else if (type === "ocean") oceanContent(g, id, name);
+    else propertyContent(g, id, name, nameEn, t.flag, t.capital, t.price, t.colorId);
+    return g;
   }
-  return { x: hx, y: hx, w: hs, h: hs };
-}
 
-// ===== 加厚环的一格：文字在「竖排/横排两行/横排一行」里自动挑字号最大的 =====
-function drawThickTile(g, t, W, H) {
-  let bg = "#fff", stroke = "#e5e1da", sw = 1;
-  if (t.type === "corner") { bg = "#f7f5f1"; stroke = "#b3afa6"; sw = 2; }
-  else if (t.type === "chance") { bg = "#fdf7fa"; stroke = "#B06F88"; }
-  else if (t.type === "destiny") { bg = "#fdf9f2"; stroke = "#D9BA8E"; }
-  else if (t.type === "ocean") { bg = "#f4f8fa"; stroke = "#9BB6C4"; }
-  g.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: bg, stroke: stroke, "stroke-width": sw, rx: 2 }));
-
-  // 每格独立裁剪：窄格子里的文字不许溢出压到邻格
-  const cpId = "clip-tile-" + t.id;
-  const cp = svgEl("clipPath", { id: cpId });
-  cp.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H }));
-  g.appendChild(cp);
-  const inner = svgEl("g", { "clip-path": `url(#${cpId})` });
+  // 放大版：内容反向旋转转正立，色带贴圆心一侧
+  const inner = el("g", { transform: `rotate(${-(ROTV[side] || 0)})` });
   g.appendChild(inner);
-
-  // 色带贴在格子靠外的一边
-  const bandColor = tileColor(t);
-  const bt = Math.max(2, Math.min(W, H) * 0.15);
-  const edge = tileEdge(t.id);
-  let bx = 0, by = 0, bw = W, bh = H;
-  if (edge === "bottom") { by = H - bt; bh = bt; }
-  else if (edge === "top") { bh = bt; }
-  else if (edge === "left") { bw = bt; }
-  else { bx = W - bt; bw = bt; }
-  inner.appendChild(svgEl("rect", { x: bx, y: by, width: bw, height: bh, fill: bandColor, rx: 1 }));
-
-  if (t.type === "corner") {
-    const f = Math.min(W * 0.34, H * 0.26, 15);
-    inner.appendChild(svgText(W / 2, H * 0.34, t.name, f, { weight: "bold", color: "#2c2c2a" }));
-    inner.appendChild(svgText(W / 2, H * 0.50, t.nameEn, Math.max(6, f * 0.40), { color: "#8a8880", letterSpacing: "1" }));
-    const m = String(t.sub || "").match(/\$[\d,]+/);
-    if (m) inner.appendChild(svgText(W / 2, H * 0.68, "起点 " + m[0], Math.max(6, f * 0.50), { weight: "bold", color: "#96597A" }));
-    return;
-  }
-
-  const price = t.price ? String(t.price) : "";
-  const c = pickText(t.name, price, W, H);
-  const nameColor = t.type === "chance" ? "#96597A" : t.type === "destiny" ? "#7A6338" : t.type === "ocean" ? "#4a6b7c" : "#2c2c2a";
-  const priceColor = isSpecial(t) ? "#8a8880" : "#96597A";
-  const glyph = t.type === "chance" ? "?" : t.type === "destiny" ? "\u2726" : t.type === "ocean" ? "~" : null;
-
-  if (c.m === "v") {
-    const fp = price ? (c.stackPrice ? c.f * 0.92 : c.f * 0.85) : 0;
-    const nameH = t.name.length * 1.08 * c.f;
-    const priceH = price ? (c.stackPrice ? price.length * 1.08 * fp : 1.6 * fp) : 0;
-    const fg = glyph ? Math.min(c.f * 0.9, W * 0.62) : 0;
-    const glyphH = (glyph && (H * 0.94 - nameH - priceH) > fg * 1.5) ? fg * 1.2 : 0;
-    let y = (H - nameH - priceH - glyphH) / 2 + c.f * 0.55;
-    if (glyphH) {
-      inner.appendChild(svgText(W / 2, y - c.f * 0.55 + fg * 0.6, glyph, fg, { weight: "bold", color: bandColor }));
-      y += glyphH;
-    }
-    for (let k = 0; k < t.name.length; k++) {
-      inner.appendChild(svgText(W / 2, y, t.name[k], c.f, { weight: "bold", color: nameColor }));
-      y += c.f * 1.08;
-    }
-    if (price) {
-      if (c.stackPrice) {
-        y += fp * 0.35;
-        for (let k = 0; k < price.length; k++) {
-          inner.appendChild(svgText(W / 2, y, price[k], fp, { color: priceColor }));
-          y += fp * 1.08;
-        }
-      } else {
-        y += fp * 0.6;
-        inner.appendChild(svgText(W / 2, y, price, fp, { color: priceColor }));
-      }
-    }
-  } else if (c.m === "h2") {
-    inner.appendChild(svgText(W / 2, H * 0.40, t.name, c.f, { weight: "bold", color: nameColor }));
-    if (price) inner.appendChild(svgText(W / 2, H * 0.74, price, c.f * 0.85, { color: priceColor }));
+  const box = zoomContentBox(side);
+  const vert = side === "top" || side === "bottom";
+  if (type === "chance" || type === "destiny") {
+    const m = DECKS[type === "chance" ? "chance" : "fate"];
+    inner.appendChild(el("rect", { ...zoomBandRect(side), fill: m.bg }));
+    zoomFlow(inner, [
+      { text: m.sym, k: 1.5, w: 0.9, opts: { weight: "bold", fill: m.ink, opacity: 0.8 } },
+      { text: name,  k: 1,   w: 1.0, opts: { weight: "bold", fill: "#111" } }
+    ], box, vert);
+  } else if (type === "ocean") {
+    inner.appendChild(el("rect", { ...zoomBandRect(side), fill: "#9BB6C4" }));
+    zoomFlow(inner, [{ text: name, k: 1, w: 1.0, opts: { weight: "bold", fill: "#2e56b0" } }], box, vert);
   } else {
-    inner.appendChild(svgText(W / 2, H * 0.52, price ? t.name + " " + price : t.name, c.f, { weight: "bold", color: nameColor }));
+    inner.appendChild(el("rect", { ...zoomBandRect(side), fill: HEX[t.colorId] || "#cccccc" }));
+    zoomFlow(inner, zoomRows(name, t.flag, t.price, t.capital), box, vert);
   }
+  // 编号放色带那一端的角落（内容系里四边的「圆心侧」方向不同）
+  const idPos = side === "left" ? [TH - 4, TW - 4]
+    : (side === "right" ? [-TH + BAND - 4, TW - 4] : [TW - 4, TH - 4]);
+  inner.appendChild(idTag(idPos[0], idPos[1], id));
+  return g;
 }
 
-function renderLegend(data) {
-  // 渲染图例（分 3 行：国家色组 / 机会命运 / 海洋角落）
+// ===== 图例筛选 =====
+function renderLegend() {
   const legend = document.getElementById("legend");
   legend.innerHTML = "";
 
-  // 辅助：创建一个筛选按钮
   function makeChip(c) {
     const item = document.createElement("button");
     item.className = "legend-item" + (c.key === "all" ? " on" : "");
@@ -2060,8 +1680,8 @@ function renderLegend(data) {
     return item;
   }
 
-  // 国家：颜色组多就分两行，“全部”挂在第一行开头
-  const groups = data.colorGroups || [];
+  // 国家：颜色组多就分两行，「全部」挂在第一行开头
+  const groups = DATA.colorGroups || [];
   const half = Math.ceil(groups.length / 2);
   [groups.slice(0, half), groups.slice(half)].forEach((gs, ri) => {
     const row = document.createElement("div");
@@ -2070,88 +1690,125 @@ function renderLegend(data) {
     label.className = "legend-label";
     label.textContent = ri === 0 ? "国家" : "";
     row.appendChild(label);
-    if (ri === 0) row.appendChild(makeChip({ key: "all", name: "全部", count: data.tiles.length, color: null }));
-    gs.forEach(g => {
-      row.appendChild(makeChip({
-        key: "color:" + g.key, name: g.name, count: countOf(x => x.colorId === g.id),
-        color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
-      }));
-    });
+    if (ri === 0) row.appendChild(makeChip({ key: "all", name: "全部", count: DATA.tiles.length, color: null }));
+    gs.forEach(g => row.appendChild(makeChip({
+      key: "color:" + g.key, name: g.name,
+      count: DATA.tiles.filter(x => x.colorId === g.id).length,
+      color: HEX[g.id] || HEXBYKEY[g.key] || "#ccc"
+    })));
     legend.appendChild(row);
   });
 
-  // 特殊格：按 tileTypes 里定义的类型自动生成，两两一行（机会/命运 · 海洋/角落）
-  const types = Object.keys(data.tileTypes || {}).filter(k => k !== "property");
+  // 特殊格：按 tileTypes 里定义的类型自动生成，两两一行
+  const types = Object.keys(DATA.tileTypes || {}).filter(k => k !== "property");
   for (let i = 0; i < types.length; i += 2) {
     const pair = types.slice(i, i + 2);
     const row = document.createElement("div");
     row.className = "legend-row";
     const label = document.createElement("span");
     label.className = "legend-label";
-    label.textContent = pair.map(k => data.tileTypes[k].name).join("/");
+    label.textContent = pair.map(k => DATA.tileTypes[k].name).join("/");
     row.appendChild(label);
     pair.forEach(k => {
-      const n = countOf(x => x.type === k);
+      const n = DATA.tiles.filter(x => (x.type || "property") === k).length;
       if (n) row.appendChild(makeChip({
-        key: "special:" + k, name: data.tileTypes[k].name, count: n, color: specialColor(k)
+        key: "special:" + k, name: DATA.tileTypes[k].name, count: n, color: specialColor(k)
       }));
     });
     legend.appendChild(row);
   }
-
-  // 初始化 viewport（事件只绑一次，避免切换布局时重复叠加）
+}
+// 非地产格的色值：tileTypes 里要么直接给 hex，要么用 deck 指回 decks
+function specialColor(type) {
+  const tt = (DATA.tileTypes || {})[type] || {};
+  if (tt.deck && DECKS[tt.deck]) return DECKS[tt.deck].bg;
+  return tt.hex || "#b3afa6";
 }
 
-// ===== 工具栏：布局切换 + 导出 PNG =====
+function setFilter(key, name) {
+  currentFilter = (key === currentFilter) ? "all" : key;   // 再点一次就取消
+  applyFilter(name);
+}
+// 把 currentFilter 落到棋盘上（重画之后也要重新调用一次）
+function applyFilter(name) {
+  document.querySelectorAll(".legend-item").forEach(el2 => {
+    el2.classList.toggle("on", el2.dataset.filter === currentFilter);
+  });
+  const pair = currentFilter.split(":"), kind = pair[0], val = pair[1];
+  let hits = 0;
+  document.querySelectorAll("g[data-tile]").forEach(g => {
+    const match = currentFilter === "all" ||
+      (kind === "color" ? g.getAttribute("data-color") === val : g.getAttribute("data-special") === val);
+    g.setAttribute("opacity", match ? "1" : "0.12");
+    if (match) hits++;
+  });
+  const hint = document.getElementById("hint");
+  if (currentFilter === "all") { hint.textContent = defaultHint(); return; }
+  hint.innerHTML = `只看 <b>${name || val}</b> · ${hits} 格 —— 再点一次取消筛选`;
+}
+
+// ===== 两档布局 =====
+let layoutMode = "print-zoom";                  // print（打印版，一比一还原） / print-zoom（放大版，字更大）
+function defaultHint() {
+  const pick = "悬停看首都和价格 · 点下方色块只看某一组";
+  if (layoutMode === "print-zoom") {
+    return "放大版 · 还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大，手机上也能看清 · " + pick;
+  }
+  return "打印版 · 按实体棋盘一比一还原的 80cm 软垫图 · 点「打印」直接出 800×800mm（勾「背景图形」）· " + pick;
+}
+function updateModeUI() {
+  document.querySelectorAll("#seg-layout .seg-btn").forEach(b => {
+    b.classList.toggle("on", b.dataset.mode === layoutMode);
+  });
+  const btn = document.getElementById("btn-png");
+  if (!btn.classList.contains("busy")) btn.textContent = "导出图片";
+  if (currentFilter === "all") document.getElementById("hint").textContent = defaultHint();
+}
+// 打印纸张：边长取自 JSON 的 board.printMM（80cm 软垫 = 800）。只注入一次，切档不会堆积 <style>
+function applyPrintSize(printMM) {
+  const mm = printMM || 800;
+  let st = document.getElementById("print-size-style");
+  if (!st) {
+    st = document.createElement("style");
+    st.id = "print-size-style";
+    document.head.appendChild(st);
+  }
+  st.textContent = `@page { size: ${mm}mm ${mm}mm; margin: 0; }`;
+}
+
+// ===== 工具栏：切档 + 打印 + 导出图片 =====
 function initToolbar() {
-  // 布局切换：加厚环 / 打印版 / 放大版（三选一，点哪个切哪个）
   document.querySelectorAll("#seg-layout .seg-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      if (!mapData || btn.dataset.mode === layoutMode) return;
+      if (!DATA || btn.dataset.mode === layoutMode) return;
       layoutMode = btn.dataset.mode;
-      renderMap(mapData);
+      renderMap(DATA);
     });
   });
-
   // 打印：先切到打印版（@page 尺寸随之注入），再开打印对话框
   document.getElementById("btn-print").addEventListener("click", () => {
-    if (!mapData) return;
-    if (layoutMode !== "print") {
-      layoutMode = "print";
-      renderMap(mapData);
-    }
+    if (!DATA) return;
+    if (layoutMode !== "print") { layoutMode = "print"; renderMap(DATA); }
     setTimeout(() => window.print(), 120);   // 等重画完再弹对话框
   });
-
   document.getElementById("btn-png").addEventListener("click", exportPNG);
 }
 
-// 导出时长边约 2400px（加厚环 340 → ×6；打印版 1800 → ×2），上限 6 倍
-function exportScale(bs) { return Math.min(6, Math.max(1, Math.ceil(2400 / Math.max(bs.w, bs.h)))); }
-
 function exportFileName() {
-  const tag = isPrintZoom() ? "放大版" : (isPrintMode() ? "打印版" : "加厚环");
+  const tag = layoutMode === "print-zoom" ? "放大版" : "打印版";
   const filter = currentFilter === "all" ? "" : "-筛选";
   return `大富翁世界之旅地图-${tag}${filter}.png`;
 }
-
+// 导出长边约 2400px（整板 1800 → ×2），上限 6 倍
 function exportPNG() {
   const btn = document.getElementById("btn-png");
-  const restore = () => {
-    btn.classList.remove("busy");
-    updateModeUI();                       // 文案按当前档位还原（打印版/放大版有后缀）
-  };
+  const restore = () => { btn.classList.remove("busy"); updateModeUI(); };
 
-  // 复制一份 SVG 用于导出：去掉当前的缩放/平移，按 1:1 导出整块板
   const clone = document.getElementById("map").cloneNode(true);
-  const cvg = clone.querySelector("#viewport-group");
-  if (cvg) cvg.removeAttribute("transform");
   clone.setAttribute("xmlns", SVG_NS);
   clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-  const bs = boardSize();
-  const vb = (clone.getAttribute("viewBox") || `0 0 ${bs.w} ${bs.h}`).split(/[\s,]+/).map(Number);
-  const vw = vb[2] || bs.w, vh = vb[3] || bs.h;
+  const vb = (clone.getAttribute("viewBox") || `0 0 ${L} ${L}`).split(/[\s,]+/).map(Number);
+  const vw = vb[2] || L, vh = vb[3] || L;
   clone.setAttribute("width", vw);
   clone.setAttribute("height", vh);
 
@@ -2166,12 +1823,12 @@ function exportPNG() {
   const img = new Image();
   img.onload = function () {
     try {
-      const scale = exportScale({ w: vw, h: vh });
+      const scale = Math.min(6, Math.max(1, Math.ceil(2400 / Math.max(vw, vh))));
       const cv = document.createElement("canvas");
       cv.width = Math.round(vw * scale);
       cv.height = Math.round(vh * scale);
       const ctx = cv.getContext("2d");
-      ctx.fillStyle = "#f4f2ee";
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, cv.width, cv.height);
       ctx.drawImage(img, 0, 0, cv.width, cv.height);
       URL.revokeObjectURL(svgUrl);
@@ -2204,18 +1861,18 @@ function exportPNG() {
 
 initToolbar();   // 按钮是静态元素，先绑好，不等地图渲染
 
-// ===== 加载数据：优先 fetch JSON，失败则用本地兜底 =====
+// ===== 加载数据：优先 fetch JSON，失败则用内置兜底 =====
 fetch("./content/map-print-data.json")
   .then(res => {
     if (!res.ok) throw new Error("HTTP " + res.status);
     return res.json();
   })
   .then(data => {
-    console.log("[map-svg] 数据来源: map-print-data.json（打印版）");
+    console.log("[map] 数据来源: content/map-print-data.json");
     renderMap(data);
   })
   .catch(err => {
-    console.warn("[map-svg] fetch map-print-data.json 失败，使用内置兜底数据:", err.message);
+    console.warn("[map] fetch map-print-data.json 失败，使用内置兜底数据:", err.message);
     renderMap(FALLBACK_DATA);
   });
 </script>

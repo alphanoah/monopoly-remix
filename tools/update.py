@@ -30,9 +30,9 @@ PRINT_PATH = os.path.join(ROOT, 'print.html')
 PROPS_PATH = os.path.join(CONTENT_DIR, 'props.md')
 ORIGINAL_DIR = os.path.join(CONTENT_DIR, 'original')
 ORIGINAL_PATH = os.path.join(ROOT, 'original.html')
-# 电子地图（三档布局：加厚环/原版/打印版）：真源 JSON → map-print-svg.html 的内置兜底块
+# 电子地图（两档布局：打印版/放大版）：真源 JSON → map.html 的内置兜底块
 MAP_DATA_PATH = os.path.join(CONTENT_DIR, 'map-print-data.json')
-MAP_SVG_PRINT_PATH = os.path.join(ROOT, 'map-print-svg.html')  # 电子地图（打印版数据）
+MAP_SVG_PRINT_PATH = os.path.join(ROOT, 'map.html')  # 电子地图（打印版数据）
 READMED_PATH = os.path.join(ROOT, 'README.md')
 MAP_DATA = None        # main() 读好的棋盘数据，资料页的表格生成器从这里取
 
@@ -845,9 +845,11 @@ def write_map_info(data):
     html_block = (
         '  <p class="meta">电子版「世界之旅」棋盘：<strong>{total}</strong> 格全图'
         '（{detail}，{groups} 个颜色组），地产均价 ${avg:,}。'
-        '鼠标拖动平移、滚轮缩放、双击放大，手机上也能单指拖、双指捏合。<br>'
-        '要实体棋盘就走打印版：<strong>{cm}×{cm}cm</strong> 见方（{mm}×{mm}mm）、边距无，'
-        '正方形棋盘居中，直接 ⌘/Ctrl + P。</p>'
+        '两档视图：<strong>打印版</strong>（按实体棋盘一比一还原）/ '
+        '<strong>放大版</strong>（跑道加厚吃进中间空、文字竖排放大，手机上也能看清）。'
+        '整板固定一屏放下，可按颜色组筛选、导出 PNG。<br>'
+        '要实体棋盘：点页面里的「打印」直接出 <strong>{cm}×{cm}cm</strong> 见方（{mm}×{mm}mm）、'
+        '边距无、勾选「背景图形」。</p>'
     ).format(**s)
     if swap(INDEX_PATH,
             r'<!-- MAPINFO:START -->.*?<!-- MAPINFO:END -->',
@@ -941,7 +943,7 @@ def load_map_data():
 
 
 def write_map_print_fallback(data):
-    """map-print-data.json → map-print-svg.html 的内置兜底块（本地 file:// 打开时用）"""
+    """map-print-data.json → map.html 的内置兜底块（本地 file:// 打开时用）"""
     if not data:
         return
     js = json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c')

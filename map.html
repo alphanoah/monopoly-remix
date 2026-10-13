@@ -1807,6 +1807,9 @@ function updateModeUI() {
   });
   // 放大版只留「导出图片」：打印和矢量导出按档位整块隐藏（见 CSS body.mode-zoom）
   document.body.classList.toggle("mode-zoom", layoutMode === "print-zoom");
+  // 导出结束后把按钮文案收回来（busy 期间不动它）
+  const btn = document.getElementById("btn-png");
+  if (!btn.classList.contains("busy")) btn.textContent = "导出图片";
   if (currentFilter === "all") document.getElementById("hint").textContent = defaultHint();
 }
 // 说明卡片里的尺寸数字：一律按真源现算，不手写（mm 来自 board.printMM，DPI 由导出像素数算）
@@ -1882,6 +1885,7 @@ function exportSVG() {
 const EXPORT_LONG_EDGE = 7200;
 function exportPNG() {
   const btn = document.getElementById("btn-png");
+  if (btn.classList.contains("busy")) return;      // 正在导出就别重复点
   const restore = () => { btn.classList.remove("busy"); updateModeUI(); };
 
   const clone = document.getElementById("map").cloneNode(true);
@@ -1920,10 +1924,18 @@ function exportPNG() {
         document.body.appendChild(a);
         a.click();
         a.remove();
-        if (revoke) setTimeout(() => URL.revokeObjectURL(href), 4000);
+        if (revoke) setTimeout(() => URL.revokeObjectURL(href), 30000);  // 大文件下载慢，别急着回收
         restore();
       };
-      if (cv.toBlob) cv.toBlob(b => save(URL.createObjectURL(b), true), "image/png");
+      // 画布过大时（比如手机 Safari）toBlob 会给 null，别让按钮卡在「导出中」
+      if (cv.toBlob) cv.toBlob(function (b) {
+        if (!b) {
+          restore();
+          alert("导出失败：这张图对浏览器来说太大了。\n可以试试「导出 SVG」，或用「打印 → 存储为 PDF」。");
+          return;
+        }
+        save(URL.createObjectURL(b), true);
+      }, "image/png");
       else save(cv.toDataURL("image/png"), false);
     } catch (e) {
       URL.revokeObjectURL(svgUrl);

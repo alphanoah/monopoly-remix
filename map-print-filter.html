@@ -17,6 +17,8 @@
     background: #fff;
     color: #222;
   }
+  /* 顶部工具条走正常文档流（不再浮在棋盘上遮挡），棋盘按剩下的高度居中 */
+  body { display: flex; flex-direction: column; min-height: 100vh; }
   .page { margin: 0 auto; }
   svg { display: block; width: 100%; height: 100%; }
 
@@ -33,51 +35,63 @@
     }
   }
 
-  /* 屏幕上的提示条，打印时隐藏 */
-  .screen-hint {
-    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
-    background: #2c2c2a; color: #fff; padding: 8px 16px; border-radius: 999px;
-    font-size: 13px; z-index: 99; box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  /* ===== 顶部工具条：打印提示 + 打印按钮 + 色块筛选（只占文档流，不压棋盘）===== */
+  .topbar {
+    position: sticky; top: 0; z-index: 20; background: #fff;
+    padding: 10px 12px 9px; border-bottom: 1px solid #ecebe6;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
   }
-  .screen-hint button {
-    background: #fff; color: #2c2c2a; border: 0; border-radius: 999px;
-    padding: 4px 12px; margin-left: 8px; cursor: pointer; font-weight: 600;
+  .hint {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+    font-size: 12.5px; color: #555; margin-bottom: 8px;
   }
-  @media print {
-    .screen-hint { display: none; }
-    .filter-bar { display: none !important; }
-    body { background: #fff; }
-    /* 筛选只是屏幕上看得清爽，打印永远是完整棋盘 */
-    .tile { opacity: 1 !important; }
+  #btn-print {
+    background: #1a55a5; color: #fff; border: 0; border-radius: 999px;
+    padding: 6px 16px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
+  #btn-print:active { background: #14437f; }
 
-  /* ===== 色块筛选条（仅屏幕显示）===== */
-  .filter-bar {
-    position: fixed; top: 58px; left: 50%; transform: translateX(-50%);
-    max-width: min(92vw, 860px);
-    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;
-    background: rgba(255,255,255,.94); padding: 8px 12px; border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(0,0,0,.16); z-index: 99; font-size: 13px;
-  }
-  .filter-bar .chip {
+  .filter-bar { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .frow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+  .flabel { color: #a5a19a; font-size: 11.5px; margin-right: 2px; }
+  .chip {
     display: inline-flex; align-items: center; gap: 5px;
     border: 1.5px solid #d8d5cf; background: #fff; color: #333;
     border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 12.5px; font-weight: 600;
   }
-  .filter-bar .chip .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
-  .filter-bar .chip .cnt { color: #999; font-weight: 400; }
-  .filter-bar .chip.on { border-color: #1a55a5; background: #eaf2fd; }
-  .filter-bar .note { width: 100%; text-align: center; color: #8a8a86; font-size: 11.5px; margin-top: 2px; }
-</style>
+  .chip .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .chip .cnt { color: #9c9c96; font-weight: 400; }
+  .chip.on { border-color: #1a55a5; background: #eaf2fd; }
+  .fnote { color: #9a968f; font-size: 11px; text-align: center; }
+
+  /* 手机上：提示与按钮上下两行，按钮整行宽，不会被挤没 */
+  @media (max-width: 560px) {
+    .hint { flex-direction: column; align-items: stretch; text-align: center; font-size: 11.5px; }
+    #btn-print { width: 100%; padding: 9px 0; font-size: 13px; }
+    .chip { font-size: 12px; padding: 3px 9px; }
+    .frow { gap: 5px; }
+  }
+
+  @media print {
+    .topbar { display: none !important; }
+    body { background: #fff; }
+    /* 筛选只是屏幕上看得清爽，打印永远是完整棋盘 */
+    .tile { opacity: 1 !important; }
+    svg, svg * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }</style>
 </head>
 <body>
 
-<div class="screen-hint">
-  <span id="hint-text">打印→目的地选「存储为 PDF」→纸张大小按 JSON 的 board.printMM、边距无、关闭页眉页脚、勾选「背景图形」，把 PDF 交给商家</span>
-  <button onclick="window.print()">打印 / 存为 PDF</button>
+<div class="topbar" id="topbar">
+  <p class="hint">
+    <span id="hint-text">打印→目的地选「存储为 PDF」→纸张大小按 JSON 的 board.printMM、边距无、关闭页眉页脚、勾选「背景图形」，把 PDF 交给商家</span>
+    <button id="btn-print">打印 / 存为 PDF</button>
+  </p>
+  <div class="filter-bar" id="filter-bar"></div>
 </div>
-
-<div class="filter-bar" id="filter-bar"></div>
 
 <div class="page">
   <svg id="board" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1800"></svg>
@@ -93,7 +107,7 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-filter.html / map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
   "board": {
     "size": 1800,
     "printMM": 800,
@@ -1142,8 +1156,9 @@ function warnNoFlag(t) {
 // ?export=png → 棋盘铺满窗口，供高清截图导出
 const PARAMS = new URLSearchParams(location.search);
 const EXPORT_PNG = PARAMS.get("export") === "png";
-if (EXPORT_PNG) {
-  document.querySelector(".screen-hint").style.display = "none";
+if (EXPORT_PNG) {                                  // 导出高清图时把工具条整个收掉
+  const bar = document.getElementById("topbar");
+  if (bar) bar.style.display = "none";
 }
 
 // ===== 布局参数（取自 JSON 的 board / layout；下面这些由 renderBoard() 赋值）=====
@@ -1473,7 +1488,19 @@ function buildFilterBar(DATA) {
   DATA_CUR = DATA;
   const bar = document.getElementById("filter-bar");
   bar.innerHTML = "";
-  const mk = (key, label, color) => {
+  // 分类换行：一行一类（显示 / 地产色组 / 特殊格），窄屏自己再折行
+  const row = (label) => {
+    const d = document.createElement("div");
+    d.className = "frow";
+    if (label) {
+      const s = document.createElement("span");
+      s.className = "flabel"; s.textContent = label;
+      d.appendChild(s);
+    }
+    bar.appendChild(d);
+    return d;
+  };
+  const mk = (parent, key, label, color) => {
     const b = document.createElement("button");
     b.className = "chip" + (key === CURRENT_FILTER ? " on" : "");
     b.dataset.filter = key;
@@ -1485,16 +1512,18 @@ function buildFilterBar(DATA) {
     c.className = "cnt"; c.textContent = countMatch(DATA, key);
     b.appendChild(c);
     b.addEventListener("click", () => applyFilter(key, label));
-    bar.appendChild(b);
+    parent.appendChild(b);
     return b;
   };
-  mk("all", "全部", "#6a6a64");
-  (DATA.colorGroups || []).forEach(g => mk("color:" + g.key, g.name, g.hex));
+  mk(row("显示"), "all", "全部", "#6a6a64");
+  const r2 = row("地产色组");
+  (DATA.colorGroups || []).forEach(g => mk(r2, "color:" + g.key, g.name, g.hex));
+  const r3 = row("特殊格");
   const types = Object.keys(DATA.tileTypes || {}).filter(k => k !== "property");
-  types.forEach(k => mk("type:" + k, (DATA.tileTypes[k] || {}).name || k, typeColor(DATA, k)));
+  types.forEach(k => mk(r3, "type:" + k, (DATA.tileTypes[k] || {}).name || k, typeColor(DATA, k)));
   const note = document.createElement("span");
-  note.className = "note";
-  note.textContent = "点色块只高亮屏幕预览，打印时自动还原完整棋盘；再点一次可取消";
+  note.className = "fnote";
+  note.textContent = "点色块只高亮屏幕预览，再点一次取消；打印时自动还原完整棋盘";
   bar.appendChild(note);
 }
 function applyFilter(key, name) {
@@ -1524,16 +1553,24 @@ function boot() {
 }
 boot();
 
-// 屏幕自适应：正方形棋盘居中；export=png 时铺满 100%
+// 打印按钮：点一下开打印对话框（⌘/Ctrl + P 同效）
+document.getElementById("btn-print").addEventListener("click", () => window.print());
+
+// 屏幕自适应：正方形棋盘在「顶部工具条以下」的剩余区域里居中，不再被工具条压住
 function fitBoard() {
   if (window.matchMedia("print").matches) return;
-  const s = Math.min(window.innerWidth, window.innerHeight) * (EXPORT_PNG ? 1 : 0.88);
+  const bar = document.getElementById("topbar");
+  const barH = bar && bar.offsetHeight ? bar.offsetHeight : 0;
+  const availH = Math.max(160, window.innerHeight - barH - 12);
+  const availW = Math.max(160, window.innerWidth - (EXPORT_PNG ? 0 : 14));
+  const s = Math.min(availW, availH) * (EXPORT_PNG ? 1 : 0.98);
   const page = document.querySelector(".page");
   page.style.width = s + "px";
   page.style.height = s + "px";
   page.style.marginLeft = "auto";
   page.style.marginRight = "auto";
-  page.style.marginTop = ((window.innerHeight - s) / 2) + "px";
+  page.style.marginTop = Math.max(4, (availH - s) / 2) + "px";
+  page.style.marginBottom = "16px";
 }
 window.addEventListener("resize", fitBoard);
 fitBoard();

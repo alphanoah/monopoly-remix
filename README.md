@@ -17,8 +17,7 @@
 - **首页 `index.html`**：三版规则卡片切换（原版 / v1 / v2）+ 机会/命运卡牌 + 道具清单，卡牌可切换版本浏览（静态页面，双击就能看）
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录
 - **电子地图 `map-print-svg.html`**：棋盘 SVG，可拖动缩放、按颜色组筛选、导出 PNG
-- **打印棋盘 `map-print.html`**：80×80cm 软垫打印页，⌘/Ctrl + P →「存储为 PDF」把 PDF 交给商家
-- **色块筛选版 `map-print-filter.html`**：打印版外观 + 点色块高亮筛选（只影响屏幕预览，打印永远整版）
+- **打印棋盘 `map-print-filter.html`**：80×80cm 软垫打印页（带色块筛选），⌘/Ctrl + P →「存储为 PDF」把 PDF 交给商家；筛选只影响屏幕预览，打印永远整版
 - **打印 / 电子地图共用一份真源**：`content/map-print-data.json`
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印；最左边可切「卡牌 / 道具」
 - **在线地址**：https://alphanoah.github.io/monopoly-remix/
@@ -148,7 +147,7 @@ git push
 默认**只提交到本地**，确认没问题了再 push。
 
 push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同一个脚本，
-把重新生成的 `data/cards.json` / `data/props.json` / `README.md` / `index.html` / `original.html` / `print.html` / `map-print.html` / `map-print-svg.html` 自动提交回去，
+把重新生成的 `data/cards.json` / `data/props.json` / `README.md` / `index.html` / `original.html` / `print.html` / `map-print-filter.html` / `map-print-svg.html` 自动提交回去，
 然后 Pages 自动部署，约 1 分钟线上生效。
 
 **即使你忘了跑第 2 步也没关系**——Actions 会自己跑一遍并补提交，本地文件下次 pull 就能同步回来。
@@ -189,8 +188,7 @@ richer/
 │                           · 两种布局：`thick` 加厚环（340×340 正方，边格 12×80，手机可读）/ `classic` 原版（76×100 竖长格，1310×1718）
 │                           · 两档结构相同（每边 16 格、角格在四角、顺时针），只有画法不同；改加厚环的环厚只动常量 RING_T（1~8）
 │                           · 加厚环视图固定（不缩放不平移，手指滑到棋盘上照常滚页面）；原版布局才可缩放拖动
-├── map-print.html          80×80cm 软垫打印页：⌘/Ctrl + P →「存储为 PDF」，把 PDF 交给商家（脚本回写兜底）
-├── map-print-filter.html   色块筛选版：打印版外观 + 按颜色组/格子类型筛选（脚本回写兜底）
+├── map-print-filter.html   80×80cm 软垫打印页（带色块筛选）：⌘/Ctrl + P →「存储为 PDF」交给商家（脚本回写兜底）
 │                           · 页码尺寸是读取的：改 map-print-data.json 的 `board.printMM`，@page、提示条、首页文案一起变
 ├── update.command          macOS 双击运行 update.py
 ├── README.md
@@ -213,7 +211,7 @@ richer/
 | `new-rule.md` | **规则 v2 真源**（最新改版：地图、骰子、资金、地产、监狱、拍卖、道具、机会/命运） | 首页「游戏规则」默认打开的面板，脚本生成 |
 | `rules.md` | **规则 v1 真源**（初版改版，19580 起始资金那一版） | 首页「游戏规则」的 v1 面板，脚本生成 |
 | `props.md` | **道具清单**：每件道具的价格 / 效果 / 印量，以及商店买卖规则（件数见下方速览） | 首页「道具清单」区 + `data/props.json`，脚本生成 |
-| `map-print-data.json` | **棋盘唯一真源**：64 格（名字/国旗 emoji/首都/价格/位置）+ 11 个颜色组（带 id 与照片取色的 hex）+ 版式参数 + 牌堆配色 + 格子类型表 | `map-print.html`（80cm 打印页）、`map-print-filter.html`（色块筛选版）与 `map-print-svg.html`（电子地图）共用：线上 `fetch`，本地打开用各自内置的兜底（由 `tools/update.py` 注入） |
+| `map-print-data.json` | **棋盘唯一真源**：64 格（名字/国旗 emoji/首都/价格/位置）+ 11 个颜色组（带 id 与照片取色的 hex）+ 版式参数 + 牌堆配色 + 格子类型表 | `map-print-filter.html`（80cm 打印页 + 色块筛选）与 `map-print-svg.html`（电子地图）共用：线上 `fetch`，本地打开用各自内置的兜底（由 `tools/update.py` 注入） |
 | `original/` | 原版实体《大富翁》的电子化存档（`original.html` 由它生成，见下表） | 脚本生成 |
 
 ### `content/original/` 里都是什么

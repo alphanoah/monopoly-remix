@@ -61,7 +61,10 @@ FATE = {
     20: {"rate": 0.50},
 }
 P_NO_HOUSE = 0.40            # 机会 15 时「名下无房」的概率
-ARRIVE_JAIL_CELL_JAILS = False   # 规则 2 默认：自然走到北极不坐牢（v1 备选才是走到就坐牢）
+# 自然走到北极（#32）算不算坐牢？规则 2 原文没写死，做成开关做 A/B。
+#   False = 只有被卡牌/双 16「送」进去才坐牢（本脚本默认，也是字面读法）
+#   True  = 走到北极也强制坐牢 1 回合（经典大富翁的「进监狱」读法）
+ARRIVE_JAIL_CELL_JAILS = False
 
 
 def load_map():
@@ -86,9 +89,10 @@ class Sim:
         self.tiles = {t["id"]: t for t in data["tiles"]}
         self.rng = rng
         self.cells = [0] * N_CELLS
+        self.arrive_jail = ARRIVE_JAIL_CELL_JAILS
         self.s = dict(landings=0, go_hits=0, distance=0, jail_total=0,
-                      jail_double16=0, jail_card=0, sixteens=0, stayed=0,
-                      card_move=0, rolls=0, skips=0)
+                      jail_double16=0, jail_card=0, jail_arrive=0,
+                      sixteens=0, stayed=0, card_move=0, rolls=0, skips=0)
 
     def roll(self):
         self.s["rolls"] += 1
@@ -162,6 +166,10 @@ class Sim:
             pos = self.move(pos, direction, r)
             pos, j = self.resolve(pos)
             jail = max(jail, j)
+            if self.arrive_jail and pos == JAIL_CELL:
+                s["jail_arrive"] += 1
+                jail = max(jail, 1)
+                break
             if r == DICE_FACES and streak >= 2:
                 s["jail_double16"] += 1
                 jail = max(jail, 1)
@@ -179,9 +187,12 @@ class Sim:
         return pos, jail
 
 
-def simulate(trials=400, players=8, turns=250, seed=20261013):
+def simulate(trials=400, players=8, turns=250, seed=20261013,
+             arrive_jail=None):
     rng = random.Random(seed)
     sim = Sim(rng)
+    if arrive_jail is not None:
+        sim.arrive_jail = arrive_jail
     for _ in range(trials):
         for _p in range(players):
             first = sim.roll()
@@ -280,6 +291,22 @@ def main():
     print()
     for rel, ic, nm, n in out:
         print(f"    {ic} {nm:9s} n={n}  {rel:.4f}×")
+
+    print("\n【二·补 口径 A/B】自然走到北极（#32）算不算坐牢？")
+    for aj in (False, True):
+        sim2 = simulate(trials=200, players=8, turns=250, arrive_jail=aj)
+        s2, c2 = sim2.s, sim2.cells
+        u2 = s2["landings"] / N_CELLS
+        ev = s2["jail_total"] - s2["skips"]
+        tt = s2["landings"] / mpt
+        rel = [c2[k] / u2 for k in range(N_CELLS)]
+        print(f"  {'走到即坐牢' if aj else '只有被送才坐牢':<14}"
+              f"坐牢 {ev:>7,} 次（{ev / tt * 100:5.2f}%/回合 · "
+              f"每 {1 / (ev / tt) / (N_CELLS / d):>4.1f} 圈 1 次）"
+              f"   来源 双16 {s2['jail_double16']:>5,}"
+              f" / 卡牌 {s2['jail_card']:>5,}"
+              f" / 走到北极 {s2['jail_arrive']:>6,}"
+              f"   落点极差 {max(rel) / min(rel):.3f}×")
 
     print("\n【三、组经济（规则 2 连锁口径）】满级 = 5 级红房")
     hdr = (f"  {'组':<11}{'格':>3}{'段':>3}{'均价':>7}{'总地价':>8}"

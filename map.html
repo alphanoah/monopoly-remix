@@ -201,7 +201,7 @@
     <button class="seg-btn on" data-mode="print-zoom" title="放大版：还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大，手机上也能看清">放大版</button>
   </span>
   <button id="btn-print" class="btn-print" title="切到打印版并开打印对话框：纸张 800×800mm、边距无、勾「背景图形」">打印</button>
-  <button id="btn-v2" class="toggle" title="按规则 v2 替换格子：北极→监狱，印度洋/大西洋→道具商店（赤道仍是起点），再点一次还原">v2 规则地图</button>
+  <button id="btn-v2" class="toggle" title="按规则 v2 替换格子：北极→监狱，印度洋/大西洋→道具商店（赤道仍是起点）。默认开启，再点一次看原版地图">v2 规则地图</button>
   <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片（7200×7200px，80cm 下约 229 DPI）">导出图片</button>
   <button id="btn-svg" title="存成矢量 .svg 文件（画布 800×800mm），可给商家或用 Illustrator 打开">导出 SVG</button>
 </div>
@@ -244,7 +244,7 @@ let ZOOM = false;                // 当前是不是放大版
 let currentFilter = "all";
 let hashApplied = false;         // #f= 的筛选只吃一次
 let RAW = null;                  // 真源原样（未套变体）
-let v2Mode = false;              // 是否按规则 v2 替换格子（北极→监狱 / 印度洋·大西洋→道具商店）
+let v2Mode = !/\bv=0\b/.test(location.hash);   // 默认按规则 v2 替换格子（北极→监狱 / 印度洋·大西洋→道具商店）；加 #v=0 可默认看原版地图
 let V2VARIANT = null;            // 当前变体描述（label / desc / replace）
 
 // ===== 内置兜底数据（同 content/map-print-data.json；由 tools/update.py 生成，勿手改）=====
@@ -1571,15 +1571,24 @@ function deckContent(g, id, name, nameEn, kind) {
   g.appendChild(txt(0, LD.line2Y ?? 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill: "#222" }));
 }
 // 海洋格：蓝圆底 + 逐字竖排（v2 的监狱 / 道具商店复用同一套排版，只换配色）
+// ⚠️ 字数不固定（印度洋 3 字、道具商店 4 字），得按格子高度等比缩，不然会画出格子外面
 function oceanContent(g, id, name, palette, ink) {
   g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
   const blues = palette || ["#6a8ad8", "#4a72c8", "#2e56b0"];
-  const mid = LO.offset ?? (BAND / 2 + 6);   // 内容区（色带以下）垂直居中偏下
-  const gap = LO.gap ?? 46, r = LO.radius ?? 20;
-  name.split("").forEach((c, i) => {
-    const y = mid + (i - (name.length - 1) / 2) * gap;
+  const chars = name.split(""), n = chars.length;
+  let gap = LO.gap ?? 46, r = LO.radius ?? 20, fs = LO.fontSize ?? 22;
+  const top = -TH + BAND + 4, bottom = TH - 4;      // 可用区：色带下方 → 格底
+  const avail = bottom - top;
+  const need = (n - 1) * gap + 2 * r;               // 竖排下来需要的总高度
+  if (need > avail && need > 0) {                   // 装不下就整体等比缩（gap / 圆 / 字号一起）
+    const k = avail / need;
+    gap *= k; r *= k; fs *= k;
+  }
+  const mid = (top + bottom) / 2;                   // 在可用区里居中
+  chars.forEach((c, i) => {
+    const y = mid + (i - (n - 1) / 2) * gap;
     g.appendChild(el("circle", { cx: 0, cy: y, r: r, fill: blues[i % 3] }));
-    g.appendChild(txt(0, y + 1, c, 22, { weight: "bold", fill: ink || "#fff" }));
+    g.appendChild(txt(0, y + fs * 0.045, c, fs, { weight: "bold", fill: ink || "#fff" }));
   });
 }
 

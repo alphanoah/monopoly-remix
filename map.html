@@ -58,6 +58,8 @@
   .toolbar button.primary:hover { background: #96597A; border-color: #96597A; color: #fff; }
   .toolbar button.primary:active { background: #854f6c; border-color: #854f6c; }
   .toolbar button.busy { opacity: .55; cursor: default; }
+  .toolbar button:disabled { opacity: .45; cursor: default; border-color: #e3dfd7; color: #a8a59e; }
+  .toolbar button:disabled:hover { border-color: #e3dfd7; color: #a8a59e; }
   /* 布局切换：分段控件（打印版 / 放大版）*/
   .seg { display: inline-flex; }
   .seg-btn { margin-left: -1px; border-radius: 0; position: relative; }
@@ -66,6 +68,9 @@
   .seg-btn:hover { z-index: 1; }
   .seg-btn.on { background: #B06F88; border-color: #B06F88; color: #fff; z-index: 2; }
   .seg-btn.on:hover { background: #96597A; border-color: #96597A; color: #fff; }
+  /* v2 规则地图：开关型按钮，打开时跟主色一致 */
+  button.toggle.on { background: #B06F88; border-color: #B06F88; color: #fff; }
+  button.toggle.on:hover { background: #96597A; border-color: #96597A; color: #fff; }
   /* 打印按钮：蓝色实心，跟「导出图片」的粉紫主色区分开 */
   .btn-print { background: #1a55a5; border-color: #1a55a5; color: #fff; }
   .btn-print:hover { background: #14437f; border-color: #14437f; color: #fff; }
@@ -196,6 +201,7 @@
     <button class="seg-btn on" data-mode="print-zoom" title="放大版：还是打印版那张图，但跑道加厚吃进中间空、文字竖排放大，手机上也能看清">放大版</button>
   </span>
   <button id="btn-print" class="btn-print" title="切到打印版并开打印对话框：纸张 800×800mm、边距无、勾「背景图形」">打印</button>
+  <button id="btn-v2" class="toggle" title="按规则 v2 替换格子：北极→监狱，印度洋/大西洋→道具商店（赤道仍是起点），再点一次还原">v2 规则地图</button>
   <button id="btn-png" class="primary" title="把当前地图导出为 PNG 图片（7200×7200px，80cm 下约 229 DPI）">导出图片</button>
   <button id="btn-svg" title="存成矢量 .svg 文件（画布 800×800mm），可给商家或用 Illustrator 打开">导出 SVG</button>
 </div>
@@ -237,6 +243,9 @@ let L, B, W, TW, TH, BAND;       // 整板边长 / 跑道宽 / 格宽 / 半格 /
 let ZOOM = false;                // 当前是不是放大版
 let currentFilter = "all";
 let hashApplied = false;         // #f= 的筛选只吃一次
+let RAW = null;                  // 真源原样（未套变体）
+let v2Mode = false;              // 是否按规则 v2 替换格子（北极→监狱 / 印度洋·大西洋→道具商店）
+let V2VARIANT = null;            // 当前变体描述（label / desc / replace）
 
 // ===== 内置兜底数据（同 content/map-print-data.json；由 tools/update.py 生成，勿手改）=====
 const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改
@@ -453,6 +462,20 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "nameEn": "Corner",
       "hex": "#b3afa6",
       "desc": "赤道(起点)、地中海、北极、夏威夷"
+    },
+    "jail": {
+      "name": "监狱",
+      "nameEn": "Jail",
+      "hex": "#6E7480",
+      "ink": "#ffffff",
+      "desc": "v2 规则：北极这一格当监狱用，送进监狱就强制移动到这儿"
+    },
+    "shop": {
+      "name": "道具商店",
+      "nameEn": "Item Shop",
+      "hex": "#D9A441",
+      "ink": "#4a3208",
+      "desc": "v2 规则：印度洋、大西洋改成道具商店"
     }
   },
   "tiles": [
@@ -1287,7 +1310,31 @@ const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 conte
       "col": 16,
       "row": 15
     }
-  ]
+  ],
+  "variants": {
+    "note": "按某版规则替换掉的格子：key 是格子 id，value 是要覆盖上去的字段（只写要改的）。地图页的「v2 规则地图」按钮读这里。",
+    "v2": {
+      "label": "v2 规则地图",
+      "desc": "赤道=出生点（不变）｜北极=监狱｜印度洋、大西洋=道具商店",
+      "replace": {
+        "32": {
+          "type": "jail",
+          "name": "监狱",
+          "nameEn": "JAIL"
+        },
+        "24": {
+          "type": "shop",
+          "name": "道具商店",
+          "nameEn": "ITEM SHOP"
+        },
+        "59": {
+          "type": "shop",
+          "name": "道具商店",
+          "nameEn": "ITEM SHOP"
+        }
+      }
+    }
+  }
 }
 /* MAP_FALLBACK:END */;
 
@@ -1341,8 +1388,21 @@ function graphemes(str) {
 }
 
 // ===== 渲染 main =====
-function renderMap(data) {
-  DATA = data;
+// 套用变体：按 JSON 的 variants.v2.replace 覆盖指定 id 的格子（只覆盖写了的字段）
+function applyVariant(raw) {
+  if (!v2Mode || !V2VARIANT) return raw;
+  const rep = V2VARIANT.replace || {};
+  const tiles = (raw.tiles || []).map(t => {
+    const patch = rep[String(t.id)];
+    return patch ? Object.assign({}, t, patch) : t;
+  });
+  return Object.assign({}, raw, { tiles });
+}
+function renderMap(raw) {
+  if (raw) RAW = raw;
+  V2VARIANT = (RAW && RAW.variants && RAW.variants.v2) || null;
+  if (!V2VARIANT) v2Mode = false;      // 真源里没配 variants.v2 就把开关收起来
+  DATA = applyVariant(RAW);
   drawBoard();
   renderLegend();
   updateModeUI();
@@ -1510,24 +1570,34 @@ function deckContent(g, id, name, nameEn, kind) {
   g.appendChild(txt(0, LD.line1Y ?? 62, "抽取", 11, { fill: "#222" }));
   g.appendChild(txt(0, LD.line2Y ?? 80, nameEn === "CHANCE" ? "机会一张" : "命运一张", 11, { fill: "#222" }));
 }
-function oceanContent(g, id, name) {
+// 海洋格：蓝圆底 + 逐字竖排（v2 的监狱 / 道具商店复用同一套排版，只换配色）
+function oceanContent(g, id, name, palette, ink) {
   g.appendChild(idTag(TW - (LI.insetX ?? 5), TH - (LI.insetY ?? 6), id));
-  const blues = ["#6a8ad8", "#4a72c8", "#2e56b0"];
+  const blues = palette || ["#6a8ad8", "#4a72c8", "#2e56b0"];
   const mid = LO.offset ?? (BAND / 2 + 6);   // 内容区（色带以下）垂直居中偏下
   const gap = LO.gap ?? 46, r = LO.radius ?? 20;
   name.split("").forEach((c, i) => {
     const y = mid + (i - (name.length - 1) / 2) * gap;
     g.appendChild(el("circle", { cx: 0, cy: y, r: r, fill: blues[i % 3] }));
-    g.appendChild(txt(0, y + 1, c, 22, { weight: "bold", fill: "#fff" }));
+    g.appendChild(txt(0, y + 1, c, 22, { weight: "bold", fill: ink || "#fff" }));
   });
 }
 
 // ===== 角格 =====
 // 角格图案（画在朝外那个角；朝向与文字一致 —— 图案「头顶」也朝圆心）
-function cornerIcon(side, rot) {
+function cornerIcon(side, rot, type) {
   const o = LC.iconOffset ?? 37;
   const pos = side === "corner-tr" ? [o, -o] : (side === "corner-tl" ? [-o, -o] : [-o, o]);
   const g = el("g", { transform: `translate(${pos[0]},${pos[1]}) rotate(${rot}) scale(${LC.iconScale ?? 0.85})` });
+  if (type === "jail") {                // 监狱：铁栅栏（v2 规则把北极当监狱用）
+    g.appendChild(el("rect", { x: -22, y: -22, width: 44, height: 44, rx: 3, fill: "#3d434d", stroke: "#20242b", "stroke-width": 2 }));
+    [-14, -4.5, 5, 14.5].forEach(x => {
+      g.appendChild(el("line", { x1: x, y1: -22, x2: x, y2: 22, stroke: "#b9bfc8", "stroke-width": 4 }));
+    });
+    g.appendChild(el("line", { x1: -22, y1: -6, x2: 22, y2: -6, stroke: "#b9bfc8", "stroke-width": 4 }));
+    g.appendChild(el("line", { x1: -22, y1: 9, x2: 22, y2: 9, stroke: "#b9bfc8", "stroke-width": 4 }));
+    return g;
+  }
   if (side === "corner-bl") {           // 地中海：帆船
     g.appendChild(el("path", { d: "M-15,18 Q2,28 20,18 L15,10 L-9,10 Z", fill: "#2a4a8a" }));
     g.appendChild(el("polygon", { points: "1,-26 1,6 -14,6", fill: "#ffffff", stroke: "#8a9ab5", "stroke-width": 1.5 }));
@@ -1648,12 +1718,15 @@ function drawTile(t) {
     `${t.capital ? " · 首都 " + t.capital : ""}${t.price ? " · $" + t.price : ""}`;
   g.appendChild(tip);
 
-  if (type === "corner") {
+  // ⚠️ 角格按 side 判断（side 以 corner 开头），不按 type —— v2 会把北极角的 type 换成 jail
+  if (side && side.indexOf("corner") === 0) {
+    const tt = (DATA.tileTypes || {})[type] || {};
     // 角格内容是按「跑道宽 190」画的，放大版整体 scale 一下就跟着变大（B=570 → ×3）
     const cg = ZOOM ? el("g", { transform: `scale(${B / 190})` }) : g;
     const RB = ZOOM ? 190 : B, RT = ZOOM ? 95 : TH;  // 基准尺寸：scale 之前的坐标都按 190 跑道算
     const sw = ZOOM ? 2 * 190 / B : 2;              // 边框要跟边格的 2px 对齐，不能跟着放大
-    cg.appendChild(el("rect", { x: -RT, y: -RT, width: RB, height: RB, fill: "#A8CCE9", stroke: "#1a1a1a", "stroke-width": sw }));
+    cg.appendChild(el("rect", { x: -RT, y: -RT, width: RB, height: RB,
+      fill: tt.hex || "#A8CCE9", stroke: "#1a1a1a", "stroke-width": sw }));
     if (side === "corner-br") {
       equatorContent(cg, id);
     } else {
@@ -1661,9 +1734,9 @@ function drawTile(t) {
       // 地中海(左下) 45°｜北极(左上) 135°｜夏威夷(右上) -135°
       const rot = side === "corner-bl" ? 45 : (side === "corner-tl" ? 135 : -135);
       const gg = el("g", { transform: `rotate(${rot})` });
-      gg.appendChild(bubble(0, LC.textY ?? -16, name, LC.textSize ?? 46, {}));  // 文字往圆心侧让一点，给朝外的图案留空间
+      gg.appendChild(bubble(0, LC.textY ?? -16, name, LC.textSize ?? 46, tt.ink ? { fill: tt.ink } : {}));  // 文字往圆心侧让一点，给朝外的图案留空间
       cg.appendChild(gg);
-      cg.appendChild(cornerIcon(side, rot));
+      cg.appendChild(cornerIcon(side, rot, type));
       cg.appendChild(idTag(RT - (LC.idInset ?? 9), RT - (LC.idInset ?? 9) - 2, id));
     }
     if (cg !== g) g.appendChild(cg);
@@ -1672,9 +1745,12 @@ function drawTile(t) {
 
   g.appendChild(el("rect", { x: -TW, y: -TH, width: W, height: B, fill: "#ffffff", stroke: "#1a1a1a", "stroke-width": 2 }));
   if (!ZOOM) {
+    const tt = (DATA.tileTypes || {})[type] || {};
     if (type === "chance") deckContent(g, id, name, nameEn, "chance");
     else if (type === "destiny") deckContent(g, id, name, nameEn, "fate");
     else if (type === "ocean") oceanContent(g, id, name);
+    // v2 变体格（监狱 / 道具商店）：沿用海洋格的「圆底竖排」，换成 tileTypes 里给的颜色
+    else if (tt.hex && tt.ink) oceanContent(g, id, name, [tt.hex, tt.hex, tt.hex], tt.ink);
     else propertyContent(g, id, name, nameEn, t.flag, t.capital, t.price, t.colorId);
     return g;
   }
@@ -1694,6 +1770,10 @@ function drawTile(t) {
   } else if (type === "ocean") {
     inner.appendChild(el("rect", { ...zoomBandRect(side), fill: "#9BB6C4" }));
     zoomFlow(inner, [{ text: name, k: 1, w: 1.0, opts: { weight: "bold", fill: "#2e56b0" } }], box, vert);
+  } else if (type === "jail" || type === "shop") {
+    const tt = (DATA.tileTypes || {})[type] || {};
+    inner.appendChild(el("rect", { ...zoomBandRect(side), fill: tt.hex || "#cccccc" }));
+    zoomFlow(inner, [{ text: name, k: 1, w: 1.0, opts: { weight: "bold", fill: tt.ink || "#111" } }], box, vert);
   } else {
     inner.appendChild(el("rect", { ...zoomBandRect(side), fill: HEX[t.colorId] || "#cccccc" }));
     zoomFlow(inner, zoomRows(name, t.flag, t.price, t.capital), box, vert);
@@ -1745,7 +1825,9 @@ function renderLegend() {
   });
 
   // 特殊格：按 tileTypes 里定义的类型自动生成，两两一行
-  const types = Object.keys(DATA.tileTypes || {}).filter(k => k !== "property");
+  // 只列出棋盘上真有的类型（jail / shop 只在开了 v2 变体后才出现）
+  const types = Object.keys(DATA.tileTypes || {})
+    .filter(k => k !== "property" && (DATA.tiles || []).some(x => (x.type || "property") === k));
   for (let i = 0; i < types.length; i += 2) {
     const pair = types.slice(i, i + 2);
     const row = document.createElement("div");
@@ -1796,15 +1878,22 @@ function applyFilter(name) {
 let layoutMode = "print-zoom";                  // print（打印版，一比一还原） / print-zoom（放大版，字更大）
 function defaultHint() {
   const pick = "悬停看首都和价格 · 点下方色块只看某一组";
+  const v2 = v2Mode ? "v2 规则地图（北极=监狱 · 印度洋/大西洋=道具商店）· " : "";
   if (layoutMode === "print-zoom") {
-    return "放大版 · 跑道加厚吃进中间空、文字竖排放大，手机上也能看清（只用来看，要打印请切「打印版」）· " + pick;
+    return v2 + "放大版 · 跑道加厚吃进中间空、文字竖排放大，手机上也能看清（只用来看，要打印请切「打印版」）· " + pick;
   }
-  return "打印版 · 按实体棋盘一比一还原的 80cm 软垫图 · 点「打印」直接出 800×800mm（勾「背景图形」）· " + pick;
+  return v2 + "打印版 · 按实体棋盘一比一还原的 80cm 软垫图 · 点「打印」直接出 800×800mm（勾「背景图形」）· " + pick;
 }
 function updateModeUI() {
   document.querySelectorAll("#seg-layout .seg-btn").forEach(b => {
     b.classList.toggle("on", b.dataset.mode === layoutMode);
   });
+  const v2btn = document.getElementById("btn-v2");
+  if (v2btn) {
+    v2btn.classList.toggle("on", v2Mode);
+    v2btn.disabled = !V2VARIANT;       // JSON 里没配 variants.v2 就点不了
+    if (V2VARIANT && V2VARIANT.label) v2btn.textContent = V2VARIANT.label;
+  }
   // 放大版只留「导出图片」：打印和矢量导出按档位整块隐藏（见 CSS body.mode-zoom）
   document.body.classList.toggle("mode-zoom", layoutMode === "print-zoom");
   // 导出结束后把按钮文案收回来（busy 期间不动它）
@@ -1836,17 +1925,24 @@ function applyPrintSize(printMM) {
 
 // ===== 工具栏：切档 + 打印 + 导出图片 =====
 function initToolbar() {
+  // 重画统一走 renderMap()：它会自己从 RAW 套用当前变体，别把替换后的 DATA 再喂回去
   document.querySelectorAll("#seg-layout .seg-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       if (!DATA || btn.dataset.mode === layoutMode) return;
       layoutMode = btn.dataset.mode;
-      renderMap(DATA);
+      renderMap();
     });
+  });
+  // v2 规则地图：按 JSON 的 variants.v2 替换格子，再点一次还原
+  document.getElementById("btn-v2").addEventListener("click", () => {
+    if (!RAW) return;
+    v2Mode = !v2Mode;
+    renderMap();
   });
   // 打印：先切到打印版（@page 尺寸随之注入），再开打印对话框
   document.getElementById("btn-print").addEventListener("click", () => {
     if (!DATA) return;
-    if (layoutMode !== "print") { layoutMode = "print"; renderMap(DATA); }
+    if (layoutMode !== "print") { layoutMode = "print"; renderMap(); }
     setTimeout(() => window.print(), 120);   // 等重画完再弹对话框
   });
   document.getElementById("btn-png").addEventListener("click", exportPNG);
@@ -1855,8 +1951,9 @@ function initToolbar() {
 
 function exportFileName(ext) {
   const tag = layoutMode === "print-zoom" ? "放大版" : "打印版";
+  const v2 = v2Mode ? "-v2" : "";
   const filter = currentFilter === "all" ? "" : "-筛选";
-  return `大富翁世界之旅地图-${tag}${filter}.${ext}`;
+  return `大富翁世界之旅地图-${tag}${v2}${filter}.${ext}`;
 }
 // 下载一个 Blob（导出图片 / 导出 SVG 共用）
 function downloadBlob(blob, filename) {

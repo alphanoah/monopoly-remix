@@ -923,6 +923,17 @@ def validate_map(data):
     for k, meta in types.items():
         if meta.get('deck') and meta['deck'] not in decks:
             errs.append('tileTypes.%s.deck = "%s"，decks 里没有这个牌堆' % (k, meta['deck']))
+
+    # 变体（variants.v2 等）：格子 id 必须存在、替换后的类型必须在 tileTypes 里
+    tile_ids = {t['id'] for t in tiles}
+    for vname, var in (data.get('variants') or {}).items():
+        if vname == 'note' or not isinstance(var, dict):
+            continue
+        for tid, patch in (var.get('replace') or {}).items():
+            if int(tid) not in tile_ids:
+                errs.append('variants.%s 要替换的格子 #%s 不存在' % (vname, tid))
+            if patch.get('type') and patch['type'] not in types:
+                errs.append('variants.%s 把 #%s 换成类型 "%s"，tileTypes 里没定义' % (vname, tid, patch['type']))
     return errs
 
 

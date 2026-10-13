@@ -211,6 +211,20 @@
       "nameEn": "Corner",
       "hex": "#b3afa6",
       "desc": "赤道(起点)、地中海、北极、夏威夷"
+    },
+    "jail": {
+      "name": "监狱",
+      "nameEn": "Jail",
+      "hex": "#6E7480",
+      "ink": "#ffffff",
+      "desc": "v2 规则：北极这一格当监狱用，送进监狱就强制移动到这儿"
+    },
+    "shop": {
+      "name": "道具商店",
+      "nameEn": "Item Shop",
+      "hex": "#D9A441",
+      "ink": "#4a3208",
+      "desc": "v2 规则：印度洋、大西洋改成道具商店"
     }
   },
   "tiles": [
@@ -1045,5 +1059,29 @@
       "col": 16,
       "row": 15
     }
-  ]
+  ],
+  "variants": {
+    "note": "按某版规则替换掉的格子：key 是格子 id，value 是要覆盖上去的字段（只写要改的）。地图页的「v2 规则地图」按钮读这里。",
+    "v2": {
+      "label": "v2 规则地图",
+      "desc": "赤道=出生点（不变）｜北极=监狱｜印度洋、大西洋=道具商店",
+      "replace": {
+        "32": {
+          "type": "jail",
+          "name": "监狱",
+          "nameEn": "JAIL"
+        },
+        "24": {
+          "type": "shop",
+          "name": "道具商店",
+          "nameEn": "ITEM SHOP"
+        },
+        "59": {
+          "type": "shop",
+          "name": "道具商店",
+          "nameEn": "ITEM SHOP"
+        }
+      }
+    }
+  }
 }

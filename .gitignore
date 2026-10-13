@@ -26,6 +26,10 @@ Thumbs.db
 # ===== 智能体工作记忆（本地日志，不入库）=====
 .workbuddy/memory/
 
+# ===== Python 缓存 =====
+__pycache__/
+*.pyc
+
 # ===== 原版实体照片：拍照素材，不上传 =====
 photos/
 

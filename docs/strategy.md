@@ -2,6 +2,9 @@
 
 > 数据来源：[original.html](../original.html) · `content/map-print-data.json` · 卡牌见 `content/original/cards.md` · 规则见 `content/original/manual.md`
 > 初始资金 $15,000；起点酬金 $2,000/圈；胜利条件为对手全部破产（或约定现金目标 $30,000 / $50,000）。
+> ⚠️ **本文只适用于「原版」规则**（2 颗六面骰、所有人从赤道出发、无连锁）。
+> 如果你们打的是首页默认的 **规则 2**（1 枚十六面骰、四角起点、连锁过路费），请改看 **[strategy-v2.md](strategy-v2.md)**——
+> 规则 2 下本文的落点结论（浅蓝偏热、红组偏冷）**完全作废**，选组逻辑也换成了另一套。
 
 ---
 

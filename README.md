@@ -204,9 +204,11 @@ richer/
 │   ├── update.py           一键更新：content/ → data/ + 首页 + 原版页 + 打印页 + 地图页
 │   ├── sim-v2.py           规则 2 模拟：落点分布 + 组经济 + 起点口径对照（python3 tools/sim-v2.py）
 │   └── game.py             规则 2 完整对局模拟：8 人混战，含 14 件道具与全部 v7 卡牌
-│                           · python3 tools/game.py             单配置
+│                           · python3 tools/game.py             单配置（夺冠率）
 │                           · AB=1 python3 tools/game.py        「道具 × 监狱口径」2×2 对照
 │                           · COHORT=1 python3 tools/game.py    「集中同色 vs 到处撒」A/B
+│                           · AUDIT=1 python3 tools/game.py     逐张卡牌实战净值插桩 + 8 人局节奏
+│                             （加 PROP_UNLIMITED=1 跑道具不限量对照、JAIL_NO_RENT=0 关坐牢免租）
 └── .github/workflows/      content/ 下真源变更时自动重生成
 ```
 
@@ -241,5 +243,6 @@ richer/
 | `csv-fields.md` | `content/cards.csv` 每一列怎么填、对应 JSON 哪个字段、脚本会拦哪些错 |
 | `card-diff.md` | 新版 40 张自制牌 vs 原版 40 张牌的逐张差异对照 |
 | `strategy.md` | **原版**地图的胜率攻略：落点概率实测、选组优先级、卡牌期望、抵押与交易反制（仅适用原版规则） |
-| `strategy-v2.md` | **规则 2** 的胜率攻略：统一起点后的残余落点偏差（≤±5%）、连锁机制的 K 倍放大器、完整对局模拟夺冠率排名（无道具 → 带道具双列）、14 件道具的「加速 + 反领先」效应、监狱口径 A/B |
+| `strategy-v2.md` | **规则 2** 的胜率攻略：统一起点后的残余落点偏差（≤±5%）、连锁机制的 K 倍放大器、完整对局模拟夺冠率排名、14 件道具的「加速 + 反领先」效应、监狱口径 A/B |
+| `balance-v7.md` | **v7 卡牌 & 道具平衡性评估**：40 张牌的实战净值实测（哪张不公平）、道具价格/数量（供给只满足 45% 需求）、8 人局节奏与时长（约 979 次行动 ≈ 5.5-12 小时）、「坐牢在规则 2 里是免费的」这一系统性漏洞 |
 

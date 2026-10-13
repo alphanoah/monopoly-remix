@@ -105,6 +105,13 @@ GREEN_CARD_MIN = 3000   # 单次付款 ≥ 这个数才舍得用绿卡
 PROPS_ENABLED = True    # 道具总开关（跑 A/B 用）
 ARRIVE_JAIL_CELL_JAILS = True    # 走到监狱格（北极 #32）也强制坐牢；False = 只有被送才坐牢
 
+# 规则写明「坐牢期间不能收租」，但早期版本漏实现。True = 按规则（地主坐牢 = 全场免租）
+JAIL_NO_RENT = os.environ.get("JAIL_NO_RENT", "1") == "1"
+# 道具每种几张（规则：每种 2 张）。None = 不限量（旧口径，做对照用）
+PROP_STOCK_PER_KIND = None if os.environ.get("PROP_UNLIMITED") else 2
+# 卡牌实战插桩：AUDIT=1 时逐张记录触发次数与净值变化
+AUDIT = os.environ.get("AUDIT") == "1"
+
 
 class Game:
     def __init__(self, rng, data, targets):
@@ -119,6 +126,18 @@ class Game:
         self.shop_visits = 0
         self.props_bought = 0
         self.shop_stock = {}               # 本店刷新出来的道具（全局共用一副牌堆）
+        self.prop_stock = (dict((n, PROP_STOCK_PER_KIND) for n in PROPS)
+                           if PROP_STOCK_PER_KIND else None)   # 每种剩余张数
+        self.audit = {}                    # AUDIT 插桩：(kind, idx) -> 统计
+        self.pending_audit = []            # 待结算（等本回合走完再记账）
+        self.jail_cost = 0.0               # 坐牢净值成本累计
+        self.jail_events = 0
+        self.jail_lead_cost = self.jail_lead_n = 0
+        self.jail_big_cost = self.jail_big_n = 0
+        self.round_no = 0                  # 当前进行到第几回合（破产计时用）
+        self.first_death_round = None
+        self.player_turns = 0              # 累计「人·回合」数（= 真人掷骰次数）
+        self.prop_buy_counts = Counter()   # 每种道具的购买次数
         self.players = []
         for i, gid in enumerate(targets):
             self.players.append(dict(
@@ -241,6 +260,8 @@ class Game:
 
     def bankrupt(self, pl, creditor):
         pl["alive"] = False
+        if self.first_death_round is None:
+            self.first_death_round = self.round_no
         for c in range(N_CELLS):
             if self.owner[c] == pl["idx"]:
                 if creditor is not None:
@@ -296,6 +317,8 @@ class Game:
         other = self.players[owner]
         if not other["alive"]:
             return
+        if JAIL_NO_RENT and other["jail"] > 0:
+            return                         # 规则：坐牢期间不能收租
         # 机会 18（付方翻倍）× 命运 5（收方翻倍/减半）
         rent = self.chain_rent(cell, owner) * pl["toll_mult"] * other["rent_mult"]
         if rent >= RED_CARD_MIN and "红卡" in other["props"]:
@@ -316,9 +339,67 @@ class Game:
         alive.sort(key=lambda p: ((p["pos"] - pl["pos"]) * d) % N_CELLS)
         return alive[(k - 1) % len(alive)]
 
+    # ---------- 卡牌实战插桩（AUDIT=1 时启用）----------
+    def snapshot(self):
+        """净值快照：每人的现金 + 名下房产的「已投入成本」。"""
+        return dict(
+            cash=[p["cash"] for p in self.players],
+            alive=[p["alive"] for p in self.players],
+            est=[(self.owner[c], self.level[c]) for c in range(N_CELLS)],
+        )
+
+    def _worth(self, pairs, i):
+        tot = 0.0
+        for c, (o, lv) in enumerate(pairs):
+            if o != i:
+                continue
+            p = self.tiles[c]["price"]
+            cost = p
+            for s in range(1, lv + 1):
+                cost += p * (1.0 if s == 5 else 0.5)
+            tot += cost
+        return tot
+
+    def audit_card(self, kind, idx, snap, who):
+        """记录一张牌触发前后的净值变化（抽卡者 vs 其余人）。"""
+        d = self.audit.setdefault((kind, idx),
+                                  dict(n=0, self=0.0, oth=0.0, lead_n=0,
+                                       lead_self=0.0, mx=0.0, omx=0.0,
+                                       deaths=0))
+        pairs_now = [(self.owner[c], self.level[c]) for c in range(N_CELLS)]
+        now = [pl["cash"] + self._worth(pairs_now, i)
+               for i, pl in enumerate(self.players)]
+        was = [snap["cash"][i] + self._worth(snap["est"], i)
+               for i in range(len(self.players))]
+        lead = max(range(len(self.players)), key=lambda i: was[i])
+        d["n"] += 1
+        d["self"] += now[who] - was[who]
+        d["oth"] += sum(now[i] - was[i] for i in range(len(self.players)) if i != who)
+        if who == lead:
+            d["lead_n"] += 1
+            d["lead_self"] += now[who] - was[who]
+        d["mx"] = max(d["mx"], abs(now[who] - was[who]))
+        d["omx"] = max(d["omx"], abs(sum(now[i] - was[i]
+                                        for i in range(len(self.players))
+                                        if i != who)))
+        d["deaths"] += sum(1 for i, p in enumerate(self.players)
+                           if snap["alive"][i] and not p["alive"])
+
     def resolve_card(self, pl, kind):
+        idx = self.rng.randint(1, 20)
+        if AUDIT:
+            # 结算点延到「该玩家本回合结束」——这样额外移动（机会 7/14、命运 17）
+            # 与引发的连锁破产也能计入该卡的影响
+            self.pending_audit.append((kind, idx, self.snapshot(), pl["idx"]))
+        self.card_effect(pl, kind, idx)
+
+    def flush_audit(self):
+        for kind, idx, snap, who in self.pending_audit:
+            self.audit_card(kind, idx, snap, who)
+        self.pending_audit = []
+
+    def card_effect(self, pl, kind, idx):
         rng = self.rng
-        idx = rng.randint(1, 20)
         if kind == "chance":
             if idx == 1:
                 r = self.richest()
@@ -443,8 +524,6 @@ class Game:
         elif idx == 10:
             pl["cash"] += 2200 if win else -1000
         elif idx == 11:
-            pl["cash"] += 800 if win else 0
-        elif idx == 11:
             if win:
                 pl["cash"] += 800
             else:
@@ -482,10 +561,10 @@ class Game:
                     self.owner[c] = None
                     self.level[c] = 0
         elif idx == 17:
+            # 卡面「前进/后退 X 格」= 正常移动，经过赤道照给酬金
             x = self.roll()
             d = 1 if self.roll() % 2 == 1 else -1
-            pl["pos"] = (pl["pos"] + x * d) % N_CELLS
-            self.resolve(pl)
+            self.move(pl, x * d)
         elif idx == 18:
             tgt = self.ahead(pl)              # 与前进方向最近的玩家对决
             if tgt is not None:
@@ -496,7 +575,9 @@ class Game:
                     else:
                         self.pay(pl, v, tgt)
         elif idx == 19:
-            pl["cash"] += (self.roll() * 200 - 1600) if win else -800
+            # 卡面：摇判定骰 X，X≥9 中奖、奖金 = X×200−1600（+200~+1600）；否则 -800
+            x = self.roll()
+            pl["cash"] += (x * 200 - 1600) if x >= 9 else -800
         elif idx == 20:
             # 摇两次：单=善 / 双=恶，点数 X = 前方第 X 个玩家，其所在格房子 ±1 级
             good = self.roll() % 2 == 1
@@ -572,8 +653,13 @@ class Game:
         if pl["mute"]:
             return
         self.shop_visits += 1
-        stock = sorted(self.rng.sample(list(PROPS), 3),
-                       key=lambda n: -self.prop_value(pl, n))
+        pool = list(PROPS)
+        if self.prop_stock is not None:          # 限量：只从有货的里刷
+            pool = [n for n in pool if self.prop_stock[n] > 0]
+            pool = pool[:3] if len(pool) <= 3 else self.rng.sample(pool, 3)
+        else:
+            pool = self.rng.sample(pool, 3)
+        stock = sorted(pool, key=lambda n: -self.prop_value(pl, n))
         for name in stock:
             if len(pl["props"]) >= MAX_PROPS:
                 break
@@ -583,6 +669,9 @@ class Game:
                 pl["cash"] -= PROPS[name]
                 pl["props"].append(name)
                 self.props_bought += 1
+                self.prop_buy_counts[name] += 1
+                if self.prop_stock is not None:
+                    self.prop_stock[name] -= 1
 
     def avatar_escape(self, pl):
         """用免责卡 / 嫁祸卡抵消一次坐牢（返回 True = 逃掉了）。"""
@@ -648,10 +737,33 @@ class Game:
                     else:
                         v["direction"] *= -1            # 掉头
 
+    def audit_jail(self, who, snap):
+        """坐牢事件的净值成本（AUDIT 用）。"""
+        pairs_now = [(self.owner[c], self.level[c]) for c in range(N_CELLS)]
+        now = [pl["cash"] + self._worth(pairs_now, i)
+               for i, pl in enumerate(self.players)]
+        was = [snap["cash"][i] + self._worth(snap["est"], i)
+               for i in range(len(self.players))]
+        d = now[who] - was[who]
+        self.jail_cost += d
+        lead = max(range(len(self.players)), key=lambda i: was[i])
+        if who == lead:
+            self.jail_lead_cost += d
+            self.jail_lead_n += 1
+        mine = sum(1 for c in range(N_CELLS) if self.owner[c] == who)
+        if mine >= 3:                       # 大地主：名下 ≥3 块地
+            self.jail_big_cost += d
+            self.jail_big_n += 1
+
     # ---------- 一回合 ----------
     def turn(self, pl):
         if pl["jail"] > 0:
+            if AUDIT and pl.get("_ja") is None:
+                pl["_ja"] = self.snapshot()
             pl["jail"] -= 1
+            if pl["jail"] == 0 and AUDIT and pl.get("_ja") is not None:
+                self.audit_jail(pl["idx"], pl.pop("_ja"))
+                self.jail_events += 1
             return
         if pl["stay"] > 0:                       # 原地停留（机会 4/7、命运 2）
             pl["stay"] -= 1
@@ -707,6 +819,8 @@ class Game:
             pl["rent_mult"] = 1.0
             pl["toll_mult"] = 1.0
             pl["mute"] = False
+            if AUDIT:
+                self.flush_audit()
 
 
 def run_game(rng, data, targets, max_rounds=600, props=None, arrive_jail=None):
@@ -721,7 +835,9 @@ def run_game(rng, data, targets, max_rounds=600, props=None, arrive_jail=None):
         pl["direction"] = 1
     rounds_used = max_rounds
     for rd in range(max_rounds):
+        g.round_no = rd
         alive = [p for p in g.players if p["alive"]]
+        g.player_turns += len(alive)
         if len(alive) <= 1:
             rounds_used = rd
             break
@@ -788,12 +904,112 @@ def ab_main():
           f"平均破产满分 8（= 8 表示全部打到只剩一人）")
 
 
+def audit_main():
+    """AUDIT=1：逐张卡牌的实战净值影响 + 道具购买分布 + 8 人局节奏。"""
+    data = load_map()
+    tiles = {t["id"]: t for t in data["tiles"]}
+    score = []
+    for g in data["colorGroups"]:
+        ids = [t["id"] for t in data["tiles"] if t.get("colorId") == g["id"]]
+        score.append((len(ids) * sum(tiles[i]["price"] for i in ids), g["id"]))
+    score.sort(reverse=True)
+    order = [gid for _, gid in score][:8]
+    trials = int(os.environ.get("TRIALS", "300"))
+    rng = random.Random(20261013)
+    agg, pcount = {}, Counter()
+    rounds, ended, dead, first_death, bought, visits = [], [], [], [], [], []
+    jail_cost, jail_n = 0.0, 0
+    pturns = []
+    jl_cost, jl_n, jb_cost, jb_n = 0.0, 0, 0.0, 0
+    for _ in range(trials):
+        targets = order[:]
+        rng.shuffle(targets)
+        _w, g, r, ok = run_game(rng, data, targets)
+        for k, v in g.audit.items():
+            a = agg.setdefault(k, dict(n=0, self=0.0, oth=0.0, lead_n=0,
+                                       lead_self=0.0, mx=0.0, omx=0.0,
+                                       deaths=0))
+            for f in ("n", "self", "oth", "lead_n", "lead_self", "deaths"):
+                a[f] += v[f]
+            a["mx"] = max(a["mx"], v["mx"])
+            a["omx"] = max(a["omx"], v["omx"])
+        pcount.update(g.prop_buy_counts)
+        pturns.append(g.player_turns)
+        jail_cost += g.jail_cost
+        jail_n += g.jail_events
+        jl_cost += g.jail_lead_cost
+        jl_n += g.jail_lead_n
+        jb_cost += g.jail_big_cost
+        jb_n += g.jail_big_n
+        rounds.append(r)
+        ended.append(ok)
+        dead.append(sum(1 for p in g.players if not p["alive"]))
+        bought.append(g.props_bought)
+        visits.append(g.shop_visits)
+        if g.first_death_round is not None:
+            first_death.append(g.first_death_round)
+
+    T = float(trials)
+    print("=" * 100)
+    print(f"v7 卡牌实战插桩 · 8 人局 × {trials} 局"
+          f"（统一赤道起点 / 走到监狱即坐牢 / 道具开 / 坐牢不能收租={JAIL_NO_RENT}）")
+    print("=" * 100)
+    print(f"\n【节奏】平均回合 {sum(rounds)/T:.0f} · 打完比例 "
+          f"{sum(ended)/T*100:.1f}% · 平均破产 {sum(dead)/T:.2f}/8 · "
+          f"道具购买 {sum(bought)/T:.1f} 件/局 · 商店访问 {sum(visits)/T:.1f} 次/局")
+    rs = sorted(rounds)
+    q = lambda p: rs[min(len(rs) - 1, int(len(rs) * p))]
+    print(f"  回合数分位：p10 {q(.10)} · 中位 {q(.50)} · p90 {q(.90)} · "
+          f"最长 {rs[-1]}")
+    print(f"  总「人·回合」（真人掷骰次数）：平均 {sum(pturns)/T:.0f} 次/局"
+          f"（每人平均 {(sum(pturns)/T)/8:.0f} 次）")
+    if first_death:
+        fs = sorted(first_death)
+        print(f"  首次破产回合：中位 {fs[len(fs)//2]} · "
+              f"p10 {fs[int(len(fs)*.10)]} · p90 {fs[min(len(fs)-1, int(len(fs)*.90))]}"
+              f"（= 前 1/{max(1, round(sum(rounds)/T / max(fs[len(fs)//2], 1)))} 局是安全发育期）")
+    if jail_n:
+        print(f"【坐牢的真实成本】{jail_n/T:.2f} 次/局 · 每次平均净值变化 "
+              f"{jail_cost/jail_n:+.0f} 元（负 = 亏，接近 0 = 无惩罚）")
+        if jl_n:
+            print(f"  ├ 领先者坐牢：{jl_cost/jl_n:+.0f} 元/次（{jl_n/T:.2f} 次/局）")
+        if jb_n:
+            print(f"  └ 大地主坐牢（名下≥3块地）：{jb_cost/jb_n:+.0f} 元/次"
+                  f"（{jb_n/T:.2f} 次/局）")
+
+    deck_name = {"chance": "机会", "destiny": "命运"}
+    for kind in ("chance", "destiny"):
+        print(f"\n【{deck_name[kind]}牌 · 实战净值影响】"
+              f"（净值 = 现金 + 名下房产已投入成本）")
+        print(f"  {'#':>3}{'触发/局':>8}{'抽卡者Δ':>9}{'其他人Δ':>9}"
+              f"{'领先者Δ':>9}{'领先占比':>8}{'自身极值':>9}{'全场极值':>9}"
+              f"{'触发破产':>9}")
+        print("  " + "-" * 72)
+        for idx in range(1, 21):
+            a = agg.get((kind, idx))
+            if not a or a["n"] == 0:
+                continue
+            lead = (a["lead_self"] / a["lead_n"]) if a["lead_n"] else float("nan")
+            print(f"  {idx:>3}{a['n']/T:>8.2f}{a['self']/a['n']:>9.0f}"
+                  f"{a['oth']/a['n']:>9.0f}{lead:>9.0f}"
+                  f"{a['lead_n']/a['n']*100:>7.0f}%"
+                  f"{a['mx']:>9.0f}{max(a['mx'], a['omx']):>9.0f}"
+                  f"{a['deaths']/T:>9.2f}")
+
+    print(f"\n【道具购买次数/局】（价格 / 总购买 {sum(pcount.values())/T:.1f} 件）")
+    for name in sorted(PROPS, key=lambda n: -pcount[n]):
+        print(f"  {name:<8} ${PROPS[name]:>5}  {pcount[name]/T:>6.2f} 次/局")
+
+
 def main():
     if os.environ.get("AB"):
         ab_main()
         return
     if os.environ.get("COHORT"):
         cohort_main()
+        return
+    if os.environ.get("AUDIT"):
+        audit_main()
         return
     trials = int(os.environ.get("TRIALS", "400"))
     data = load_map()

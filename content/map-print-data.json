@@ -2,13 +2,15 @@
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。放大版（board.zoomTrackWidth）把跑道加厚吃进中间空，格子内容竖排放大。",
   "board": {
     "size": 1800,
     "printMM": 800,
     "goBonus": 2000,
     "trackWidth": 190,
+    "zoomTrackWidth": 570,
     "band": 38,
+    "zoomBand": 64,
     "tilesPerSide": 15,
     "corners": 4
   },
@@ -58,6 +60,15 @@
       "textY": -16,
       "textSize": 46,
       "idInset": 9
+    },
+    "zoom": {
+      "note": "放大版（print-zoom）专用：跑道加厚后格子变窄变深，内容改成竖排，字号按格子自适应",
+      "widthK": 0.94,
+      "priceK": 0.62,
+      "capitalK": 0.42,
+      "flagK": 0.95,
+      "titleSize": 112,
+      "cardW": 0.42
     }
   },
   "decks": {

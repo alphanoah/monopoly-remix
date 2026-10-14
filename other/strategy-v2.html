@@ -72,7 +72,7 @@
   <p>现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测</p>
 </header>
 <div class="md">
-<blockquote>规则来源：<a href="../source/new-rule.md"><code>source/new-rule.md</code></a>（首页「游戏规则」默认打开的 v2 面板）<br>数据来源：<code>source/map-print-data.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/cards.md</code>（v7）· 道具 <code>source/props.md</code><br>模拟脚本：<code>python3 sim/sim-v2.py</code>（落点分布 + 组经济）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=1000</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2 对照）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）<br>⚠️ 本文只适用于<strong>规则 2</strong>。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略见 <a href="strategy.html"><code>strategy.md</code></a>，两份的结论<strong>不能混用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
+<blockquote>规则来源：<a href="../source/new-rule.md"><code>source/new-rule.md</code></a>（首页「游戏规则」默认打开的 v2 面板）<br>数据来源：<code>source/map-print-data.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/cards.md</code>（v7）· 道具 <code>source/props.md</code><br>模拟脚本：<code>python3 sim/sim-v2.py</code>（落点分布 + 组经济）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=1000</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2 对照）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）<br>⚠️ 本文只适用于<strong>规则 2</strong>（1 枚十六面骰、统一赤道起点、连锁过路费）。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略与本文结论<strong>完全不同，不能混用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
 <h3>〇、速览（先看这段就够打一局）</h3>
 <p><strong>一句话：规则 2 里位置只值 ±5%（统一起点后的残余偏差），胜负手是「把地集中在一个颜色里」。</strong></p>
 <p><strong>四条铁律</strong></p>
@@ -359,7 +359,7 @@
 </tbody></table></div>
 <h3>附：和原版攻略的关系</h3>
 <div class="tw"><table>
-<thead><tr><th></th><th>原版（<code>strategy.md</code>）</th><th><strong>规则 2（本文）</strong></th></tr></thead>
+<thead><tr><th></th><th>原版攻略（2 颗骰子）</th><th><strong>规则 2（本文）</strong></th></tr></thead>
 <tbody>
 <tr><td>骰子</td><td>2 颗六面（2-12）</td><td>1 枚十六面（1-16，均匀）</td></tr>
 <tr><td>起点</td><td>统一赤道，单向</td><td>统一赤道，单向（四角随机起点已弃用）</td></tr>

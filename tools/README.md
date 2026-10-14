@@ -42,7 +42,7 @@ push 后 GitHub Actions（`.github/workflows/build-pages.yml`）跑的是同一�
 | `source/original/map-tiles.md` | `original.html` 折叠区块（同上） |
 | `source/props.md` | `index.html` 道具区 + `data/props.json` + `print.html` 兜底 |
 | `source/map-print-data.json` | `map.html` 兜底 + `index.html` 地图区 + README 速览 |
-| `docs/*.md`（build.py 的 DOCS 登记的 6 篇） | `other/<同名>.html` + `other/index.html` 索引页 |
+| `docs/*.md`（build.py 的 DOCS 登记的 4 篇） | `other/<同名>.html` + `other/index.html` 索引页 |
 
 产物页面里只有 `<!-- XXX:START/END -->` 标记块内的内容会被脚本覆盖，块外的手写部分（页面骨架、样式、交互 JS）不受影响。
 
@@ -51,22 +51,20 @@ push 后 GitHub Actions（`.github/workflows/build-pages.yml`）跑的是同一�
 **已入构建链（9 个）**：上表左侧全部。它们不是独立页面，而是注入
 `index.html` / `original.html` / `print.html` 的对应区块。
 
-**docs/ 文档（6 个，转成 `other/` 独立页面）**：
+**docs/ 文档（4 个，转成 `other/` 独立页面）**：
 
 | 文件 | 内容 |
 |---|---|
-| `docs/strategy.md` | 原版地图胜率攻略 |
 | `docs/strategy-v2.md` | 规则 2 胜率攻略 |
 | `docs/balance-v7.md` | v7 卡牌 & 道具平衡性评估 |
 | `docs/card-audit-report.md` | 卡牌公平性审计报告 |
-| `docs/card-diff.md` | 原版 vs 自制卡牌逐张对照 |
 | `docs/card-fields.md` | cards.md 字段填写说明 |
 
 **不转**：`README.md`（仓库入口）、`LICENSE.md`、`data/README.md`、本文件（内部说明）。
 
 ## docs/ → other/ 独立页面（gen_docs）
 
-`docs/` 下在 build.py `DOCS` 里登记的 6 篇文档会被转成 `other/` 下的独立 HTML 页面
+`docs/` 下在 build.py `DOCS` 里登记的 4 篇文档会被转成 `other/` 下的独立 HTML 页面
 （`other/<同名>.html`），外加索引页 `other/index.html`（标题 + 类别 + 一句话简介卡片列表）。
 首页的「更多文档」入口指向索引页。
 

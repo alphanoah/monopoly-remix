@@ -59,6 +59,7 @@ PAGES = [
         ('RULES', 'rules_html'),         # 规则三版切换区（RULE_DOCS）
         ('PROPS', 'props_html'),         # 道具清单（source/props.md 整篇转 HTML）
         ('MAPINFO', 'map_info'),         # 「电子地图」区说明（格子数/尺寸现算）
+        ('CARD_FIELDS_QUICK', 'card_fields_quick'),  # 「字段说明」弹窗内容（docs/card-fields.md 速查节）
     ]),
     ('original.html', [
         ('ORIGINAL', 'original_html'),   # 原版资料区块（ORIGINAL_DOCS + {{STATS}} 现算表格）

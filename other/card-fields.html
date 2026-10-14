@@ -72,6 +72,37 @@
   <p>卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导</p>
 </header>
 <div class="md">
+<h3>30 秒速查：CSV / Excel 的 11 列</h3>
+<p>首页「机会/命运卡牌」区导出的 CSV / Excel，表头固定 11 列，与 cards.md 表格的对应关系：</p>
+<div class="tw"><table>
+<thead><tr><th>CSV 列</th><th>对应 md 列</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>version</code></td><td><code>##</code> 版本号</td><td>属哪个版本，如 <code>v7</code>；回导时版本名沿用 cards.md 的 <code>##</code> 标题</td></tr>
+<tr><td><code>deck</code></td><td><code>###</code> 花色</td><td><code>chance</code> = 机会牌 / <code>fate</code> = 命运牌</td></tr>
+<tr><td><code>seq</code></td><td>编号</td><td>只是人工核对号；页面卡号 <code>n-20</code> 按行序自动生成</td></tr>
+<tr><td><code>face</code></td><td>表情</td><td>机会牌填 <code>smile</code> / <code>frown</code>，命运牌留空</td></tr>
+<tr><td><code>event</code></td><td>事件</td><td>必填，卡面第一行</td></tr>
+<tr><td><code>effect</code></td><td>效果</td><td>机会牌必填，命运牌留空</td></tr>
+<tr><td><code>cond</code></td><td>判定</td><td>命运牌必填，机会牌留空（填了会被画成命运牌）</td></tr>
+<tr><td><code>win</code></td><td>赢</td><td>命运牌必填，机会牌留空</td></tr>
+<tr><td><code>lose</code></td><td>输</td><td>命运牌必填，机会牌留空</td></tr>
+<tr><td><code>rate</code></td><td>命中率</td><td>纯备注，页面不读</td></tr>
+<tr><td><code>use</code></td><td>启用</td><td><code>1</code> 采用 / <code>0</code> 弃用，留空当 <code>1</code></td></tr>
+</tbody></table></div>
+<p>最容易踩的坑：</p>
+<ul>
+<li><strong>机会 / 命运要填的列互斥</strong>：页面靠 <code>cond</code> 有没有内容判断画哪种卡面，机会牌填了判定 / 赢 / 输会被当成命运牌画出来。
+</li>
+<li><strong>保存选 CSV UTF-8</strong>，否则中文回导会乱码。
+</li>
+<li><strong>别改列名</strong>：回导按列名读，缺列直接报错退出。
+</li>
+<li><strong>导出含全部版本、连 <code>use=0</code> 的弃用牌一起</strong>：在 Excel 里整行删除就是删牌；想临时下架某张牌，把 <code>use</code> 改成 <code>0</code> 更安全，随时能加回来。
+</li>
+<li><strong><code>+3000</code> 的正号丢了没关系</strong>：脚本读取时自动补回（<code>effect</code> / <code>win</code> / <code>lose</code>）。
+</li>
+<li><strong>调卡牌顺序直接拖行</strong>：卡牌顺序 = CSV 行序；<code>seq</code> 不同步刷新不影响页面。
+</li></ul>
 <p>卡牌内容的唯一真源是 <strong><code>source/cards.md</code></strong>（Markdown 表格）。改这里 → 跑 <code>python3 tools/build.py</code><br>→ 生成 <code>data/cards.json</code> 并同步首页 / 打印页 / README。push 后 GitHub Actions 跑同一个脚本。</p>
 <p>想用 Excel / Numbers 批量改：首页「机会/命运卡牌」区点「导出 CSV / Excel」→ 改完 →<br><code>python3 tools/import-cards.py 文件.csv</code> 回导成 cards.md（回导前会自动校验 + 回读比对）。</p>
 <h3>一、cards.md 的结构</h3>
@@ -92,13 +123,13 @@
 </tbody></table></div>
 <p><code>`</code></p>
 <ul>
-<li><strong>加新版本</strong>：复制一个 <code>##</code> 版本块改版本号即可，不用动代码；<code>##</code> 标题整行就是下拉里显示的名字。
+<li><strong>加新版本</strong>：复制一个 <code>##</code> 版本块改版本号即可；<code>##</code> 标题整行就是下拉里显示的名字。
 </li>
-<li><strong>默认版本</strong>、每版张数统计都由脚本现算，页面上不写死。
+<li><strong>默认版本写死在 <code>tools/lib/cards.py</code> 的 <code>DEFAULT_VERSION</code></strong>（当前 <code>v7</code>，该版本不存在时退到最后一个版本）——想让新版本当默认，改那一行；每版张数统计才是脚本现算的。
 </li>
 <li>空单元格 = 该字段留空（不进 JSON）；单元格里的竖线要转义成 <code>\|</code>。
 </li>
-<li>同一版本内<strong>先机会牌后命运牌</strong>；表格行序 = 页面卡号顺序。
+<li>同一版本内两种花色的先后不影响解析（回导脚本固定先写机会牌）；<strong>表格行序 = 页面卡号顺序</strong>，CSV 里拖行就能调顺序。
 </li></ul>
 <h3>二、字段对照</h3>
 <div class="tw"><table>

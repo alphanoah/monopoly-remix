@@ -16,6 +16,12 @@ def norm_href(p):
     return '/'.join(parts)
 
 
+def strip_comments(text):
+    """去掉独立成行的 HTML 注释（如 <!-- QUICK:START --> 标记），其余行原样保留。"""
+    return '\n'.join(l for l in text.replace('\r\n', '\n').split('\n')
+                     if not re.fullmatch(r'\s*<!--.*?-->\s*', l))
+
+
 def inline(t, prefix='source/'):
     t = html.escape(t)
     t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)

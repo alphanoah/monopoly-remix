@@ -11,6 +11,7 @@ ORIGINAL_DIR = os.path.join(SOURCE_DIR, 'original')
 CARDS_MD_PATH = os.path.join(SOURCE_DIR, 'cards.md')
 PROPS_PATH = os.path.join(SOURCE_DIR, 'props.md')
 MAP_DATA_PATH = os.path.join(SOURCE_DIR, 'map-print-data.json')
+CARDFIELDS_MD_PATH = os.path.join(DOCS_DIR, 'card-fields.md')
 
 CARDS_JSON_PATH = os.path.join(DATA_DIR, 'cards.json')
 PROPS_JSON_PATH = os.path.join(DATA_DIR, 'props.json')

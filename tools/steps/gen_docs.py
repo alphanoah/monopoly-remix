@@ -157,7 +157,7 @@ def run(ctx):
         with open(src_path, encoding='utf-8') as f:
             text = f.read()
         title = mdlib.md_title(text) or name
-        body = mdlib.md_to_html(text, prefix='docs/')
+        body = mdlib.md_to_html(mdlib.strip_comments(text), prefix='docs/')
         body = re.sub(r'href="([^"]+)"', rewrite, body)
         out = PAGE_TMPL % {'title': html.escape(title), 'blurb': html.escape(blurb),
                            'name': name, 'body': body, 'css': CSS}

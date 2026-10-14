@@ -120,6 +120,26 @@
   .seg button.on { background: #2c2c2a; border-color: #2c2c2a; color: #fff; }
   .meta { color: #8a8880; font-size: 13px; margin: 6px 0 16px; }
 
+  .fbtn {
+    font-family: inherit; font-size: 13px; background: #fff; color: #96597A;
+    border: 1px dashed #d8b9c6; border-radius: 8px; padding: 6px 11px; cursor: pointer;
+  }
+  .fbtn:hover { border-color: #B06F88; background: #fdf9fb; }
+  dialog#fieldsDlg {
+    width: min(640px, calc(100vw - 40px)); max-height: min(82vh, 760px);
+    border: 1px solid #e8e5df; border-radius: 12px; padding: 0;
+    box-shadow: 0 12px 40px rgba(44, 44, 42, .18);
+  }
+  dialog#fieldsDlg:open { display: flex; flex-direction: column; }  /* 打开时才 flex，别覆盖 UA 的 display:none */
+  dialog#fieldsDlg::backdrop { background: rgba(44, 44, 42, .36); }
+  .dlg-h { flex: none; display: flex; align-items: center; gap: 12px; padding: 13px 18px 11px; border-bottom: 1px solid #f0ede8; }
+  .dlg-h h3 { margin: 0; font-size: 15px; font-weight: 500; }
+  .dlg-x { margin-left: auto; border: none; background: none; font-size: 20px; line-height: 1; color: #8a8880; cursor: pointer; padding: 2px 7px; border-radius: 6px; }
+  .dlg-x:hover { color: #2c2c2a; background: #f4f2ee; }
+  .dlg-b { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px 18px 6px; }
+  .dlg-b > :first-child { margin-top: 10px; }
+  .dlg-f { flex: none; padding: 10px 18px 13px; border-top: 1px solid #f0ede8; font-size: 13px; text-align: right; }
+
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
   .card {
     border-radius: 11px; padding: 14px 15px 15px; min-height: 156px;
@@ -533,7 +553,50 @@
       <button type="button" data-fmt="csv">导出 CSV</button>
       <button type="button" data-fmt="xlsx" id="btnXlsx" hidden>导出 Excel</button>
     </div>
+    <button type="button" id="btnFields" class="fbtn" title="卡牌字段怎么填：CSV / Excel 各列的含义与常见错误">字段说明</button>
   </div>
+  <dialog id="fieldsDlg" aria-labelledby="fieldsDlgT">
+    <div class="dlg-h">
+      <h3 id="fieldsDlgT">字段说明 · 导出的 CSV / Excel</h3>
+      <button type="button" class="dlg-x" id="btnFieldsX" aria-label="关闭">×</button>
+    </div>
+    <div class="md dlg-b">
+<!-- CARD_FIELDS_QUICK:START -->
+<h3>30 秒速查：CSV / Excel 的 11 列</h3>
+<p>首页「机会/命运卡牌」区导出的 CSV / Excel，表头固定 11 列，与 cards.md 表格的对应关系：</p>
+<div class="tw"><table>
+<thead><tr><th>CSV 列</th><th>对应 md 列</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>version</code></td><td><code>##</code> 版本号</td><td>属哪个版本，如 <code>v7</code>；回导时版本名沿用 cards.md 的 <code>##</code> 标题</td></tr>
+<tr><td><code>deck</code></td><td><code>###</code> 花色</td><td><code>chance</code> = 机会牌 / <code>fate</code> = 命运牌</td></tr>
+<tr><td><code>seq</code></td><td>编号</td><td>只是人工核对号；页面卡号 <code>n-20</code> 按行序自动生成</td></tr>
+<tr><td><code>face</code></td><td>表情</td><td>机会牌填 <code>smile</code> / <code>frown</code>，命运牌留空</td></tr>
+<tr><td><code>event</code></td><td>事件</td><td>必填，卡面第一行</td></tr>
+<tr><td><code>effect</code></td><td>效果</td><td>机会牌必填，命运牌留空</td></tr>
+<tr><td><code>cond</code></td><td>判定</td><td>命运牌必填，机会牌留空（填了会被画成命运牌）</td></tr>
+<tr><td><code>win</code></td><td>赢</td><td>命运牌必填，机会牌留空</td></tr>
+<tr><td><code>lose</code></td><td>输</td><td>命运牌必填，机会牌留空</td></tr>
+<tr><td><code>rate</code></td><td>命中率</td><td>纯备注，页面不读</td></tr>
+<tr><td><code>use</code></td><td>启用</td><td><code>1</code> 采用 / <code>0</code> 弃用，留空当 <code>1</code></td></tr>
+</tbody></table></div>
+<p>最容易踩的坑：</p>
+<ul>
+<li><strong>机会 / 命运要填的列互斥</strong>：页面靠 <code>cond</code> 有没有内容判断画哪种卡面，机会牌填了判定 / 赢 / 输会被当成命运牌画出来。
+</li>
+<li><strong>保存选 CSV UTF-8</strong>，否则中文回导会乱码。
+</li>
+<li><strong>别改列名</strong>：回导按列名读，缺列直接报错退出。
+</li>
+<li><strong>导出含全部版本、连 <code>use=0</code> 的弃用牌一起</strong>：在 Excel 里整行删除就是删牌；想临时下架某张牌，把 <code>use</code> 改成 <code>0</code> 更安全，随时能加回来。
+</li>
+<li><strong><code>+3000</code> 的正号丢了没关系</strong>：脚本读取时自动补回（<code>effect</code> / <code>win</code> / <code>lose</code>）。
+</li>
+<li><strong>调卡牌顺序直接拖行</strong>：卡牌顺序 = CSV 行序；<code>seq</code> 不同步刷新不影响页面。
+</li></ul>
+<!-- CARD_FIELDS_QUICK:END -->
+    </div>
+    <div class="dlg-f"><a href="other/card-fields.html">查看完整字段文档 →</a></div>
+  </dialog>
   <p class="meta" id="cardMeta"></p>
   <div class="grid" id="grid"></div>
 </details>
@@ -1902,6 +1965,16 @@ render();
   s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
   s.onload = () => { document.getElementById('btnXlsx').hidden = false; };
   document.head.appendChild(s);
+})();
+
+// ---- 「字段说明」弹窗：内容由 build.py 从 docs/card-fields.md 速查节生成；完整文档在 other/card-fields.html ----
+(function () {
+  const dlg = document.getElementById('fieldsDlg');
+  const btn = document.getElementById('btnFields');
+  if (!dlg || !btn) return;
+  btn.addEventListener('click', () => { (dlg.showModal || dlg.show).call(dlg); });
+  document.getElementById('btnFieldsX').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });   // 点遮罩关闭
 })();
 
 // ---- 游戏规则：三版卡片切换（原版 / v1 / v2）----

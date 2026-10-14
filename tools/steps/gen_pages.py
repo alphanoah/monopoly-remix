@@ -1,4 +1,4 @@
-"""重写三个页面的标记块：index.html（卡牌 / 规则 / 道具 / 地图说明）、original.html、print.html（双兜底）。
+"""重写三个页面的标记块：index.html（卡牌 / 规则 / 道具 / 地图说明 / 字段说明弹窗）、original.html、print.html（双兜底）。
 
 每个生成器返回 (pattern, block, report) 交给 lib.html_block.apply_blocks 写块；
 返回 None = 这个块这次跳过（如道具 md 缺失）。
@@ -6,6 +6,7 @@
 import html
 import json
 import os
+import re
 
 from lib import ctx as ctxlib
 from lib import html_block, mapdata, paths
@@ -169,6 +170,26 @@ def gen_map_info(ctx):
             'index.html 电子地图区（%d 格 / %d 组 / %scm）' % (s['total'], s['groups'], s['cm']))
 
 
+def gen_card_fields_quick(ctx):
+    """首页卡牌区「字段说明」弹窗：docs/card-fields.md 里 QUICK 标记包住的速查节。
+
+    弹窗只放速查节（短，看完即走），完整文档在 other/card-fields.html（gen_docs 生成）。
+    """
+    if not os.path.exists(paths.CARDFIELDS_MD_PATH):
+        print('  跳过：未找到 docs/card-fields.md')
+        return None
+    with open(paths.CARDFIELDS_MD_PATH, encoding='utf-8') as f:
+        text = f.read()
+    m = re.search(r'<!--\s*QUICK:START\s*-->(.*?)<!--\s*QUICK:END\s*-->', text, re.S)
+    if not m:
+        print('  !! docs/card-fields.md 里没有 QUICK:START/END 标记块，弹窗内容跳过')
+        return None
+    body = mdlib.md_to_html(mdlib.strip_comments(m.group(1)), prefix='docs/')
+    return (r'<!-- CARD_FIELDS_QUICK:START -->.*?<!-- CARD_FIELDS_QUICK:END -->',
+            '<!-- CARD_FIELDS_QUICK:START -->\n' + body + '\n<!-- CARD_FIELDS_QUICK:END -->',
+            'index.html 字段说明弹窗（%d 字符）' % len(body))
+
+
 def gen_original_html(ctx):
     h = build_original(ctx)
     return (r'<!-- ORIGINAL:START -->.*?<!-- ORIGINAL:END -->',
@@ -211,6 +232,7 @@ GENERATORS = {
     'rules_html': gen_rules_html,
     'props_html': gen_props_html,
     'map_info': gen_map_info,
+    'card_fields_quick': gen_card_fields_quick,
     'original_html': gen_original_html,
     'print_fallback': gen_print_fallback,
     'props_fallback': gen_props_fallback,

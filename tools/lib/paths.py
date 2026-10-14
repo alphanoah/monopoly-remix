@@ -4,6 +4,8 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SOURCE_DIR = os.path.join(ROOT, 'source')
 DATA_DIR = os.path.join(ROOT, 'data')
+DOCS_DIR = os.path.join(ROOT, 'docs')
+OTHER_DIR = os.path.join(ROOT, 'other')
 ORIGINAL_DIR = os.path.join(SOURCE_DIR, 'original')
 
 CARDS_MD_PATH = os.path.join(SOURCE_DIR, 'cards.md')

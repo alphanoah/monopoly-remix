@@ -18,8 +18,8 @@
 已投入成本 = 买地价 + 已花掉的升级费（1~4 级各 0.5×地价，第 5 级 1.0×地价）
 ```
 
-代码：[snapshot()](file:///Users/alpha/Theo/richer/sim/game.py#L342-L348)
-与 [_worth()](file:///Users/alpha/Theo/richer/sim/game.py#L350-L360)。
+代码：[snapshot()（sim/game.py L342-L348）](../sim/game.py)
+与 [_worth()（sim/game.py L350-L360）](../sim/game.py)。
 
 **为什么用这个口径：**
 
@@ -30,8 +30,8 @@
 
 ### 1.2 卡牌事件的测量窗口
 
-代码：[audit_card()](file:///Users/alpha/Theo/richer/sim/game.py#L362-L385)、
-[resolve_card()](file:///Users/alpha/Theo/richer/sim/game.py#L387-L389)。
+代码：[audit_card()（sim/game.py L362-L385）](../sim/game.py)、
+[resolve_card()（sim/game.py L387-L389）](../sim/game.py)。
 
 ```
 抽卡前快照（全场现金 + 每格归属/等级）
@@ -54,8 +54,8 @@
 
 ### 1.3 坐牢事件的测量窗口
 
-代码：[turn()](file:///Users/alpha/Theo/richer/sim/game.py#L759-L767)
-与 [audit_jail()](file:///Users/alpha/Theo/richer/sim/game.py#L740-L756)。
+代码：[turn()（sim/game.py L759-L767）](../sim/game.py)
+与 [audit_jail()（sim/game.py L740-L756）](../sim/game.py)。
 
 ```
 入狱后第一个回合开始时拍快照

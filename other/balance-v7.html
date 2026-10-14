@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v7 卡牌 &amp; 道具平衡性评估（8 人局实测） · 大富翁改版</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 40px 0 24px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0; color: #6b6a66; font-size: 14.5px; max-width: 680px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  .md { font-size: 14.5px; padding: 8px 0 10px; }
+  .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
+  .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
+  .md h5 { font-size: 14px; font-weight: 500; margin: 16px 0 6px; color: #6b6a66; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
+  }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
+
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+
+  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .docs a {
+    display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; text-decoration: none; color: inherit;
+  }
+  .docs a:hover { border-color: #96597A; }
+  .docs b { font-size: 15px; font-weight: 500; display: block; margin-bottom: 4px; }
+  .docs span { font-size: 13px; color: #6b6a66; display: block; line-height: 1.55; }
+  .docs em {
+    font-style: normal; font-size: 11.5px; color: #96597A;
+    background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
+  footer code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+
+  @media (max-width: 600px) {
+    header { padding: 30px 0 20px; }
+    header h1 { font-size: 20px; }
+    .md { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
+  <h1>v7 卡牌 &amp; 道具平衡性评估（8 人局实测）</h1>
+  <p>v7 卡牌 &amp; 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长</p>
+</header>
+<div class="md">
+<blockquote><strong>数据口径</strong>：<code>sim/game.py</code> 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、<br>坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。<br><strong>样本</strong>：主表 800 局 · 卡牌插桩 600 局 · 不限量道具对照 400 局。<br><strong>复现</strong>：<code>python3 sim/game.py</code>（夺冠率）· <code>AUDIT=1 TRIALS=600 python3 sim/game.py</code>（卡牌插桩）<br>· <code>AUDIT=1 PROP_UNLIMITED=1 python3 sim/game.py</code>（道具不限量对照）<br><br>本文是<strong>平衡性评估</strong>，打法攻略见 <a href="strategy-v2.html">strategy-v2.md</a>。<br>「净值」= 现金 + 名下房产的已投入成本（买地价 + 已花掉的升级费），是唯一跨房产/现金可比的口径。</blockquote>
+<h3>〇、结论速览</h3>
+<p><strong>整体判断：v7 卡牌体系设计功底不错，但有 1 个系统性漏洞 + 5 张卡需要处理。</strong></p>
+<p>命运牌 20 张里有 <strong>16 张实测期望落在 ±500 以内</strong>（零期望原则执行到位），这是全牌库最健康的部分。<br>真正的问题不在单卡数值，而在<strong>一个规则漏洞让整类惩罚失效</strong>：</p>
+<h4>🔴 最需要处理的问题（按严重程度）</h4>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>问题</th><th>严重度</th><th>一句话建议</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>「坐牢」在规则 2 里是免费的</strong>（实测每次净值变化 <strong>−5 元</strong>）。它让命运 1/4/13、机会 15 的「送进监狱」惩罚形同虚设</td><td>🔴 系统性</td><td>给出狱加保释金（建议 1000/回合），或把这些卡的赔率改掉</td></tr>
+<tr><td>2</td><td><strong>机会 15（出千被抓）实测 −6,137 元、领先者 −8,870、极值 56,000</strong> —— 比所有「微笑卡」的影响都大，还是一张皱眉卡</td><td>🔴</td><td>改成「拍卖后你拿回 37.5%」（与机会 8 同口径），无房者改罚款</td></tr>
+<tr><td>3</td><td><strong>机会 7 / 14 画着 smile，实测是负期望</strong>（−927 / −822）：多走一次 = 多踩一次雷</td><td>🔴</td><td>卡面改 frown，或给它们加保护（如「下次移动不付过路费」）</td></tr>
+<tr><td>4</td><td><strong>红卡 / 绿卡 1500 元、收益无上限</strong>：后期一次翻倍/免付可达 42,000</td><td>🔴</td><td>加上限（建议「最多 +8000 / 免付最多 8000」）</td></tr>
+<tr><td>5</td><td><strong>机会 12「欧洲区域玩家」没有定义</strong>，实体局必吵架</td><td>🟡</td><td>卡面写死（建议「持有 ≥2 块欧洲地产」）</td></tr>
+<tr><td>6</td><td><strong>机会 11（监狱代购）实测 −15 元 ≈ 白板</strong>：8 人局平均在牢 0.18 人</td><td>🟡</td><td>300 → 1000/人，或附加「自己若在牢中则立即出狱」</td></tr>
+</tbody></table></div>
+<h4>三个次要结论</h4>
+<ul>
+<li><strong>道具供给严重不足</strong>：规则是每种 2 张（共 28 张），但模拟的<strong>真实需求是 55 件/局</strong>——只能满足 45%，
+</li></ul>
+<p>开局 2 圈内必被抢空。而且限量会让对局<strong>变慢 8%</strong>（241 vs 223 回合）。</p>
+<ul>
+<li><strong>8 人局时长是最大的实际问题</strong>：每人平均要行动 <strong>122 次</strong>，一局约 <strong>979 次掷骰</strong>，真人约 <strong>5.5~12 小时</strong>。
+</li>
+<li><strong>卡牌整体轻微通缩</strong>：机会牌每局从全场抽走约 1.6 万（拆房卡把房子变无主 = 价值蒸发），
+</li></ul>
+<p>命运牌注入约 1 万，净 −5,700/局。相对赤道酬金（每局注入约 27 万）几乎可忽略。</p>
+<h3>一、8 人局节奏与时长（600 局实测）</h3>
+<h4>1.1 对局长度</h4>
+<div class="tw"><table>
+<thead><tr><th>指标</th><th>数值</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>平均回合数</td><td><strong>241 回合</strong>（1 回合 = 存活玩家各动一次）</td><td>中位 217；p10 134 / p90 387</td></tr>
+<tr><td><strong>总「人·回合」</strong></td><td><strong>979 次/局</strong>（每人 <strong>122 次</strong>）</td><td>= 真人要进行的掷骰次数</td></tr>
+<tr><td>真正打到只剩一人</td><td><strong>98.0%</strong></td><td>其余按现金判胜</td></tr>
+<tr><td>首次破产</td><td>第 <strong>52</strong> 回合（p10 37 / p90 74）</td><td>前 1/5 是安全发育期</td></tr>
+<tr><td>平均每局破产人数</td><td>6.98 / 8</td><td>几乎必打到大清洗</td></tr>
+<tr><td>抽牌次数</td><td>机会 ≈ 49 次 + 命运 ≈ 49 次</td><td>平均每局 98 次抽牌</td></tr>
+<tr><td>商店访问</td><td>33.0 次/局</td><td>每人约 4 次</td></tr>
+<tr><td>坐牢</td><td>22.7 次/局</td><td>平均每人 2.8 次</td></tr>
+</tbody></table></div>
+<h4>1.2 真人时长估算（979 次行动）</h4>
+<div class="tw"><table>
+<thead><tr><th>每步耗时</th><th>一局总时长</th></tr></thead>
+<tbody>
+<tr><td>20 秒（熟手、无争议、道具已熟）</td><td>≈ <strong>5.4 小时</strong></td></tr>
+<tr><td>30 秒（正常节奏）</td><td>≈ <strong>8.2 小时</strong></td></tr>
+<tr><td>45 秒（新手 + 卡牌扯皮 + 拍卖竞价）</td><td>≈ <strong>12.2 小时</strong></td></tr>
+</tbody></table></div>
+<blockquote>命运牌有一半要额外判定（押大小、猜拳、比点数），实际只会更慢。<br><strong>8 人完整局 = 马拉松。</strong> 要么拆成两次玩，要么用下面的加速方案。</blockquote>
+<h4>1.3 加速方案（按性价比排序）</h4>
+<ol>
+<li><strong>设回合上限，按「现金 + 房产投入」排名</strong>（推荐 <strong>150 回合</strong>）——模拟里首次破产中位在第 52 回合，
+</li></ol>
+<p>150 回合时局势已完全明朗；</p>
+<ol>
+<li><strong>人数降到 5-6 人</strong>——总回合数大致按人数下降，5 人局估算 2.5-3.5 小时；
+</li>
+<li><strong>道具改为不限量</strong>（半价回售即补货）——一局从 241 降到 223 回合，且「真正打完」从 98.0% 升到 99.5%；
+</li>
+<li><strong>起始资金 15000 → 20000</strong>：成型更快、互杀更早；
+</li>
+<li><strong>赤道酬金 2000 → 1500</strong>：削减全场唯一的无风险注水（每局赤道共注入约 <strong>27 万</strong>）。
+</li></ol>
+<h3>二、⚠️ 系统性发现：规则 2 里「坐牢」是免费的</h3>
+<p>这是本次评估最重要的发现，它让<strong>一整类卡牌设计失效</strong>。</p>
+<h4>2.1 实测</h4>
+<div class="tw"><table>
+<thead><tr><th>口径</th><th>坐牢次数</th><th>每次平均净值变化</th></tr></thead>
+<tbody>
+<tr><td>所有人平均</td><td>22.69 次/局</td><td><strong>−5 元</strong></td></tr>
+<tr><td>领先者坐牢</td><td>5.43 次/局</td><td><strong>−12 元</strong></td></tr>
+<tr><td>大地主坐牢（名下 ≥3 块地）</td><td>16.50 次/局</td><td><strong>−6 元</strong></td></tr>
+</tbody></table></div>
+<p><strong>坐牢一个回合的真实代价是 5 块钱。</strong> 即使你是全场第一、即使你名下有三块地，也基本不亏。</p>
+<h4>2.2 为什么</h4>
+<p>直觉上「少走一回合」应该亏一回合的钱。但规则 2 里<strong>不移动是双向的</strong>：</p>
+<ul>
+<li>❌ 少拿 1 次赤道酬金（≈ 280 元/回合）
+</li>
+<li>❌ 少 1 次收租机会
+</li>
+<li>✅ <strong>但也少 1 次踩到别人满级地的机会</strong>（中期踩雷的期望损失 ≈ 2,000-5,000）
+</li></ul>
+<p>8 人局里 51 块地几乎铺满，走一步踩雷的概率远高于收租的概率。<strong>不走路 ≈ 不亏钱</strong>，<br>所以「坐牢」实际是<strong>免费休息</strong>，甚至对落后者是保护。</p>
+<h4>2.3 受影响的卡（全部是「卡面吓人、实际无害」）</h4>
+<div class="tw"><table>
+<thead><tr><th>卡</th><th>卡面惩罚</th><th>实测期望</th><th>问题</th></tr></thead>
+<tbody>
+<tr><td>命运 1 德州牛仔</td><td>50% 送进监狱 <strong>3 回合</strong></td><td><strong>+1,457</strong></td><td>卡面看着是全库最吓人的赌局，实际是 +1,500 的送钱卡（赢面 50% × 3000）</td></tr>
+<tr><td>命运 13 抢瑞士银行</td><td>75% 送进监狱 1 回合</td><td><strong>+729</strong></td><td>赢面只有 25% 却是正期望（0.25×3000 − 0.75×≈0）</td></tr>
+<tr><td>命运 4 马德里躲狗</td><td>50% 送进监狱 1 回合</td><td><strong>+480</strong></td><td>同上，赢面 50% × 1000</td></tr>
+<tr><td>机会 15 出千被抓</td><td>无房者坐牢 3 回合</td><td>—</td><td>「无房者坐牢」这条分支 ≈ <strong>无事发生</strong></td></tr>
+</tbody></table></div>
+<h4>2.4 怎么修（三选一）</h4>
+<ol>
+<li><strong>给坐牢加真实代价</strong>（推荐）：出狱时缴保释金 <strong>1000 × 关押回合数</strong>。
+</li></ol>
+<p>这样命运 1 的期望立刻从 +1,457 变成 ≈ −50，赌局才真的有赌注；</p>
+<ol>
+<li><strong>改赔率</strong>：命运 1 的 +3000 降到 1500，命运 13 的 +3000 降到 800；
+</li>
+<li><strong>接受现状，但写进规则</strong>：明确告诉玩家「坐牢基本无害，命运 1 是好卡」。
+</li></ol>
+<p>——这样至少不会出现「有人以为抽到命运 1 就完了」的误判。</p>
+<blockquote>⚠️ 如果你选方案 1，注意它会连带影响<strong>道具免责卡 / 嫁祸卡的价值</strong>（目前 1000 元买的是「躲掉 −5 元」，<br>同样是白板；加了保释金后它们才真正值钱）。</blockquote>
+<h3>三、机会牌逐张实测（v7 · 20 张，600 局）</h3>
+<blockquote>「抽卡者Δ」= 抽到这张牌的人的净值变化；「其他人Δ」= 全场其余 7 人净值变化之和；<br>「领先者Δ」= 抽卡瞬间是全场净值第一时的变化；「全场极值」= 单次最大净值重分配。</blockquote>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>卡面</th><th>触发/局</th><th>抽卡者Δ</th><th>其他人Δ</th><th>领先者Δ</th><th>全场极值</th><th>评估</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>瑞士举报洗钱</td><td>2.44</td><td>+1017</td><td>−1494</td><td><strong>−1476</strong></td><td>24,500</td><td>✅ 反领先卡，卡面已写明「现金最多者被罚」，知情即可</td></tr>
+<tr><td>2</td><td>巴拿马空壳公司</td><td>2.53</td><td>+924</td><td>−934</td><td>+997</td><td>25,480</td><td>✅</td></tr>
+<tr><td>3</td><td>戛纳游艇派对</td><td>2.40</td><td>+2964</td><td>−639</td><td>+2938</td><td>11,800</td><td>✅ 偏高但量级合理</td></tr>
+<tr><td>4</td><td>撒哈拉假罗盘</td><td>2.39</td><td>+847</td><td>+139</td><td>+784</td><td><strong>64,716</strong></td><td>⚠️ 极值最大（= 把前方棋子钉在你的满级组上）。机动卡，可留</td></tr>
+<tr><td>5</td><td>米兰倒卖球鞋</td><td>2.37</td><td>+1472</td><td>+31</td><td>+1467</td><td>10,780</td><td>✅</td></tr>
+<tr><td>6</td><td>买通马赛裁判</td><td>2.36</td><td>+2447</td><td>+51</td><td>+2494</td><td>24,800</td><td>✅</td></tr>
+<tr><td>7</td><td>偷登机牌（多走 1 次）</td><td>2.50</td><td><strong>−927</strong></td><td>+968</td><td>−1134</td><td>60,250</td><td>🔴 <strong>smile 卡实测负期望</strong>：多走一次 = 多踩一次雷</td></tr>
+<tr><td>8</td><td>迪拜泻药拍卖</td><td>2.42</td><td>−13</td><td><strong>−3798</strong></td><td>−8</td><td>10,000</td><td>⚠️ 全场单卡最大转移（对方平均亏 3,798）。反领先主力，但「你自选对方哪块房」太狠</td></tr>
+<tr><td>9</td><td>里约防抢劫符</td><td>2.44</td><td>+912</td><td>+89</td><td>+926</td><td>16,750</td><td>✅</td></tr>
+<tr><td>10</td><td>伦敦灾险纵火</td><td>2.53</td><td>+115</td><td>+47</td><td><strong>−725</strong></td><td>26,100</td><td>⚠️ 名义微笑卡；满级房主抽到倒亏，实为隐性反领先卡</td></tr>
+<tr><td>11</td><td>莫斯科监狱代购</td><td>2.46</td><td><strong>−15</strong></td><td>+15</td><td>−75</td><td>35,000</td><td>🟡 <strong>白板</strong>。8 人局平均在牢 0.18 人，抽到基本无事发生</td></tr>
+<tr><td>12</td><td>广州仿冒包</td><td>2.50</td><td>+856</td><td>−866</td><td>+635</td><td>20,500</td><td>🔴 <strong>「欧洲区域玩家」无定义</strong>。模拟按「持有 ≥2 块欧洲地产」，若按「棋子站在欧洲格」则几乎白板</td></tr>
+<tr><td>13</td><td>曼谷改说明书</td><td>2.46</td><td>+856</td><td>−870</td><td>+644</td><td>26,800</td><td>✅</td></tr>
+<tr><td>14</td><td>贿赂骰子之神（多走 1 次）</td><td>2.28</td><td><strong>−822</strong></td><td>+848</td><td>−843</td><td>41,590</td><td>🔴 同机会 7，smile 卡实为负期望</td></tr>
+<tr><td>15</td><td>拉斯维加斯出千被抓</td><td>2.38</td><td><strong>−6137</strong></td><td>+69</td><td><strong>−8870</strong></td><td><strong>56,000</strong></td><td>🔴 <strong>全场最狠的卡</strong>。拍卖所得全上交银行（0 回收），比机会 8 还狠（人家至少拿回 37.5%）；无房者「坐牢 3 回合」因坐牢免费 ≈ 无事发生 → 惩罚倒挂</td></tr>
+<tr><td>16</td><td>平壤假美元</td><td>2.60</td><td>−1588</td><td>+47</td><td>−1663</td><td>43,500</td><td>✅</td></tr>
+<tr><td>17</td><td>开罗镀金圣甲虫</td><td>2.47</td><td>−522</td><td>+22</td><td>−493</td><td>8,360</td><td>✅</td></tr>
+<tr><td>18</td><td>那不勒斯教唆</td><td>2.55</td><td>−1100</td><td>+74</td><td>−996</td><td><strong>73,738</strong></td><td>⚠️ 极值全库第二（下回合踩满级组 = 直接出局）。威慑设计有趣，可留</td></tr>
+<tr><td>19</td><td>哥伦比亚诈骗集团</td><td>2.50</td><td>−2633</td><td>+61</td><td>−2494</td><td>57,800</td><td>✅</td></tr>
+<tr><td>20</td><td>首尔人肉热搜</td><td>2.53</td><td>−1026</td><td>+1007</td><td>−713</td><td>35,200</td><td>✅</td></tr>
+</tbody></table></div>
+<h4>机会牌小结</h4>
+<ul>
+<li><strong>整副期望 ≈ −64 元/张</strong>（抽卡者）+ <strong>−257 元/张</strong>（其他人）= <strong>每局从全场抽走约 1.6 万元</strong>。
+</li></ul>
+<p>通缩来源是<strong>机会 8 和机会 15 这两张拆房卡</strong>——房子变无主 = 已投入成本凭空蒸发。</p>
+<ul>
+<li><strong>14 张 smile : 6 张 frown 的正负比是对的</strong>，抽机会整体是开心的事。但有 2 张 smile 卡（7、14）
+</li></ul>
+<p>实测是负的，<strong>卡面在骗人</strong>。</p>
+<ul>
+<li>摆动最大的是机会 15（极值 56,000）与机会 18（73,738），都是「一次定生死」的量级，
+</li></ul>
+<p>但它们都是 frown 卡，玩家有心理预期。</p>
+<h3>四、命运牌逐张实测（v7 · 20 张博弈牌，600 局）</h3>
+<blockquote>命运牌是「押注博弈牌」，设计原则是零期望：<strong>赢面 × 赢额 ≈ 输面 × 输额</strong>。<br>下表看「抽卡者Δ」是否接近 0（±500 内算合格）。</blockquote>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>卡面</th><th>赢面</th><th>抽卡者Δ</th><th>领先者Δ</th><th>全场极值</th><th>评估</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>德州牛仔灵魂赌局</td><td>50%</td><td><strong>+1457</strong></td><td>+1414</td><td>23,925</td><td>🔴 <strong>坐牢免费导致</strong>：赌注是「坐牢 3 回合」但实测代价 ≈ 0 → 变成纯送钱卡</td></tr>
+<tr><td>2</td><td>澳门地下钱庄</td><td>50%</td><td>+439</td><td>+574</td><td>30,040</td><td>✅</td></tr>
+<tr><td>3</td><td>西西里杀手互杀</td><td>50%</td><td>−80</td><td>−8</td><td>26,000</td><td>✅ 零和转移</td></tr>
+<tr><td>4</td><td>马德里躲狗</td><td>46.9%</td><td>+480</td><td>+514</td><td>18,000</td><td>⚠️ 同 1，坐牢免费 → 正期望；且实际胜率 46.9%（与你的移动骰挂钩）</td></tr>
+<tr><td>5</td><td>河内巫祝</td><td>50%</td><td>−78</td><td>−139</td><td>30,800</td><td>⚠️ 效果是「<strong>下回合</strong>租金 ×2 / ×0.5」，本次测量窗口覆盖不到，实测值偏低，请按卡面理解</td></tr>
+<tr><td>6</td><td>那不勒斯猜拳</td><td>50%</td><td>−109</td><td>−8</td><td>30,620</td><td>✅ 零和</td></tr>
+<tr><td>7</td><td>西西里金库</td><td>卡面 31.25%</td><td>−86</td><td>−128</td><td>22,960</td><td>🟡 卡面「小于 6」= 31.25%，但 cards.md 标 37.5%。按卡面是全库唯一数学上亏钱的牌，需统一</td></tr>
+<tr><td>8</td><td>蒙特卡洛轮盘</td><td>18.75%</td><td>−23</td><td>0</td><td>27,300</td><td>✅ 设计优秀：低概率高赔，期望精确为 0</td></tr>
+<tr><td>9</td><td>巴布亚祭祀舞</td><td>93.75%</td><td>−115</td><td>−225</td><td>42,594</td><td>✅ 期望 0，但 15/16 拿 +200、1/16 挨 −3000。公平但招恨，特色卡保留</td></tr>
+<tr><td>10</td><td>红磨坊竞猜</td><td>31.25%</td><td>−19</td><td>+14</td><td>15,960</td><td>✅ 设计优秀</td></tr>
+<tr><td>11</td><td>缅甸测谎仪</td><td>50%</td><td>+396</td><td>+364</td><td>7,800</td><td>✅ 「禁言」损失小于 +800，略偏正但可接受</td></tr>
+<tr><td>12</td><td>苏黎世行窃</td><td>50%</td><td>−68</td><td>−142</td><td>17,920</td><td>✅ 好的反领先设计</td></tr>
+<tr><td>13</td><td>抢瑞士银行（4 选 1）</td><td>25%</td><td><strong>+729</strong></td><td>+776</td><td>27,300</td><td>🔴 同 1，坐牢免费 → 赢面只有 25% 却是正期望</td></tr>
+<tr><td>14</td><td>台风醉汉</td><td>50%</td><td>−203</td><td><strong>−606</strong></td><td>4,000</td><td>⚠️ 反领先卡（拆最高级房）；无房者按卡面「无事发生」</td></tr>
+<tr><td>15</td><td>北京单双号限行</td><td>50%</td><td>−58</td><td>−117</td><td>24,600</td><td>⚠️ 负和卡（全场约 4 人各亏 1 回合），纯拖节奏，但对局势无偏向</td></tr>
+<tr><td>16</td><td>迪拜土豪收购</td><td>50%</td><td>+11</td><td>−40</td><td>15,188</td><td>✅ 赢了可拒卖（纯赚期权），输了拿回本金。零期望</td></tr>
+<tr><td>17</td><td>百慕大三角</td><td>50%</td><td>+180</td><td>+223</td><td>42,425</td><td>✅</td></tr>
+<tr><td>18</td><td>索马里赏金</td><td>50%</td><td>+499</td><td>+18</td><td><strong>74,940</strong></td><td>🔴 <strong>极值全库第一</strong>：拿走对方现金 20%，后期现金可达 30 万 → 单次转移 7.5 万。建议改「最多 5000」</td></tr>
+<tr><td>19</td><td>美国年会抽奖</td><td>50%（X≥9）</td><td>−14</td><td>−124</td><td>35,000</td><td>✅ 设计优秀：赔率随点数缩放</td></tr>
+<tr><td>20</td><td>拉什努显灵</td><td>50%</td><td>−54</td><td>−42</td><td>17,200</td><td>⚠️ 纯「判官卡」：抽卡者零参与感，被 −1 级者平白亏几千。建议给抽卡者一点小利</td></tr>
+</tbody></table></div>
+<h4>命运牌小结</h4>
+<ul>
+<li><strong>20 张里 16 张实测期望落在 ±500 以内</strong>，零期望原则执行得很好——这是全牌库最健康的部分。
+</li>
+<li><strong>唯一的正期望异常来自 3 张坐牢卡（1 / 4 / 13）</strong>，全部是第二节那个漏洞造成的。
+</li></ul>
+<p>修掉坐牢成本，这 3 张立刻回到 ±100 以内。</p>
+<ul>
+<li><strong>方差问题集中在命运 18</strong>（极值 74,940）。20% 现金在后期是个失控的数字。
+</li></ul>
+<h3>五、道具：价格与数量</h3>
+<h4>5.1 数量：供给只能满足 45% 的需求</h4>
+<div class="tw"><table>
+<thead><tr><th>口径</th><th>每局购买</th><th>平均回合</th><th>打完比例</th></tr></thead>
+<tbody>
+<tr><td><strong>规则口径（每种 2 张，共 28 张）</strong></td><td><strong>24.6 件</strong></td><td>241</td><td>98.0%</td></tr>
+<tr><td>不限量（真实需求）</td><td><strong>55.2 件</strong></td><td>223</td><td>99.5%</td></tr>
+</tbody></table></div>
+<p>→ <strong>规则里 28 张道具会被抢空</strong>（实测每种都是 2.00 次/局 = 全部售罄），<br>而真实需求是 55 件。<strong>限量还让对局变慢 8%</strong>。</p>
+<p><strong>必须写进规则的两件事</strong>（现在没写）：</p>
+<ol>
+<li><strong>半价回售的道具是否重新上架？</strong> 建议：<strong>是</strong>（回售即补货）——否则 28 张卖完，后半局商店形同虚设；
+</li>
+<li>商店刷出的 3 件<strong>是否含已售罄的</strong>？建议：<strong>不含</strong>，从有货的里面刷。
+</li></ol>
+<h4>5.2 逐件评估（不限量口径下的需求次数 = 真实受欢迎度）</h4>
+<div class="tw"><table>
+<thead><tr><th>道具</th><th>价格</th><th>需求/局&lt;br&gt;（不限量）</th><th>实际买到/局&lt;br&gt;（每种 2 张）</th><th>评估</th></tr></thead>
+<tbody>
+<tr><td>绿卡</td><td>1500</td><td><strong>5.68</strong></td><td>2.00</td><td>🔴 <strong>最抢手 + 定价偏低</strong>：免付一次无上限，后期一次免 42,000</td></tr>
+<tr><td>乌龟帽</td><td>1000</td><td>5.50</td><td>1.99</td><td>✅ 钉住领先者 3 回合约 1,200-2,400 损失，合理</td></tr>
+<tr><td>冷冻枪</td><td>1000</td><td>5.47</td><td>2.00</td><td>✅ ≈ 对手 1 回合，合理</td></tr>
+<tr><td>转向卡</td><td>1000</td><td>5.29</td><td>1.99</td><td>⚠️ 高手手里是「把人送回满级组」的谋杀工具（单次可达数万），1000 略便宜</td></tr>
+<tr><td>免责卡</td><td>1000</td><td>5.18</td><td>1.99</td><td>🟡 坐牢免费的前提下这是白板；修了保释金才值钱</td></tr>
+<tr><td>嫁祸卡</td><td>1000</td><td>4.96</td><td>2.00</td><td>🟡 同上，但还能把牢转嫁给前方对手，略好</td></tr>
+<tr><td>工程机器人</td><td>2000</td><td>4.85</td><td>1.99</td><td>✅ 省一次升级费（500~3,500），定价合理</td></tr>
+<tr><td>汽车</td><td>1000</td><td>4.73</td><td>1.99</td><td>✅ 一次跨 2-32 格 ≈ 白赚一回合，合理</td></tr>
+<tr><td>抢夺卡</td><td>1000</td><td>3.64</td><td>1.93</td><td>✅ 期望 ≈ 随机一件道具价值，零和换手</td></tr>
+<tr><td>拍卖卡</td><td>2000</td><td>3.49</td><td>1.96</td><td>✅ 逼对方 37.5% 贱卖，定价合理</td></tr>
+<tr><td>遥控骰子</td><td>1000</td><td>3.29</td><td>1.97</td><td>✅ 稳定换「踩自家地 = 免费升级」，合理</td></tr>
+<tr><td>导弹</td><td>2000</td><td>2.88</td><td>1.95</td><td>✅ 拆对手满级房 ≈ 3,000+ 损失，反领先主力</td></tr>
+<tr><td><strong>红卡</strong></td><td><strong>1500</strong></td><td><strong>0.21</strong></td><td>0.82</td><td>🔴 <strong>AI 几乎不买</strong>（只在满级组时才买），但真人任何连锁都敢用：满级黄绿一次收款 42,000 → 红卡 = <strong>+42,000</strong>。收益无上限，1500 白菜价</td></tr>
+<tr><td>路障</td><td>500</td><td>0（未建模）</td><td>0</td><td>🟡 <strong>规则缺定义</strong>：持续几回合？能否放在有主地产上？触发后是否消失？必须先写清</td></tr>
+</tbody></table></div>
+<h4>5.3 道具小结</h4>
+<ul>
+<li><strong>价格体系 80% 合理</strong>，只有<strong>红卡 / 绿卡需要加上限</strong>（建议「翻倍/免付最多 8000」）；
+</li>
+<li><strong>数量侧必须补「回售补货」</strong>，否则 28 张在开局 2 圈内售罄，后半局商店空转；
+</li>
+<li><strong>路障</strong>先把规则补全再谈价格；
+</li>
+<li>免责卡 / 嫁祸卡的价值完全取决于第二节那个「坐牢免费」的漏洞是否修。
+</li></ul>
+<h3>六、什么叫「不公平」——本次的判定标准</h3>
+<p>用户问「有没有不公平的卡牌」，我用这 5 条量化标准筛（全部基于 600 局实测）：</p>
+<div class="tw"><table>
+<thead><tr><th>标准</th><th>阈值</th><th>命中的卡</th></tr></thead>
+<tbody>
+<tr><td>① 期望失衡</td><td>命运牌（博弈）\</td><td>E\</td><td>&gt; 500；机会牌偏离卡面标注 &gt; 500</td><td>命运 1 (+1457)、命运 13 (+729)、命运 4 (+480 边缘)</td></tr>
+<tr><td>② 立场失衡</td><td>领先者 vs 平均的效果差 &gt; 2000，且卡面未声明</td><td>机会 15（−8870 vs −6137）、机会 1（卡面已声明，不算）</td></tr>
+<tr><td>③ 方差失衡</td><td>单次极值 &gt; 20000（= 初始资金的 1.3 倍）</td><td>命运 18 (74,940)、机会 18 (73,738)、机会 4 (64,716)、机会 7 (60,250)、机会 19 (57,800)、机会 15 (56,000)</td></tr>
+<tr><td>④ 卡面与实效不符</td><td>smile/frown 与实测符号相反，或标注概率与卡面不符</td><td><strong>机会 7 / 14（画 smile 实为负）</strong>、命运 7（31.25% vs 标 37.5%）</td></tr>
+<tr><td>⑤ 定义缺失</td><td>实体局必然产生分歧</td><td>机会 12（欧洲区域玩家）、路障、机会 4/命运 2 的「停留时事件照常触发」</td></tr>
+</tbody></table></div>
+<p><strong>按「是否让玩家明知」再分一层</strong>：</p>
+<ul>
+<li><strong>可接受的强卡</strong>：机会 1（卡面写明罚最富者）、机会 8（卡面写明强制拍卖）、命运 12（写明对最富者）——
+</li></ul>
+<p>玩家抽到时知道自己被针对/在针对谁，规则透明。</p>
+<ul>
+<li><strong>不可接受的强卡</strong>：机会 15（皱眉卡却影响最大 + 惩罚倒挂）、机会 7/14（smile 卡实为负）、
+</li></ul>
+<p>命运 1/13（写着「送进监狱」实为送钱）——<strong>玩家按卡面做的判断与实际相反</strong>。</p>
+<h3>七、修改建议汇总（按优先级）</h3>
+<h4>P0 · 影响公平，建议必改</h4>
+<ol>
+<li><strong>给坐牢加保释金</strong>（建议 1000 × 关押回合数）——否则命运 1/4/13、机会 15 的「坐牢」惩罚全是假的（第二节）；
+</li>
+<li><strong>机会 15</strong>：改成「拍卖后你拿回 37.5%」（与机会 8 同口径），无房者从「坐牢 3 回合」改为「−2000」；
+</li>
+<li><strong>机会 7 / 14</strong>：卡面改 frown，或加保护（如「这次额外移动不付过路费」）；
+</li>
+<li><strong>红卡 / 绿卡</strong>：翻倍/免付加上限（建议 8000）；
+</li>
+<li><strong>机会 12</strong>：卡面写死「欧洲区域玩家 = 持有 ≥2 块欧洲地产的玩家」。
+</li></ol>
+<h4>P1 · 数值与方差</h4>
+<ol>
+<li><strong>命运 18</strong>：20% 现金加封顶（建议最多 5000）；
+</li>
+<li><strong>机会 11</strong>：300 → 1000/人，或附加「自己若在牢中则立即出狱」；
+</li>
+<li><strong>命运 7</strong>：卡面「小于 6」与标注 37.5% 统一（建议卡面改「≤6」）；
+</li>
+<li><strong>机会 8</strong>：限定只能指定 ≤3 级的房（避免一卡打掉满级组核心）；
+</li>
+<li><strong>命运 20</strong>：给抽卡者一点小利（如 ±500），否则纯判官卡零参与感。
+</li></ol>
+<h4>P2 · 规则文档补几句就能解决</h4>
+<ol>
+<li>道具<strong>半价回售 = 重新上架</strong>写进规则（否则 28 张售罄后商店空转）；
+</li>
+<li><strong>路障</strong>规则补全：持续回合数、能否放在有主地产上、触发后是否消失；
+</li>
+<li>机会 4 / 命运 2 的「原地停留，事件照常触发」：明确「停在他人地产上是否再交租」（建议：是）；
+</li>
+<li>命运 11 的「禁言」是否禁止抽卡（卡面说禁止，建议按卡面）；
+</li>
+<li>规则文档补一句提示：<strong>「坐牢基本无害（不走路也不付租）」</strong>，或采用 P0-1 直接修掉。
+</li></ol>
+<h4>P3 · 节奏</h4>
+<ol>
+<li>8 人局建议 <strong>150 回合上限 + 按「现金+房产」排名</strong>，或降到 5-6 人；想打完整局请预留 5 小时以上。
+</li></ol>
+<h3>附：本次模拟的口径、修复与已知缺口</h3>
+<p><strong>本次修复的实现 bug（都会影响卡牌评估的准确性）</strong></p>
+<ul>
+<li><code>sim/game.py</code> 命运 11 的「禁言」分支曾是死代码（重复的 <code>elif idx == 11</code>），已修；
+</li>
+<li>命运 19 原本「赢了之后再摇一次 1-16」，导致「押中」反而可能亏钱；改为<strong>判定骰 X 直接复用</strong>
+</li></ul>
+<p>（X≥9 中奖、奖金 X×200−1600），与卡面一致；</p>
+<ul>
+<li>命运 17 的「前进/后退 X 格」原本直接改坐标，<strong>不触发赤道酬金</strong>；改为走正常移动流程；
+</li>
+<li>补上规则明写的「<strong>坐牢期间不能收租</strong>」（<code>JAIL_NO_RENT</code>，此前漏实现）；
+</li>
+<li>道具改为<strong>每种 2 张</strong>（<code>PROP_STOCK_PER_KIND</code>，此前不限量）。
+</li></ul>
+<p><strong>新增能力</strong></p>
+<ul>
+<li><code>AUDIT=1</code>：逐张卡牌的实战净值插桩（触发次数、抽卡者/其他人/领先者的净值变化、极值、触发破产）；
+</li>
+<li>坐牢成本插桩（分全体 / 领先者 / 大地主）；
+</li>
+<li><code>PROP_UNLIMITED=1</code>：道具不限量对照；
+</li>
+<li>首次破产回合、回合数分位数、总「人·回合」数。
+</li></ul>
+<p><strong>已知模拟缺口（影响绝对数值，不影响结论方向）</strong></p>
+<ul>
+<li>路障未建模（AI 不买）；
+</li>
+<li>拍卖时没有玩家竞价（按底价成交）；
+</li>
+<li>玩家之间没有交易与讨价还价；
+</li>
+<li>机会 4 / 命运 2 的「停留时事件照常触发」未实现（停留那一回合不结算地产）；
+</li>
+<li>命运 5 / 机会 18 的「下回合倍率」效果落在测量窗口之外，实测值偏低。
+</li></ul>
+<p>*所有数字由 <code>source/map-print-data.json</code> + <code>source/cards.md</code>（v7）+ <code>source/props.md</code></p>
+<ul>
+<li><code>sim/game.py</code> 现算得出（2026-10-13）。*
+</li></ul>
+</div>
+<footer>本文由 <code>tools/build.py</code> 从 <code>docs/balance-v7.md</code> 生成，改文档改那份 md 再跑脚本。</footer>
+</div>
+</body>
+</html>

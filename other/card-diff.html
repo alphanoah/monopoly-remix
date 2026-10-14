@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>原版实体卡 vs 自制新版卡：差异对照 · 大富翁改版</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 40px 0 24px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0; color: #6b6a66; font-size: 14.5px; max-width: 680px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  .md { font-size: 14.5px; padding: 8px 0 10px; }
+  .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
+  .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
+  .md h5 { font-size: 14px; font-weight: 500; margin: 16px 0 6px; color: #6b6a66; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
+  }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
+
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+
+  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .docs a {
+    display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; text-decoration: none; color: inherit;
+  }
+  .docs a:hover { border-color: #96597A; }
+  .docs b { font-size: 15px; font-weight: 500; display: block; margin-bottom: 4px; }
+  .docs span { font-size: 13px; color: #6b6a66; display: block; line-height: 1.55; }
+  .docs em {
+    font-style: normal; font-size: 11.5px; color: #96597A;
+    background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
+  footer code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+
+  @media (max-width: 600px) {
+    header { padding: 30px 0 20px; }
+    header h1 { font-size: 20px; }
+    .md { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
+  <h1>原版实体卡 vs 自制新版卡：差异对照</h1>
+  <p>原版 40 张实体卡 vs 自制 40 张的逐张差异对照</p>
+</header>
+<div class="md">
+<p>对照对象：</p>
+<ul>
+<li><strong>原版实体卡</strong>：<code>photos/命运牌.jpg</code> + <code>photos/机会牌.jpg</code>（命运 20 张 + 机会 20 张，
+</li></ul>
+<p>文字版见 <a href="../source/original/cards.md">original/cards.md</a>）</p>
+<ul>
+<li><strong>自制新版卡</strong>：<code>source/cards.md</code>（当前生效，机会 20 条 + 命运 20 条）；
+</li></ul>
+<p>历史版本（v1–v7）的演变见 git 提交记录：<code>git log --follow -- source/cards.md</code></p>
+<p>结论先说：<strong>两套牌不是同一个体系</strong>，自制版是在「环球旅游」这个共同主题上重新写的一套，主题和结构相似，但<strong>数值单位、效果类型、跟地图机制的耦合深度</strong>全面不同。</p>
+<h3>一、体系级差异</h3>
+<div class="tw"><table>
+<thead><tr><th>维度</th><th>原版实体卡</th><th>自制新版卡</th></tr></thead>
+<tbody>
+<tr><td>张数</td><td>命运 20 + 机会 20</td><td>命运 20 + 机会 20（后补 4+4 条）</td></tr>
+<tr><td>数值单位</td><td>「分」（门票 / 罚款 / 奖金）</td><td>「钱」，与初始资金 19580 配套</td></tr>
+<tr><td>数值区间</td><td>200 ~ 3000 分，全是固定值</td><td>±200 ~ ±3000，并出现 <code>-200*N</code>（按人数）</td></tr>
+<tr><td>效果类型</td><td>只有 5 类：加分、扣分、前进/退回、暂停、再翻一张</td><td>在原 5 类上<strong>新增机制类效果</strong>（见下）</td></tr>
+<tr><td>正负分布</td><td>机会、命运都是正负混搭</td><td>机会 70% 奖励（14/20）；命运 50% 奖励，其中一半是摇骰子博弈牌（输赢各半的中立牌）</td></tr>
+<tr><td>出生点联动</td><td>写在卡面上（如「如经过由此去得 2000 分」「退回起点」）</td><td>上升为底层规则（每次路过出生点 +2000），卡面回起点还特别注明「没有奖励」</td></tr>
+<tr><td>文案风格</td><td>写实地标旅游（迪士尼、威尼斯、珠峰、马六甲）</td><td>魔幻 + 网络梗（克苏鲁、外星人绑架、走私显卡、假冒 FBI、磁悬浮）</td></tr>
+</tbody></table></div>
+<h3>二、自制版新增的效果类型（原版完全没有）</h3>
+<ol>
+<li><strong>骰子次数 +1</strong>（磁悬浮列车、巴拿马运河）
+</li>
+<li><strong>房屋免费升级一次 / 强制降级一次</strong>（埃及工程队、叙利亚导弹）
+</li>
+<li><strong>触发强制拍卖</strong>（缅甸诈骗）
+</li>
+<li><strong>向所有玩家收取过路费</strong>（假冒 FBI 查房）
+</li>
+<li><strong>送进监狱 / 跳过回合</strong>（美国牛仔决斗、澳大利亚外星人）
+</li>
+<li><strong>按玩家人数结算</strong>（生日红包 +200×N、发红包 -200×N）
+</li>
+<li><strong>后退移动</strong>（加拿大飓风：+1 骰子次数但向后移动）
+</li></ol>
+<p>而<strong>原版只有纯金钱 + 位置移动</strong>，不碰房子、拍卖、监狱这些系统。</p>
+<h3>三、原版有、自制版删掉的</h3>
+<ul>
+<li><strong>再翻一张牌</strong>：原版命运 1-20「种植油棕」和机会「斯里兰卡」都能触发「再翻下一张机会牌」的连锁；自制版没有任何连锁牌。
+</li>
+<li><strong>按房屋/旅馆数量计税</strong>：原版「支付地税」「缴纳房产税」= 房屋每幢 250 分、旅馆每幢 1000 分；自制版没有这种按资产计税的牌。
+</li>
+<li><strong>小额固定花费</strong>：船租金、雪橇、学费、门票等固定扣分；自制新版已完全去掉这类小额扣分牌。
+</li></ul>
+<h3>四、主题撞车的条目（同一地点/事件，处理不同）</h3>
+<div class="tw"><table>
+<thead><tr><th>主题</th><th>原版</th><th>自制版</th><th>变化</th></tr></thead>
+<tbody>
+<tr><td>拉斯维加斯表演魔术</td><td>机会 13-20：<strong>+2000 分</strong>（好事）</td><td>命运 15：<strong>+500</strong>（放进了命运牌）</td><td>数值变小 + 从机会挪到命运</td></tr>
+<tr><td>日本地震</td><td>机会 11-20：<strong>-1000 分</strong></td><td>机会 16：<strong>-500</strong></td><td>数值减半</td></tr>
+<tr><td>俄罗斯</td><td>机会 1-20：开采矿石 <strong>+2500 分</strong></td><td>命运 13：捡到钻石 <strong>+1000</strong></td><td>数值变小 + 挪到命运</td></tr>
+<tr><td>墨西哥</td><td>命运 17-20：玛雅古文明（奖金 500）</td><td>命运 14：走私显卡 <strong>+2000</strong></td><td>完全改写</td></tr>
+</tbody></table></div>
+<p>原版的「请朋友吃韩国烤肉 -200 分」「到巴西看世界杯 -200 分」在新版中已删除，不再对应。</p>
+<h3>五、概率平衡设计（2026-10-09 调整后）</h3>
+<ul>
+<li><strong>机会牌 20 张 = 14 奖励 + 6 惩罚（奖励率 70%）</strong>，翻开即生效，整体偏「机遇」。
+</li>
+<li><strong>命运牌 20 张 = 10 张摇骰子博弈 + 5 纯奖励 + 5 纯惩罚（期望奖励率 50%）</strong>。
+</li>
+<li>博弈牌不翻开就定生死：先押「大小（1-8 小 / 9-16 大）」或「单双」，再摇十六面骰判定，输赢各半；判定骰与移动骰分开摇，判定摇到 16 不触发「再摇一次」。
+</li>
+<li>期望值 = (10 × 50% + 5) ÷ 20 = 50%，正好一半。
+</li></ul>
+<h3>六、一句话总结</h3>
+<p>原版是「<strong>旅游版收钱/付钱的随机事件</strong>」；自制版是「<strong>旅游主题 + 大富翁机制联动 + 摇骰子博弈</strong>」——机会 70% 奖励、命运 50% 奖励（一半牌要押注判定），数值放大到跟初始资金 19580 匹配，风格也从写实改成魔幻梗。</p>
+</div>
+<footer>本文由 <code>tools/build.py</code> 从 <code>docs/card-diff.md</code> 生成，改文档改那份 md 再跑脚本。</footer>
+</div>
+</body>
+</html>

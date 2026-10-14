@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卡牌字段说明（`source/cards.md`） · 大富翁改版</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 40px 0 24px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0; color: #6b6a66; font-size: 14.5px; max-width: 680px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  .md { font-size: 14.5px; padding: 8px 0 10px; }
+  .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
+  .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
+  .md h5 { font-size: 14px; font-weight: 500; margin: 16px 0 6px; color: #6b6a66; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
+  }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
+
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+
+  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .docs a {
+    display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; text-decoration: none; color: inherit;
+  }
+  .docs a:hover { border-color: #96597A; }
+  .docs b { font-size: 15px; font-weight: 500; display: block; margin-bottom: 4px; }
+  .docs span { font-size: 13px; color: #6b6a66; display: block; line-height: 1.55; }
+  .docs em {
+    font-style: normal; font-size: 11.5px; color: #96597A;
+    background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
+  footer code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+
+  @media (max-width: 600px) {
+    header { padding: 30px 0 20px; }
+    header h1 { font-size: 20px; }
+    .md { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
+  <h1>卡牌字段说明（`source/cards.md`）</h1>
+  <p>卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导</p>
+</header>
+<div class="md">
+<p>卡牌内容的唯一真源是 <strong><code>source/cards.md</code></strong>（Markdown 表格）。改这里 → 跑 <code>python3 tools/build.py</code><br>→ 生成 <code>data/cards.json</code> 并同步首页 / 打印页 / README。push 后 GitHub Actions 跑同一个脚本。</p>
+<p>想用 Excel / Numbers 批量改：首页「机会/命运卡牌」区点「导出 CSV / Excel」→ 改完 →<br><code>python3 tools/import-cards.py 文件.csv</code> 回导成 cards.md（回导前会自动校验 + 回读比对）。</p>
+<h3>一、cards.md 的结构</h3>
+<p>三层结构：<strong>版本 → 花色 → 表格</strong>。</p>
+<p><code>`</code>markdown</p>
+<h3>v7 · 邪恶版 · 世界之旅（修订）        ← 版本小节：首个词是版本号，整行是页面版本下拉里显示的名字</h3>
+<h4>机会牌（20 张）                      ← 花色小节：以「机会」或「命运」开头</h4>
+<div class="tw"><table>
+<thead><tr><th>编号</th><th>表情</th><th>事件</th><th>效果</th><th>命中率</th><th>启用</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>smile</td><td>你买的国足赢了世界杯</td><td>+3000</td><td></td><td>1</td></tr>
+</tbody></table></div>
+<h4>命运牌（20 张）</h4>
+<div class="tw"><table>
+<thead><tr><th>编号</th><th>事件</th><th>判定</th><th>赢</th><th>输</th><th>命中率</th><th>启用</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>你在美国跟牛仔决斗……</td><td>押大小：……</td><td>押中：+3000</td><td>押错：送进监狱</td><td>50%</td><td>1</td></tr>
+</tbody></table></div>
+<p><code>`</code></p>
+<ul>
+<li><strong>加新版本</strong>：复制一个 <code>##</code> 版本块改版本号即可，不用动代码；<code>##</code> 标题整行就是下拉里显示的名字。
+</li>
+<li><strong>默认版本</strong>、每版张数统计都由脚本现算，页面上不写死。
+</li>
+<li>空单元格 = 该字段留空（不进 JSON）；单元格里的竖线要转义成 <code>\|</code>。
+</li>
+<li>同一版本内<strong>先机会牌后命运牌</strong>；表格行序 = 页面卡号顺序。
+</li></ul>
+<h3>二、字段对照</h3>
+<div class="tw"><table>
+<thead><tr><th>md 列</th><th>JSON 字段</th><th>类型 / 取值</th><th>必填</th><th>卡面显示在哪</th></tr></thead>
+<tbody>
+<tr><td>（<code>##</code> 版本号）</td><td><code>versions</code> 的键</td><td>如 <code>v7</code></td><td>✅</td><td>决定版本下拉</td></tr>
+<tr><td>（<code>###</code> 花色）</td><td><code>deck</code></td><td>机会 = <code>chance</code> / 命运 = <code>fate</code></td><td>✅</td><td>决定底色与标题（机会=粉紫 / 命运=米黄）</td></tr>
+<tr><td>编号</td><td>❌ 不进 JSON</td><td>整数，从 1 开始</td><td>建议填</td><td>不显示，仅作人工核对</td></tr>
+<tr><td>表情</td><td><code>face</code></td><td><code>smile</code> 或 <code>frown</code></td><td>机会牌 ✅ / 命运牌留空</td><td>机会牌的表情图标</td></tr>
+<tr><td>事件</td><td><code>event</code></td><td>任意文本</td><td>✅</td><td>卡面正文第一行</td></tr>
+<tr><td>效果</td><td><code>effect</code></td><td>任意文本</td><td>机会牌 ✅ / 命运牌留空</td><td>机会牌第二行</td></tr>
+<tr><td>判定</td><td><code>cond</code></td><td>任意文本</td><td>命运牌 ✅ / 机会牌留空</td><td>命运牌「摇骰 · xxx」行</td></tr>
+<tr><td>赢</td><td><code>win</code></td><td>任意文本</td><td>命运牌 ✅ / 机会牌留空</td><td>命运牌「赢：xxx」（笑脸）</td></tr>
+<tr><td>输</td><td><code>lose</code></td><td>任意文本</td><td>命运牌 ✅ / 机会牌留空</td><td>命运牌「输：xxx」（哭脸）</td></tr>
+<tr><td>命中率</td><td><code>rate</code></td><td>如 <code>50%</code></td><td>❌</td><td>不显示，纯备注</td></tr>
+<tr><td>启用</td><td>❌ 不进 JSON</td><td><code>1</code> 采用 / <code>0</code> 弃用</td><td>❌（留空 = <code>1</code>）</td><td><code>0</code> 的牌不出现</td></tr>
+</tbody></table></div>
+<blockquote><strong>空值不进 JSON</strong>：转换时值为空的字段会被省略，JSON 里不会出现空字符串字段。</blockquote>
+<p>两种牌要填的列是<strong>互斥</strong>的：页面靠 <code>cond</code> 有没有内容区分渲染哪种卡面，<br>机会牌一旦填了「判定」，页面会把它当成命运牌来画（出现摇骰/赢/输三行），属于填错。</p>
+<ul>
+<li>表情：<code>smile</code> → 笑脸（奖励）/ <code>frown</code> → 哭脸（惩罚）；命运牌留空（表情由赢/输行固定）。
+</li>
+<li>命运牌三件套渲染成：<code>摇骰 · &lt;判定&gt;</code> / <code>😊 赢：&lt;赢&gt;</code> / <code>😢 输：&lt;输&gt;</code>。
+</li>
+<li>编号只用于人工核对；页面卡号 <code>n-20</code> 按表格行序自动生成，别让编号和行序对不上。
+</li>
+<li>命中率会原样进 JSON，但页面不读，纯粹方便核对零期望。
+</li>
+<li>想临时拿掉某张牌试效果，把「启用」改成 <code>0</code> 比删行安全，随时能加回来。
+</li></ul>
+<h4>金额的正号不用操心</h4>
+<p>「效果 / 赢 / 输」里写 <code>+3000</code> 还是 <code>3000</code> 都行，<strong>显示出来都是 <code>+3000</code></strong>：<br>只要一个格子整个就是一个正整数，脚本读取时自动补 <code>+</code>（负号和带文字的不受影响）。<br>这是为了兼容 Excel / Numbers —— 它们把 <code>+3000</code> 当数值，保存时正号会丢。</p>
+<h3>三、Excel 批量编辑工作流</h3>
+<ol>
+<li>首页「机会/命运卡牌」区点「导出 CSV」（或「导出 Excel」）。
+</li>
+<li>用 Excel / Numbers 改。<strong>保存 / 导出时选「CSV UTF-8」</strong>，否则中文会乱码。
+</li>
+<li>回导：<code>python3 tools/import-cards.py 路径/文件.csv</code>（加 <code>-n</code> 只校验不写）。
+</li>
+<li>回导成功后再跑 <code>python3 tools/build.py</code> 同步页面。
+</li></ol>
+<p>CSV 中转格式的表头固定 11 列，与 md 字段一一对应：</p>
+<p><code>`</code><br>version,deck,seq,face,event,effect,cond,win,lose,rate,use<br><code>`</code></p>
+<ul>
+<li>版本名（<code>##</code> 标题）不进 CSV；回导时沿用现有 cards.md 的版本名，新版本默认显示版本号大写，之后去 md 里改标题即可。
+</li>
+<li>回导脚本会复用构建脚本的同一套校验，并且把生成的 md 再解析一遍逐字段比对，不一致就不写文件。
+</li></ul>
+<h3>四、脚本会拦什么（校验规则）</h3>
+<p><code>tools/build.py</code> 跑一次全量校验，<strong>任何一条不过就不写文件</strong>，并在终端指出是哪张牌：</p>
+<div class="tw"><table>
+<thead><tr><th>检查</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>版本 / 花色小节结构</td><td><code>##</code> 版本 → <code>###</code> 机会或命运 → 表格，缺一不可</td></tr>
+<tr><td>表头与列数</td><td>列名、列序必须和约定完全一致（防止列错位）</td></tr>
+<tr><td><code>event</code> 非空</td><td>卡面不能没字</td></tr>
+<tr><td>机会牌表情 ∈ <code>smile</code> / <code>frown</code></td><td>决定表情</td></tr>
+<tr><td>机会牌效果非空</td><td>没有效果就不是机会牌</td></tr>
+<tr><td>命运牌判定 / 赢 / 输非空</td><td>三件套缺一不可</td></tr>
+</tbody></table></div>
+<p>另外终端会打印每个版本的机会/命运张数，方便一眼看出是不是填漏了。</p>
+<blockquote>校验只管结构和必填，<strong>不管平衡性</strong>。改了金额想验证零期望，得自己按「赢面 × 赢额 = 输面 × 输额」核对。</blockquote>
+</div>
+<footer>本文由 <code>tools/build.py</code> 从 <code>docs/card-fields.md</code> 生成，改文档改那份 md 再跑脚本。</footer>
+</div>
+</body>
+</html>

@@ -21,7 +21,7 @@
 - **首页 `index.html`**：现在在玩的规则是 **v2**（`source/new-rule.md` 生成，默认打开）。
   页面从上到下五块：①「为什么要改这一版」改版背景；②「游戏规则」三版并列（原版 / v1 / v2），
   点卡片切换，**默认 v2**；③「机会/命运卡牌」自制卡牌全文，可按版本切换浏览（当前 v7，共 4 版）；
-  ④「道具清单」14 件道具与商店规则；⑤「打印」「电子地图」「原版资料」三个入口。
+  ④「道具清单」14 件道具与商店规则；⑤「打印」「电子地图」「原版资料」「更多文档」四个入口。
 - **电子地图 `map.html`**：棋盘 SVG，两档视图 ——
   **打印版**（按实体棋盘一比一还原的 80×80cm 软垫图，点「打印」直接出 800×800mm）、
   **放大版**（同一张图，跑道加厚吃进中间空、文字竖排放大，手机上也能看清）。
@@ -33,6 +33,7 @@
 - **打印 / 电子地图共用一份真源**：`source/map-print-data.json`
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录，用来对照改版改了什么
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印；最左边可切「卡牌 / 道具」
+- **更多文档 `other/index.html`**：改版过程中的分析文档（攻略、平衡性、卡牌对照、字段说明），由 `docs/` 下的 md 生成
 - **许可**：CC BY-NC 4.0，见 [LICENSE.md](LICENSE.md)
 
 > `original.html` 是实体《大富翁》的卡牌、说明书、地图格子转录，
@@ -179,7 +180,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 
 ```
 richer/
-├── index.html              首页：改版背景 + 规则三版切换（原版/v1/v2，默认 v2）+ 机会/命运卡牌（v4–v7 可切）+ 道具清单 + 打印/地图/原版资料入口（脚本生成，静态）
+├── index.html              首页：改版背景 + 规则三版切换（原版/v1/v2，默认 v2）+ 机会/命运卡牌（v4–v7 可切）+ 道具清单 + 打印/地图/原版资料/更多文档入口（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具，可切卡牌/道具（脚本回写兜底）
 ├── map.html                电子地图：棋盘 SVG（脚本回写兜底）
@@ -191,13 +192,14 @@ richer/
 ├── LICENSE.md              CC BY-NC 4.0
 ├── source/                ← 手写真源：要改东西就改这里（详见下表）
 ├── data/                   ← 脚本生成：cards.json / props.json，勿手改（见 data/README.md）
-├── docs/                   ← 使用说明（纯文档，不参与生成）
+├── docs/                   ← 手写真源：攻略 / 平衡性 / 卡牌对照等文档（详见下表）
+├── other/                  ← 脚本生成：docs/ 的 HTML 版 + 索引页，勿手改
 ├── tools/
 │   ├── build.py            一键更新入口：source/ → data/ + 首页 + 原版页 + 打印页 + 地图页 + README 速览
 │   │                       · python3 tools/build.py              全部跑一遍
 │   │                       · python3 tools/build.py --step gen_pages   只跑某一步
 │   ├── import-cards.py     卡牌 CSV → source/cards.md 回导（配合首页「导出」按钮批量编辑）
-│   ├── steps/              五个构建步骤：validate / gen_data / gen_pages / gen_map / gen_readme
+│   ├── steps/              六个构建步骤：validate / gen_data / gen_pages / gen_map / gen_docs / gen_readme
 │   └── lib/                公共模块：cards / props / mapdata 解析、md→HTML、标记块替换、路径
 ├── sim/                    ← 对局模拟，独立于构建链
 │   ├── sim-v2.py           规则 2 模拟：落点分布 + 组经济 + 起点口径对照（python3 sim/sim-v2.py）
@@ -234,7 +236,7 @@ richer/
 
 > 目录里的 `.DS_Store` 是 macOS 自己生成的，已被 `.gitignore` 排除，不用管。
 
-### `docs/` 里都是什么（纯说明，不参与生成）
+### `docs/` 里都是什么（真源，脚本转成 `other/` 下的 HTML 页面）
 
 | 文件 | 是什么 |
 |---|---|

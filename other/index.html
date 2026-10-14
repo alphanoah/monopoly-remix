@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>更多文档 · 大富翁改版</title>
+<meta name="description" content="大富翁改版的分析文档：胜率攻略、卡牌与道具平衡性实测、卡牌对照、维护说明。">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 40px 0 24px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0; color: #6b6a66; font-size: 14.5px; max-width: 680px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  .md { font-size: 14.5px; padding: 8px 0 10px; }
+  .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
+  .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
+  .md h5 { font-size: 14px; font-weight: 500; margin: 16px 0 6px; color: #6b6a66; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
+  }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
+
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+
+  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .docs a {
+    display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; text-decoration: none; color: inherit;
+  }
+  .docs a:hover { border-color: #96597A; }
+  .docs b { font-size: 15px; font-weight: 500; display: block; margin-bottom: 4px; }
+  .docs span { font-size: 13px; color: #6b6a66; display: block; line-height: 1.55; }
+  .docs em {
+    font-style: normal; font-size: 11.5px; color: #96597A;
+    background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
+  footer code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+
+  @media (max-width: 600px) {
+    header { padding: 30px 0 20px; }
+    header h1 { font-size: 20px; }
+    .md { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="nav"><a href="../index.html">← 首页</a></p>
+  <h1>更多文档</h1>
+  <p>改版过程中的推演与实测：胜率攻略、卡牌与道具平衡性、卡牌对照、数据维护说明。
+     这里每篇都由 <code>docs/</code> 下的同名 md 生成。</p>
+</header>
+<ul class="docs">
+<li><a href="strategy-v2.html"><b>规则 2 胜率策略（1 枚十六面骰 · 连锁过路费）<em>攻略</em></b><span>现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测</span></a></li>
+<li><a href="strategy.html"><b>原版地图胜率策略（基于 64 格地图数据）<em>攻略</em></b><span>原版地图（2 颗骰子）的落点概率实测、选组优先级、卡牌期望、抵押与交易反制</span></a></li>
+<li><a href="balance-v7.html"><b>v7 卡牌 &amp; 道具平衡性评估（8 人局实测）<em>平衡性</em></b><span>v7 卡牌 &amp; 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长</span></a></li>
+<li><a href="card-audit-report.html"><b>卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测<em>平衡性</em></b><span>卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定</span></a></li>
+<li><a href="card-diff.html"><b>原版实体卡 vs 自制新版卡：差异对照<em>卡牌</em></b><span>原版 40 张实体卡 vs 自制 40 张的逐张差异对照</span></a></li>
+<li><a href="card-fields.html"><b>卡牌字段说明（`source/cards.md`）<em>维护</em></b><span>卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导</span></a></li>
+</ul>
+<footer>由 <code>tools/build.py</code> 生成，共 6 篇。</footer>
+</div>
+</body>
+</html>

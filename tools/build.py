@@ -14,7 +14,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib import paths  # noqa: F401  路径统一在 lib/paths.py
-from steps import validate, gen_data, gen_pages, gen_map, gen_readme
+from steps import validate, gen_data, gen_pages, gen_map, gen_docs, gen_readme
 
 # 首页「游戏规则」区：三版并列，点卡片切换
 #   (key, 卡片主标题, 卡片副标题, md 路径, 页面里的源文件链接, 链接前缀, 要折叠的小节)
@@ -40,6 +40,17 @@ ORIGINAL_DOCS = [
     ('manual.md', None, True),
     ('map-data-guide.md', '地图数据使用指南（速览 · 投资建议 · FAQ）', False),
     ('map-tiles.md', gen_pages.title_for_tiles, False),
+]
+
+# docs/ 文档 → other/ 独立页面（gen_docs）：(文档名, 类别, 索引页一句话简介)
+#   源是 docs/<文档名>.md，输出 other/<文档名>.html；页面标题自动取 md 的一级标题，不要在这里重复写
+DOCS = [
+    ('strategy-v2', '攻略', '现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测'),
+    ('strategy', '攻略', '原版地图（2 颗骰子）的落点概率实测、选组优先级、卡牌期望、抵押与交易反制'),
+    ('balance-v7', '平衡性', 'v7 卡牌 & 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长'),
+    ('card-audit-report', '平衡性', '卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定'),
+    ('card-diff', '卡牌', '原版 40 张实体卡 vs 自制 40 张的逐张差异对照'),
+    ('card-fields', '维护', '卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导'),
 ]
 
 # 站点地图：页面 → [(标记块, 生成器名)]。生成器在各 step 模块的 GENERATORS 里注册，这里只声明「谁喂谁」。
@@ -71,6 +82,7 @@ STEPS = [
     ('gen_data', gen_data),
     ('gen_pages', gen_pages),
     ('gen_map', gen_map),
+    ('gen_docs', gen_docs),
     ('gen_readme', gen_readme),
 ]
 
@@ -91,6 +103,7 @@ def main():
         'original_docs': ORIGINAL_DOCS,
         'default_rule': DEFAULT_RULE,
         'pages': PAGES,
+        'docs': DOCS,
     }
     for name, mod in STEPS:
         if selected and name not in selected:

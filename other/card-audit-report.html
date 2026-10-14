@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测 · 大富翁改版</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 40px 0 24px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0; color: #6b6a66; font-size: 14.5px; max-width: 680px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  .md { font-size: 14.5px; padding: 8px 0 10px; }
+  .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
+  .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
+  .md h5 { font-size: 14px; font-weight: 500; margin: 16px 0 6px; color: #6b6a66; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
+  }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
+
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+
+  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .docs a {
+    display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; text-decoration: none; color: inherit;
+  }
+  .docs a:hover { border-color: #96597A; }
+  .docs b { font-size: 15px; font-weight: 500; display: block; margin-bottom: 4px; }
+  .docs span { font-size: 13px; color: #6b6a66; display: block; line-height: 1.55; }
+  .docs em {
+    font-style: normal; font-size: 11.5px; color: #96597A;
+    background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
+  footer code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+
+  @media (max-width: 600px) {
+    header { padding: 30px 0 20px; }
+    header h1 { font-size: 20px; }
+    .md { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
+  <h1>卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测</h1>
+  <p>卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定</p>
+</header>
+<div class="md">
+<blockquote><strong>数据口径</strong>：<code>sim/game.py</code> 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、<br>坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。<br><strong>样本</strong>：<code>AUDIT=1 TRIALS=600 python3 sim/game.py</code>（逐卡插桩 600 局）。<br><strong>配套文档</strong>：修改建议清单见 <a href="balance-v7.html">balance-v7.md</a>，打法攻略见<br><a href="strategy-v2.html">strategy-v2.md</a>。本文回答三个问题：<br><strong>① 净值是怎么算的 ② 坐牢到底亏不亏 ③ 哪些卡不公平。</strong></blockquote>
+<h3>一、净值计算逻辑（测量的地基）</h3>
+<h4>1.1 净值定义</h4>
+<p><code>`</code><br>玩家净值 = 现金 + 名下每块房产的「已投入成本」<br>已投入成本 = 买地价 + 已花掉的升级费（1~4 级各 0.5×地价，第 5 级 1.0×地价）<br><code>`</code></p>
+<p>代码：<a href="../sim/game.py">snapshot()（sim/game.py L342-L348）</a><br>与 <a href="../sim/game.py">_worth()（sim/game.py L350-L360）</a>。</p>
+<p><strong>为什么用这个口径：</strong></p>
+<ul>
+<li>它是唯一能<strong>跨现金/房产比较</strong>的尺度——「被拆掉一栋满级房」和「被罚 3000 现金」
+</li></ul>
+<p>只有换算成同一单位才能放在一张表里；</p>
+<ul>
+<li>它<strong>只算已砸进去的钱，不含未来租金预期</strong>——所以它衡量的是「这一瞬间你亏/赚了多少」，
+</li></ul>
+<p>而不是「这张卡对你的长期影响」。长期影响（机会成本）不在其中，这一点在第二节至关重要。</p>
+<h4>1.2 卡牌事件的测量窗口</h4>
+<p>代码：<a href="../sim/game.py">audit_card()（sim/game.py L362-L385）</a>、<br><a href="../sim/game.py">resolve_card()（sim/game.py L387-L389）</a>。</p>
+<p><code>`</code><br>抽卡前快照（全场现金 + 每格归属/等级）<br>→ 结算卡牌效果（含连锁引发的付款/拍卖/破产）<br>→ 结算后再算一次净值<br>抽卡者Δ = 事后净值 − 事前净值（抽到这张牌的人）<br>其他人Δ = 其余 7 人的净值变化之和<br>领先者Δ = 抽卡瞬间净值全场第一的那个人的变化<br>全场极值 = 600 局里单次最大净值重分配<br><code>`</code></p>
+<p><strong>口径细节（读表前必须知道的三件事）：</strong></p>
+<ol>
+<li><strong>窗口覆盖整次结算</strong>，包括这张卡引发的拍卖、破产、连锁付款——所以「极值」一栏
+</li></ol>
+<p>会出现 5-7 万（那是「这张卡直接把某人打破产」的量级）；</p>
+<ol>
+<li><strong>「下回合生效」的效果落在窗口外</strong>（命运 5 租金倍率、机会 18 过路费翻倍、命运 11 禁言）——
+</li></ol>
+<p>这几张卡的实测值系统性偏低，报告中已单独标注，按卡面理解；</p>
+<ol>
+<li><strong>破产转移会被完整记录</strong>：若一张卡把某人打破产，其房产按规则判给债主，
+</li></ol>
+<p>债主的净值上升、破产者归零，两边都计入。</p>
+<h4>1.3 坐牢事件的测量窗口</h4>
+<p>代码：<a href="../sim/game.py">turn()（sim/game.py L759-L767）</a><br>与 <a href="../sim/game.py">audit_jail()（sim/game.py L740-L756）</a>。</p>
+<p><code>`</code><br>入狱后第一个回合开始时拍快照<br>→ 坐牢期间每回合 jail −= 1（不能动、不能收租、不能用道具）<br>→ 出狱那一瞬再算净值<br>单次坐牢净值变化 d = 出狱时净值 − 入狱时净值<br><code>`</code></p>
+<p>快照刻意<strong>从入狱之后才开始拍</strong>——「送你进去的那张卡」的损失记在卡牌账上，<br>这里只隔离「坐牢本身」的成本，不重复计算。</p>
+<h3>二、坐牢代价分析：实测每次 −5 元</h3>
+<h4>2.1 实测结果（600 局，22.69 次坐牢/局）</h4>
+<div class="tw"><table>
+<thead><tr><th>口径</th><th>坐牢次数</th><th>每次平均净值变化</th></tr></thead>
+<tbody>
+<tr><td>所有人平均</td><td>22.69 次/局</td><td><strong>−5 元</strong></td></tr>
+<tr><td>领先者（入狱时净值全场第一）</td><td>5.43 次/局</td><td><strong>−12 元</strong></td></tr>
+<tr><td>大地主（名下 ≥3 块地）</td><td>16.50 次/局</td><td><strong>−6 元</strong></td></tr>
+</tbody></table></div>
+<p><strong>在净值口径下，坐牢一个回合的真实代价约等于 0。</strong><br>（−5 / −12 / −6 的微小负值是窗口边界扰动，属噪声级。）</p>
+<h4>2.2 为什么接近 0——这不是 bug，是结构</h4>
+<p>坐牢期间：现金不减少（规则没有保释金）、房产归属与等级不变 → <strong>净值必然几乎不动</strong>。</p>
+<p>有人直觉上觉得「少走一回合应该亏一回合的钱」，但那是<strong>机会成本</strong>，不在净值口径里。<br>而且规则 2 里「不移动」的损失是双向对冲的：</p>
+<div class="tw"><table>
+<thead><tr><th>坐牢一回合让你少拿</th><th>坐牢一回合让你躲开</th></tr></thead>
+<tbody>
+<tr><td>赤道酬金期望 ≈ 280 元</td><td>踩别人满级地的期望损失 ≈ 2,000-5,000（中期 51 块地几乎铺满，走一步踩雷概率远高于收租概率）</td></tr>
+<tr><td>1 次收租机会（地主）</td><td>踩卡牌格抽到皱眉卡的风险</td></tr>
+</tbody></table></div>
+<p><strong>不走路 ≈ 不亏钱，甚至对落后者是保护。</strong> 即使开了「坐牢不能收租」，<br>阻止的也只是收入流入——地主没收到的租金是「没涨」，不是「变少」，净值依然不动。</p>
+<h4>2.3 后果：一整类卡牌的惩罚失效</h4>
+<div class="tw"><table>
+<thead><tr><th>卡</th><th>卡面惩罚</th><th>实测期望</th><th>问题</th></tr></thead>
+<tbody>
+<tr><td>命运 1 德州牛仔</td><td>50% 坐牢 <strong>3 回合</strong></td><td><strong>+1,457</strong></td><td>卡面是全库最吓人的赌局，实际 = 50% 白拿 3000 的送钱卡</td></tr>
+<tr><td>命运 13 抢瑞士银行</td><td>75% 坐牢 1 回合</td><td><strong>+729</strong></td><td>赢面只有 25% 却是正期望（0.25×3000 − 0.75×≈0）</td></tr>
+<tr><td>命运 4 马德里躲狗</td><td>50% 坐牢 1 回合</td><td><strong>+480</strong></td><td>同上</td></tr>
+<tr><td>机会 15 出千被抓</td><td>无房者坐牢 3 回合</td><td>—</td><td>「无房坐牢」分支 ≈ 无事发生 → 越穷越安全的惩罚倒挂</td></tr>
+<tr><td>道具 免责卡 / 嫁祸卡</td><td>1000 元躲一次坐牢</td><td>—</td><td>1000 元买的是「躲掉 −5 元」，同为白板</td></tr>
+</tbody></table></div>
+<h4>2.4 修复方向（三选一，详见 balance-v7 P0-1）</h4>
+<ol>
+<li><strong>出狱缴保释金 1000 × 关押回合数</strong>（推荐）——命运 1 期望立刻从 +1,457 回到 ≈ −50，
+</li></ol>
+<p>免责卡/嫁祸卡同时变得值钱；</p>
+<ol>
+<li>改赔率（命运 1 的 +3000 → 1500，命运 13 → 800）；
+</li>
+<li>接受现状并写进规则，避免「以为抽到命运 1 就完了」的误判。
+</li></ol>
+<h3>三、卡牌公平性评估</h3>
+<h4>3.1 判定标准（什么叫「不公平」）</h4>
+<p>全部基于 600 局实测，五条量化标准：</p>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>标准</th><th>阈值</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>①</td><td>期望失衡</td><td>博弈牌 \</td><td>E\</td><td>&gt; 500；机会牌偏离卡面标注 &gt; 500</td><td>零期望原则被破坏</td></tr>
+<tr><td>②</td><td>立场失衡</td><td>领先者 vs 平均效果差 &gt; 2000，且卡面未声明</td><td>暗中针对/保护某一方</td></tr>
+<tr><td>③</td><td>方差失衡</td><td>单次极值 &gt; 20,000（= 初始资金 1.3 倍）</td><td>一卡定生死</td></tr>
+<tr><td>④</td><td>卡面与实效不符</td><td>smile/frown 与实测符号相反，或标注概率与卡面不符</td><td>玩家按卡面做的判断是错的</td></tr>
+<tr><td>⑤</td><td>定义缺失</td><td>实体局必然产生分歧</td><td>规则无法落地</td></tr>
+</tbody></table></div>
+<p>再按「玩家是否明知」分一层：**卡面写明了针对谁 = 可接受的强卡；<br>卡面在骗人 = 不可接受。**</p>
+<h4>3.2 命中清单</h4>
+<p><strong>🔴 不可接受（卡面与实效相反 / 惩罚失效）</strong></p>
+<div class="tw"><table>
+<thead><tr><th>卡</th><th>违反标准</th><th>实测</th><th>问题</th></tr></thead>
+<tbody>
+<tr><td>机会 15 出千被抓</td><td>①②③</td><td>抽卡者 <strong>−6,137</strong>、领先者 <strong>−8,870</strong>、极值 56,000</td><td>全场最狠的卡却是张皱眉卡；0 回收比机会 8（37.5%）还狠；无房者「坐牢 3 回合」因坐牢免费 ≈ 无惩罚 → <strong>惩罚倒挂</strong></td></tr>
+<tr><td>机会 7 / 14（多走 1 次）</td><td>④</td><td><strong>−927 / −822</strong></td><td>画着 smile 实测负期望：8 人局地皮铺满，多走一次 = 多踩一次雷</td></tr>
+<tr><td>命运 1 / 13 / 4</td><td>①</td><td>+1,457 / +729 / +480</td><td>「送进监狱」的赌注因坐牢免费而失效，赌局变送钱</td></tr>
+<tr><td>机会 12 广州仿冒包</td><td>⑤</td><td>—</td><td>「欧洲区域玩家」无定义，按不同读法从 +856 到白板不等</td></tr>
+<tr><td>命运 7 西西里金库</td><td>④</td><td>−86</td><td>卡面「小于 6」= 31.25%，csv 标注 37.5%；按卡面是全库唯一数学亏钱的牌</td></tr>
+</tbody></table></div>
+<p><strong>🟡 可接受但需要处理（强但透明 / 方差失控）</strong></p>
+<div class="tw"><table>
+<thead><tr><th>卡</th><th>违反标准</th><th>实测</th><th>问题</th></tr></thead>
+<tbody>
+<tr><td>命运 18 索马里赏金</td><td>③</td><td>极值 <strong>74,940</strong></td><td>拿走对方现金 20%，后期现金可达 30 万 → 单次转移失控。加封顶 5000</td></tr>
+<tr><td>机会 8 迪拜泻药</td><td>②③</td><td>对方平均 <strong>−3,798</strong></td><td>全场最大单卡转移；「你自选对方哪块房」太狠，建议限 ≤3 级。卡面已写明针对最富者，属透明</td></tr>
+<tr><td>机会 18 / 4 / 19</td><td>③</td><td>极值 73,738 / 64,716 / 57,800</td><td>一次定生死量级，但都是 frown/机动卡，玩家有心理预期</td></tr>
+<tr><td>机会 10 伦敦灾险</td><td>②</td><td>领先者 −725</td><td>名义 smile 实为隐性反领先卡（满级房主抽到倒亏）</td></tr>
+<tr><td>机会 11 监狱代购</td><td>①</td><td><strong>−15</strong></td><td>白板。8 人局平均在牢 0.18 人</td></tr>
+<tr><td>命运 20 拉什努显灵</td><td>—</td><td>−54</td><td>纯判官卡：抽卡者零参与感，被 −1 级者平白亏几千</td></tr>
+</tbody></table></div>
+<p><strong>✅ 健康的多数派</strong></p>
+<ul>
+<li><strong>命运牌 20 张里 16 张实测期望在 ±500 以内</strong>，零期望原则执行到位；
+</li></ul>
+<p>命运 8/9/10/19 是「低概率高赔 / 赔率随点数缩放」的教科书设计；</p>
+<ul>
+<li>机会牌 14 smile : 6 frown 的正负比合理，简单定额卡（2/3/5/6/9/13/16/17/19/20）全部健康；
+</li>
+<li>反领先卡中<strong>透明</strong>的那些（机会 1/2、命运 12/16）方向正确，保留。
+</li></ul>
+<h4>3.3 全场资金账（每局）</h4>
+<div class="tw"><table>
+<thead><tr><th>项</th><th>金额</th></tr></thead>
+<tbody>
+<tr><td>赤道酬金注入</td><td><strong>+27 万</strong>（全场唯一无风险注水）</td></tr>
+<tr><td>机会牌</td><td><strong>−1.6 万</strong>（机会 8/15 拆房 → 已投入成本蒸发，轻微通缩）</td></tr>
+<tr><td>命运牌</td><td><strong>+1 万</strong></td></tr>
+<tr><td>卡牌合计</td><td>−5,700/局，相对赤道的 27 万几乎可忽略</td></tr>
+</tbody></table></div>
+<h3>四、结论</h3>
+<ol>
+<li><strong>测量的地基是净值口径</strong>（现金 + 已投入成本），它如实回答「这张卡让你亏/赚了多少」，
+</li></ol>
+<p>但<strong>不含机会成本</strong>——这正是「坐牢 −5 元」看似反常的原因：坐牢的代价全是「没赚到的钱」。</p>
+<ol>
+<li><strong>坐牢免费是系统性漏洞</strong>，不是单卡问题：它让命运 1/4/13 的赌局失效、机会 15 惩罚倒挂、
+</li></ol>
+<p>免责卡/嫁祸卡变白板。<strong>加保释金（1000×回合数）一处修，五处愈。</strong></p>
+<ol>
+<li><strong>真正不公平的卡只有两类</strong>：卡面骗人的（机会 7/14 画 smile 实为负、命运 7 概率不符）
+</li></ol>
+<p>和惩罚失效/倒挂的（机会 15、命运 1/13/4）。透明的高强度卡（机会 1/8、命运 12）<br>属于设计选择而非缺陷。</p>
+<ol>
+<li><strong>方差失控的只有命运 18</strong>（极值 74,940），加封顶即可。
+</li></ol>
+<p>*所有数字由 <code>source/map-print-data.json</code> + <code>source/cards.md</code>（v7）+ <code>sim/game.py</code><br>（<code>AUDIT=1 TRIALS=600</code>）现算得出，2026-10-13。修改建议的完整优先级清单见<br><a href="balance-v7.html">balance-v7.md</a> 第七节。*</p>
+</div>
+<footer>本文由 <code>tools/build.py</code> 从 <code>docs/card-audit-report.md</code> 生成，改文档改那份 md 再跑脚本。</footer>
+</div>
+</body>
+</html>

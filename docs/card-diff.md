@@ -2,9 +2,9 @@
 
 对照对象：
 - **原版实体卡**：`photos/命运牌.jpg` + `photos/机会牌.jpg`（命运 20 张 + 机会 20 张，
-  文字版见 [original/cards.md](../content/original/cards.md)）
-- **自制新版卡**：`content/cards.csv`（当前生效，机会 20 条 + 命运 20 条）；
-  历史版本（v1–v7）的演变见 git 提交记录：`git log -- cards.csv`
+  文字版见 [original/cards.md](../source/original/cards.md)）
+- **自制新版卡**：`source/cards.md`（当前生效，机会 20 条 + 命运 20 条）；
+  历史版本（v1–v7）的演变见 git 提交记录：`git log --follow -- source/cards.md`
 
 结论先说：**两套牌不是同一个体系**，自制版是在「环球旅游」这个共同主题上重新写的一套，主题和结构相似，但**数值单位、效果类型、跟地图机制的耦合深度**全面不同。
 

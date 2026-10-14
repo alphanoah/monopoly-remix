@@ -47,12 +47,13 @@
 
 ### 当前生效的卡牌
 
-在 **`cards.csv`**，打印页读的就是它。要改卡牌内容请改这个文件，
-字段怎么填见 [csv-fields.md](../docs/csv-fields.md)。
+在 **`cards.md`**，打印页读的就是它。要改卡牌内容请改这个文件，
+字段怎么填见 [card-fields.md](../docs/card-fields.md)；想用 Excel 批量改，
+先在首页「机会/命运卡牌」区导出 CSV / Excel，改完跑 `python3 tools/import-cards.py` 回导。
 
 ### 历史版本
 
-卡牌从 v1 一路改到 v7，历史版本的演变过程都在 git 提交记录里（`git log -- cards.csv` 可回看每一版）。
+卡牌从 v1 一路改到 v7，历史版本的演变过程都在 git 提交记录里（`git log --follow -- source/cards.md` 可回看每一版）。
 当前生效的是 **v7 · 邪恶版 · 世界之旅（修订）**。
 
 ### 初版卡牌（2026-10-08，机会 16 + 命运 16）

@@ -227,7 +227,7 @@
 <script>
 // ===================================================================
 // 大富翁「世界之旅」电子地图
-// 唯一真源：content/map-print-data.json（线上 fetch，本地 file:// 打开用内置兜底）
+// 唯一真源：source/map-print-data.json（线上 fetch，本地 file:// 打开用内置兜底）
 // 两档布局：
 //   print      打印版 —— 按实体棋盘照片一比一还原的 80cm 软垫图
 //   print-zoom 放大版 —— 同一张图，跑道加厚吃进中间空、文字竖排放大（手机上可读）
@@ -247,13 +247,13 @@ let RAW = null;                  // 真源原样（未套变体）
 let v2Mode = !/\bv=0\b/.test(location.hash);   // 默认按规则 v2 替换格子（北极→监狱 / 印度洋·大西洋→道具商店）；加 #v=0 可默认看原版地图
 let V2VARIANT = null;            // 当前变体描述（label / desc / replace）
 
-// ===== 内置兜底数据（同 content/map-print-data.json；由 tools/update.py 生成，勿手改）=====
-const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/update.py 从 content/map-print-data.json 生成，请勿手改
+// ===== 内置兜底数据（同 source/map-print-data.json；由 tools/build.py 生成，勿手改）=====
+const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/build.py 从 source/map-print-data.json 生成，请勿手改
 {
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
   "nameEn": "World Tour Monopoly · Print Board",
-  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/update.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。放大版（board.zoomTrackWidth）把跑道加厚吃进中间空，格子内容竖排放大。",
+  "note": "80×80cm 软垫打印版棋盘的唯一真源（按实体棋盘照片 map.jpg 一比一还原）：64 格数据 + 11 个颜色组（带数字 id 与照片取色的 hex）+ board/layout 版式参数 + decks 牌堆配色 + tileTypes 格子类型。地产格用 colorId 引用颜色组（color 仅作可读别名）；机会/命运格的颜色由 tileTypes.deck 指回 decks，不重复写色值。map-print-svg.html 优先 fetch 本文件，fetch 不到时回退页面内置兜底（兜底由 tools/build.py 注入）。地产格自带 flag 字段（国旗 emoji），页面直接读这个字段渲染，不必在页面里另维护对照表。放大版（board.zoomTrackWidth）把跑道加厚吃进中间空，格子内容竖排放大。",
   "board": {
     "size": 1800,
     "printMM": 800,
@@ -2060,13 +2060,13 @@ function exportPNG() {
 initToolbar();   // 按钮是静态元素，先绑好，不等地图渲染
 
 // ===== 加载数据：优先 fetch JSON，失败则用内置兜底 =====
-fetch("./content/map-print-data.json")
+fetch("./source/map-print-data.json")
   .then(res => {
     if (!res.ok) throw new Error("HTTP " + res.status);
     return res.json();
   })
   .then(data => {
-    console.log("[map] 数据来源: content/map-print-data.json");
+    console.log("[map] 数据来源: source/map-print-data.json");
     renderMap(data);
     renderDeliver();
   })

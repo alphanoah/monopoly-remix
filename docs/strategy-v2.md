@@ -1,8 +1,8 @@
 # 规则 2 胜率策略（1 枚十六面骰 · 连锁过路费）
 
-> 规则来源：[`content/new-rule.md`](../content/new-rule.md)（首页「游戏规则」默认打开的 v2 面板）
-> 数据来源：`content/map-print-data.json`（**监狱/商店格由 `variants.v2` 定义**）· 卡牌 `content/cards.csv`（v7）· 道具 `content/props.md`
-> 模拟脚本：`python3 tools/sim-v2.py`（落点分布 + 组经济）· `python3 tools/game.py`（完整对局，`TRIALS=1000`）· `AB=1 python3 tools/game.py`（道具 × 监狱口径 2×2 对照）· `COHORT=1 python3 tools/game.py`（集中同色 vs 到处撒）
+> 规则来源：[`source/new-rule.md`](../source/new-rule.md)（首页「游戏规则」默认打开的 v2 面板）
+> 数据来源：`source/map-print-data.json`（**监狱/商店格由 `variants.v2` 定义**）· 卡牌 `source/cards.md`（v7）· 道具 `source/props.md`
+> 模拟脚本：`python3 sim/sim-v2.py`（落点分布 + 组经济）· `python3 sim/game.py`（完整对局，`TRIALS=1000`）· `AB=1 python3 sim/game.py`（道具 × 监狱口径 2×2 对照）· `COHORT=1 python3 sim/game.py`（集中同色 vs 到处撒）
 > ⚠️ 本文只适用于**规则 2**。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略见 [`strategy.md`](strategy.md)，两份的结论**不能混用**。
 > 卡牌与道具的**平衡性评估**（哪些卡不公平、道具价格/数量、8 人局时长）见 [`balance-v7.md`](balance-v7.md)。
 
@@ -75,7 +75,7 @@
 1. **1 枚十六面骰本身就是均匀骰**——不像 2d6 有中间多两头少的钟形分布；
 2. **统一起点后，棋子总是从 #0 单向出发**——起点下游的格子会多被踩几脚，这个偏差随圈数衰减（解析推演：1 圈 2.09× → 3 圈 1.35× → 10 圈 1.09× → 27 圈 1.03×）。
 
-`tools/sim-v2.py` 实测（8 人 × 250 回合 × 400 局，共 **851,533 次落点**，含坐牢与卡牌移动）：
+`sim/sim-v2.py` 实测（8 人 × 250 回合 × 400 局，共 **851,533 次落点**，含坐牢与卡牌移动）：
 
 | 项 | 数值 |
 |---|---|
@@ -125,7 +125,7 @@
 | 只有被送才坐牢 | 0.93% / 回合 | 15.2 圈 | 双 16 43% · 卡牌 57% | 239 回合 |
 | **走到监狱格也坐牢（现行默认）** | **2.56% / 回合** | **5.5 圈** | 走到监狱 64% · 卡牌 21% · 双 16 15% | 236 回合 |
 
-> 频率与来源来自 `tools/sim-v2.py`（落点模拟）；一局总长来自 `tools/game.py`（完整对局，每格 1000 局）。
+> 频率与来源来自 `sim/sim-v2.py`（落点模拟）；一局总长来自 `sim/game.py`（完整对局，每格 1000 局）。
 > 两种口径的对局长度差别（236 vs 239、219 vs 216）方向不稳定，**落在噪声内**。
 
 **为什么默认「走到也坐牢」：**
@@ -135,7 +135,7 @@
 - ✅ 代价几乎为零：坐牢 = 少走一回合，但对局长度变化在噪声内；
 - ⚠️ 唯一的位置副作用：坐过牢的人从 #32 重新出发，#32 下游（#45-48 夏威夷一带）多约 5% 落点（见第二节）。
 
-如果你想把这条改回「只有被送才坐牢」，把 `tools/sim-v2.py` / `tools/game.py` 里的 `ARRIVE_JAIL_CELL_JAILS` 设回 `False` 重跑即可，本文所有数字都会跟着变。
+如果你想把这条改回「只有被送才坐牢」，把 `sim/sim-v2.py` / `sim/game.py` 里的 `ARRIVE_JAIL_CELL_JAILS` 设回 `False` 重跑即可，本文所有数字都会跟着变。
 
 ---
 
@@ -154,7 +154,7 @@
 
 **收益差了整整 K 倍。** 6 块集中比 6 块撒开强 6 倍——这不是「更好的选择」，是「唯一的打法」。
 
-模拟实测（`COHORT=1 python3 tools/game.py`）：
+模拟实测（`COHORT=1 python3 sim/game.py`）：
 
 ```
   集中同色获胜： 600 局  (100.0%)
@@ -230,7 +230,7 @@
 
 ### 6.1 道具：唯一的「反领先武器」
 
-商店格在**印度洋 #24 / 大西洋 #59**（`content/map-print-data.json` 的 `variants.v2` 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。
+商店格在**印度洋 #24 / 大西洋 #59**（`source/map-print-data.json` 的 `variants.v2` 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。
 
 完整 14 种道具，按模拟里 AI 的估价从高到低：
 
@@ -289,7 +289,7 @@
 > 相对关系（道具加速、反领先、集中 > 撒开）依然成立，绝对数字请以第〇节和
 > [balance-v7.md](balance-v7.md) 为准。
 
-`AB=1 python3 tools/game.py`（8 人混战、各自锁定一个目标组、每组政策相同；每格 **1000 局**）
+`AB=1 python3 sim/game.py`（8 人混战、各自锁定一个目标组、每组政策相同；每格 **1000 局**）
 
 ### 7.1 主表
 
@@ -369,10 +369,10 @@
 
 ---
 
-*本文所有数字由 `content/map-print-data.json` + `content/cards.csv`（v7）+ `content/props.md` + `tools/sim-v2.py` + `tools/game.py` 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*
+*本文所有数字由 `source/map-print-data.json` + `source/cards.md`（v7）+ `source/props.md` + `sim/sim-v2.py` + `sim/game.py` 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*
 
 **口径备忘**（都写成常量，改一个就能重跑）：
 
-1. **监狱/商店格**：由 `content/map-print-data.json` 的 `variants.v2` 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
+1. **监狱/商店格**：由 `source/map-print-data.json` 的 `variants.v2` 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
 2. **自然走到监狱算不算坐牢？** 现行默认**算**（`ARRIVE_JAIL_CELL_JAILS = True`）；要改回「只有被送才算」，把两个脚本里的开关设为 `False` 重跑。
 3. **统一起点**：现行默认（`START_MODE = "equator"`）；四角随机起点保留为对照口径（`START_MODE = "corners"`）。

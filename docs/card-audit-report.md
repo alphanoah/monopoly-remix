@@ -1,8 +1,8 @@
 # 卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测
 
-> **数据口径**：`tools/game.py` 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、
+> **数据口径**：`sim/game.py` 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、
 > 坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。
-> **样本**：`AUDIT=1 TRIALS=600 python3 tools/game.py`（逐卡插桩 600 局）。
+> **样本**：`AUDIT=1 TRIALS=600 python3 sim/game.py`（逐卡插桩 600 局）。
 > **配套文档**：修改建议清单见 [balance-v7.md](balance-v7.md)，打法攻略见
 > [strategy-v2.md](strategy-v2.md)。本文回答三个问题：
 > **① 净值是怎么算的 ② 坐牢到底亏不亏 ③ 哪些卡不公平。**
@@ -18,8 +18,8 @@
 已投入成本 = 买地价 + 已花掉的升级费（1~4 级各 0.5×地价，第 5 级 1.0×地价）
 ```
 
-代码：[snapshot()](file:///Users/alpha/Theo/richer/tools/game.py#L342-L348)
-与 [_worth()](file:///Users/alpha/Theo/richer/tools/game.py#L350-L360)。
+代码：[snapshot()](file:///Users/alpha/Theo/richer/sim/game.py#L342-L348)
+与 [_worth()](file:///Users/alpha/Theo/richer/sim/game.py#L350-L360)。
 
 **为什么用这个口径：**
 
@@ -30,8 +30,8 @@
 
 ### 1.2 卡牌事件的测量窗口
 
-代码：[audit_card()](file:///Users/alpha/Theo/richer/tools/game.py#L362-L385)、
-[resolve_card()](file:///Users/alpha/Theo/richer/tools/game.py#L387-L389)。
+代码：[audit_card()](file:///Users/alpha/Theo/richer/sim/game.py#L362-L385)、
+[resolve_card()](file:///Users/alpha/Theo/richer/sim/game.py#L387-L389)。
 
 ```
 抽卡前快照（全场现金 + 每格归属/等级）
@@ -54,8 +54,8 @@
 
 ### 1.3 坐牢事件的测量窗口
 
-代码：[turn()](file:///Users/alpha/Theo/richer/tools/game.py#L759-L767)
-与 [audit_jail()](file:///Users/alpha/Theo/richer/tools/game.py#L740-L756)。
+代码：[turn()](file:///Users/alpha/Theo/richer/sim/game.py#L759-L767)
+与 [audit_jail()](file:///Users/alpha/Theo/richer/sim/game.py#L740-L756)。
 
 ```
 入狱后第一个回合开始时拍快照
@@ -185,6 +185,6 @@
    属于设计选择而非缺陷。
 4. **方差失控的只有命运 18**（极值 74,940），加封顶即可。
 
-*所有数字由 `content/map-print-data.json` + `content/cards.csv`（v7）+ `tools/game.py`
+*所有数字由 `source/map-print-data.json` + `source/cards.md`（v7）+ `sim/game.py`
 （`AUDIT=1 TRIALS=600`）现算得出，2026-10-13。修改建议的完整优先级清单见
 [balance-v7.md](balance-v7.md) 第七节。*

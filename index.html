@@ -273,7 +273,7 @@
 <li>游戏内附之计分券（钱币）、房屋等配件若有数量不足，可自行选择其他配件取代。
 </li></ol>
 </div>
-<p class="rsrc">源文件 <a href="content/original/manual.md">content/original/manual.md</a></p>
+<p class="rsrc">源文件 <a href="source/original/manual.md">source/original/manual.md</a></p>
 </div>
 <div class="rview" role="tabpanel" id="rview-v1" aria-labelledby="rtab-v1" data-rule="v1">
 <h3 class="rttl">大富翁玩法更新</h3>
@@ -348,12 +348,12 @@
 </li>
 <li>拍卖所得的25%上交银行，向下取整十，剩下部分归房屋所有者
 </li></ul>
-<details class="fold"><summary>卡牌（cards.csv 与历史存档）</summary>
+<details class="fold"><summary>卡牌（cards.md 与历史存档）</summary>
 
 <h4>当前生效的卡牌</h4>
-<p>在 <strong><code>cards.csv</code></strong>，打印页读的就是它。要改卡牌内容请改这个文件，<br>字段怎么填见 <a href="docs/csv-fields.md">csv-fields.md</a>。</p>
+<p>在 <strong><code>cards.md</code></strong>，打印页读的就是它。要改卡牌内容请改这个文件，<br>字段怎么填见 <a href="docs/card-fields.md">card-fields.md</a>；想用 Excel 批量改，<br>先在首页「机会/命运卡牌」区导出 CSV / Excel，改完跑 <code>python3 tools/import-cards.py</code> 回导。</p>
 <h4>历史版本</h4>
-<p>卡牌从 v1 一路改到 v7，历史版本的演变过程都在 git 提交记录里（<code>git log -- cards.csv</code> 可回看每一版）。<br>当前生效的是 <strong>v7 · 邪恶版 · 世界之旅（修订）</strong>。</p>
+<p>卡牌从 v1 一路改到 v7，历史版本的演变过程都在 git 提交记录里（<code>git log --follow -- source/cards.md</code> 可回看每一版）。<br>当前生效的是 <strong>v7 · 邪恶版 · 世界之旅（修订）</strong>。</p>
 <h4>初版卡牌（2026-10-08，机会 16 + 命运 16）</h4>
 <p>最早写在 Word 文档里的版本，此处存档备查，实际游戏已不使用。</p>
 <p><strong>机会牌</strong></p>
@@ -428,7 +428,7 @@
 </details>
 
 </div>
-<p class="rsrc">源文件 <a href="content/rules.md">content/rules.md</a></p>
+<p class="rsrc">源文件 <a href="source/rules.md">source/rules.md</a></p>
 </div>
 <div class="rview on" role="tabpanel" id="rview-v2" aria-labelledby="rtab-v2" data-rule="v2">
 <h3 class="rttl">大富翁新规则</h3>
@@ -513,7 +513,7 @@
 <tr><td>规则</td><td>玩家进入命运格子时，随机抽取 20 张命运卡，玩家通过摇骰子决定抽取哪一张</td><td>无</td></tr>
 </tbody></table></div>
 </div>
-<p class="rsrc">源文件 <a href="content/new-rule.md">content/new-rule.md</a></p>
+<p class="rsrc">源文件 <a href="source/new-rule.md">source/new-rule.md</a></p>
 </div>
 </div>
 <!-- RULES:END -->
@@ -528,6 +528,10 @@
       <button data-deck="all" class="on">全部</button>
       <button data-deck="chance">机会</button>
       <button data-deck="fate">命运</button>
+    </div>
+    <div class="seg" id="exportSeg" title="导出全部版本的卡牌（含未启用版本）；批量改完跑 python3 tools/import-cards.py 回导">
+      <button type="button" data-fmt="csv">导出 CSV</button>
+      <button type="button" data-fmt="xlsx" id="btnXlsx" hidden>导出 Excel</button>
     </div>
   </div>
   <p class="meta" id="cardMeta"></p>
@@ -602,9 +606,9 @@
   <a href="original.html">原版资料</a>
   <a href="print.html">打印页</a>
   <a href="map.html">电子地图</a>
-  <a href="content/new-rule.md">规则源文件（v2）</a>
-  <a href="content/props.md">道具源文件</a>
-  <a href="docs/csv-fields.md">卡牌字段说明</a>
+  <a href="source/new-rule.md">规则源文件（v2）</a>
+  <a href="source/props.md">道具源文件</a>
+  <a href="docs/card-fields.md">卡牌字段说明</a>
   <a href="docs/card-diff.md">与原版卡差异</a>
   <span>CC BY-NC 4.0</span>
 </footer>
@@ -1808,7 +1812,7 @@ function render() {
   const grid = document.getElementById('grid');
   const meta = document.getElementById('cardMeta');
   if (!DECKS.order || !DECKS.order.length) {
-    grid.innerHTML = '<p class="empty">卡牌数据还没生成，跑一次 <code>python3 tools/update.py</code> 就有了。</p>';
+    grid.innerHTML = '<p class="empty">卡牌数据还没生成，跑一次 <code>python3 tools/build.py</code> 就有了。</p>';
     meta.textContent = '';
     return;
   }
@@ -1838,6 +1842,61 @@ document.getElementById('deckSeg').addEventListener('click', e => {
   render();
 });
 render();
+
+// ---- 卡牌导出：CSV 直接生成；Excel 靠 SheetJS（CDN 加载失败就只留 CSV 按钮）----
+(function () {
+  const COLS = ['version', 'deck', 'seq', 'face', 'event', 'effect', 'cond', 'win', 'lose', 'rate', 'use'];
+  const grp = document.getElementById('exportSeg');
+  if (!grp || !DECKS.order || !DECKS.order.length) return;
+
+  // 全版本导出：import-cards.py 回导时是整份 cards.md 覆盖，只导当前版本会把别的版本弄丢
+  function allRows() {
+    const rows = [];
+    DECKS.order.forEach(v => {
+      const seq = { chance: 0, fate: 0 };
+      (DECKS.versions[v].cards || []).forEach(c => {
+        seq[c.deck] = (seq[c.deck] || 0) + 1;
+        rows.push({
+          version: v, deck: c.deck, seq: seq[c.deck],
+          face: c.face || '', event: c.event || '', effect: c.effect || '',
+          cond: c.cond || '', win: c.win || '', lose: c.lose || '',
+          rate: c.rate || '', use: '1',
+        });
+      });
+    });
+    return rows;
+  }
+  const aoa = () => [COLS].concat(allRows().map(r => COLS.map(c => r[c])));
+
+  function download(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function exportCSV() {
+    const esc = s => { s = String(s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    download(new Blob(['\ufeff' + aoa().map(r => r.map(esc).join(',')).join('\r\n') + '\r\n'],
+      { type: 'text/csv;charset=utf-8' }), 'cards.csv');
+  }
+  function exportXLSX() {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa()), 'cards');
+    XLSX.writeFile(wb, 'cards.xlsx');
+  }
+  grp.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.fmt === 'csv') exportCSV();
+    else if (b.dataset.fmt === 'xlsx' && window.XLSX) exportXLSX();
+  });
+
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  s.onload = () => { document.getElementById('btnXlsx').hidden = false; };
+  document.head.appendChild(s);
+})();
 
 // ---- 游戏规则：三版卡片切换（原版 / v1 / v2）----
 (function () {

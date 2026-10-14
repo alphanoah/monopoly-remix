@@ -84,7 +84,7 @@
   <p>实体《大富翁世界之旅（银牌）》的电子化存档：原版命运牌与机会牌全文、说明书转录、地图格子全表。
      放在这里是为了跟改版对照——改了什么、没改什么，一眼能看出来。
      地图部分有两份：《使用指南》讲怎么读数据、怎么组套，《格子数据》是逐格的原始全表；
-     这两份里的统计表格都由 <code>tools/update.py</code> 从 <code>content/map-print-data.json</code> 遍历生成，
+     这两份里的统计表格都由 <code>tools/build.py</code> 从 <code>source/map-print-data.json</code> 遍历生成，
      改棋盘改那份 JSON，跑一次脚本即可全部同步。</p>
   <p class="notice">这是<strong>原版</strong>内容，不是本站的改版玩法。实体照片体积太大没有上传，下面是文字转录；
      改版规则与自制卡牌见<a href="index.html">首页</a>。</p>
@@ -153,7 +153,7 @@
 </li>
 <li>意大利度假牌括号内的小字印刷较小，已按可见内容整理：「请移动到意大利，不要经过由此去」。
 </li>
-<li>这份是原版实体卡内容（照片见 <code>photos/</code>），与仓库根目录 <code>../cards.csv</code> 中的自制机会牌/命运牌是两套不同的牌。
+<li>这份是原版实体卡内容（照片见 <code>photos/</code>），与仓库根目录 <code>../cards.md</code> 中的自制机会牌/命运牌是两套不同的牌。
 </li></ul>
 </div>
 </details>
@@ -214,7 +214,7 @@
 </details>
 <details class="blk"><summary><h2>地图数据使用指南（速览 · 投资建议 · FAQ）</h2><span class="tog"></span></summary>
 <div class="md">
-<blockquote>数据来源：<code>content/map-print-data.json</code> 是<strong>唯一真源</strong>（打印页、电子地图、本页都读它）<br>分组口径：口径 A · 按颜色分组（同色即同组）<br>适用场景：游戏开发、策略分析、数据参考<br><br>页面里的表格由 <code>tools/update.py</code> 遍历 JSON 生成，改数据改那份 JSON 再跑脚本即可。</blockquote>
+<blockquote>数据来源：<code>source/map-print-data.json</code> 是<strong>唯一真源</strong>（打印页、电子地图、本页都读它）<br>分组口径：口径 A · 按颜色分组（同色即同组）<br>适用场景：游戏开发、策略分析、数据参考<br><br>页面里的表格由 <code>tools/build.py</code> 遍历 JSON 生成，改数据改那份 JSON 再跑脚本即可。</blockquote>
 <h3>📖 快速导航</h3>
 <div class="tw"><table>
 <thead><tr><th>你想找什么</th><th>去哪里看</th></tr></thead>
@@ -333,11 +333,11 @@
 <p>这是这张「世界之旅」地图的设计特点——那几个国家地理上都在亚太地区，但在棋盘上被机会格和右行终点隔开了。规则上它们仍属于同一颜色组。</p>
 <h3>六、开发参考</h3>
 <h4>6.1 去哪儿拿数据</h4>
-<p><code>content/map-print-data.json</code>，结构如下（字段名照抄，别自己另造一份）：</p>
+<p><code>source/map-print-data.json</code>，结构如下（字段名照抄，别自己另造一份）：</p>
 <p><code>`</code>javascript<br>const data = {<br>board:    { size, printMM, goBonus, trackWidth, band, tilesPerSide, corners },<br>layout:   { property, deck, ocean, id, corner },      // 版式参数，改这里调留白<br>decks:    { chance: {...}, fate: {...} },             // 机会/命运牌堆的配色与文案<br>colorGroups: [{ id, key, name, nameEn, hex, icon }],  // 地产格用 colorId 引用<br>tileTypes:   { property: {...}, chance: {...}, ... },<br>tiles:    [{ id, type, name, nameEn, flag?, capital?, price?, colorId?, color?, side, col, row }],   // flag：地产格的国旗 emoji，页面直接画<br>};<br><code>`</code></p>
 <p><strong>色值只在 <code>colorGroups[].hex</code> 出现一次</strong>，机会/命运的色通过 <code>tileTypes[].deck</code> 指回 <code>decks</code>，别在别处再写一遍颜色。</p>
 <h4>6.2 常用计算</h4>
-<p>这些不用手算，跑一次 <code>python3 tools/update.py</code>，本页表格、首页「数据速览」都会同步：</p>
+<p>这些不用手算，跑一次 <code>python3 tools/build.py</code>，本页表格、首页「数据速览」都会同步：</p>
 <div class="tw"><table>
 <thead><tr><th>计算项</th><th>怎么算</th></tr></thead>
 <tbody>
@@ -352,8 +352,8 @@
 </details>
 <details class="blk"><summary><h2>原版地图格子数据（64 格 · 11 个颜色组）</h2><span class="tog"></span></summary>
 <div class="md">
-<blockquote>数据来源：<code>map.jpg</code>（高清图逐格辨认 + 色带核对）→ 整理成 <code>content/map-print-data.json</code><br>轨道方向：起点(赤道) → 中国 → 底行向左 → 左列向上 → 顶行向右 → 右列向下 → 回起点</blockquote>
-<blockquote>⚠️ <strong>本页的表格全部由 <code>tools/update.py</code> 遍历 <code>map-print-data.json</code> 生成，不要手改。</strong><br>改棋盘数据请改那份 JSON，跑一次脚本，这里（连同打印页、电子地图）自动同步。</blockquote>
+<blockquote>数据来源：<code>map.jpg</code>（高清图逐格辨认 + 色带核对）→ 整理成 <code>source/map-print-data.json</code><br>轨道方向：起点(赤道) → 中国 → 底行向左 → 左列向上 → 顶行向右 → 右列向下 → 回起点</blockquote>
+<blockquote>⚠️ <strong>本页的表格全部由 <code>tools/build.py</code> 遍历 <code>map-print-data.json</code> 生成，不要手改。</strong><br>改棋盘数据请改那份 JSON，跑一次脚本，这里（连同打印页、电子地图）自动同步。</blockquote>
 <h3>一、整体概览</h3>
 <div class="tw"><table>
 <thead><tr><th>项目</th><th>数值</th></tr></thead>
@@ -651,10 +651,10 @@
 <footer>
   <a href="index.html">首页</a>
   <a href="print.html">打印页</a>
-  <a href="content/original/cards.md">原版卡牌 md</a>
-  <a href="content/original/manual.md">说明书 md</a>
-  <a href="content/original/map-data-guide.md">地图指南 md</a>
-  <a href="content/original/map-tiles.md">格子数据 md</a>
+  <a href="source/original/cards.md">原版卡牌 md</a>
+  <a href="source/original/manual.md">说明书 md</a>
+  <a href="source/original/map-data-guide.md">地图指南 md</a>
+  <a href="source/original/map-tiles.md">格子数据 md</a>
   <span>原版内容权利归原发行方，仅作对照研究</span>
 </footer>
 </div>

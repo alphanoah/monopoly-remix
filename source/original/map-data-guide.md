@@ -1,10 +1,10 @@
 # 大富翁「世界之旅」地图数据 · 使用指南
 
-> 数据来源：`content/map-print-data.json` 是**唯一真源**（打印页、电子地图、本页都读它）
+> 数据来源：`source/map-print-data.json` 是**唯一真源**（打印页、电子地图、本页都读它）
 > 分组口径：口径 A · 按颜色分组（同色即同组）
 > 适用场景：游戏开发、策略分析、数据参考
 >
-> 页面里的表格由 `tools/update.py` 遍历 JSON 生成，改数据改那份 JSON 再跑脚本即可。
+> 页面里的表格由 `tools/build.py` 遍历 JSON 生成，改数据改那份 JSON 再跑脚本即可。
 
 ---
 
@@ -118,7 +118,7 @@
 
 ### 6.1 去哪儿拿数据
 
-`content/map-print-data.json`，结构如下（字段名照抄，别自己另造一份）：
+`source/map-print-data.json`，结构如下（字段名照抄，别自己另造一份）：
 
 ```javascript
 const data = {
@@ -135,7 +135,7 @@ const data = {
 
 ### 6.2 常用计算
 
-这些不用手算，跑一次 `python3 tools/update.py`，本页表格、首页「数据速览」都会同步：
+这些不用手算，跑一次 `python3 tools/build.py`，本页表格、首页「数据速览」都会同步：
 
 | 计算项 | 怎么算 |
 |--------|--------|

@@ -7,7 +7,7 @@
 「如果一组归你、另一组归他，谁更可能活到最后」。
 
 【模型口径 / 简化说明】
-  · 骰子、起点、监狱、赤道酬金完全按 content/new-rule.md（1 枚十六面骰）。
+  · 骰子、起点、监狱、赤道酬金完全按 source/new-rule.md（1 枚十六面骰）。
     摇到 16 → 移动并结算后再摇一次；同一回合内连续两次 16 → 送进监狱 1 回合。
   · **起点：统一赤道 #0，所有人同起点、同方向**（v2 原文的四角随机起点 + 单双定方向
     会跟监狱冲突，按用户 2026-10-13 的确认不用）。
@@ -19,7 +19,7 @@
   · 破产：剩余现金与名下地产全部归债主。
   · **卡牌已全量建模**：v7 的 20 张机会 + 20 张命运，含金钱、移动、坐牢、
     原地停留、禁言、下回合租金/过路费倍率、单双限行、与前方玩家对决等；
-    条件牌的赢面直接用 cards.csv 的 rate。
+    条件牌的赢面直接用 cards.md 的 rate。
   · **道具已建模 14 种**：商店格 = JSON 里 type=shop 的两格（印度洋 #24 / 大西洋 #59）。
     AI 只在「有确定性收益」时买与用（遥控骰子推进自家地、工程机器人免费升级、
     导弹降级对手满级房…）。
@@ -40,7 +40,7 @@ import random
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAP_JSON = os.path.join(ROOT, "content", "map-print-data.json")
+MAP_JSON = os.path.join(ROOT, "source", "map-print-data.json")
 
 N_CELLS = 64
 GO_CELL = 0             # 赤道：统一出生点

@@ -1,9 +1,9 @@
 # 大富翁「世界之旅」地图 · 格子数据
 
-> 数据来源：`map.jpg`（高清图逐格辨认 + 色带核对）→ 整理成 `content/map-print-data.json`
+> 数据来源：`map.jpg`（高清图逐格辨认 + 色带核对）→ 整理成 `source/map-print-data.json`
 > 轨道方向：起点(赤道) → 中国 → 底行向左 → 左列向上 → 顶行向右 → 右列向下 → 回起点
 
-> ⚠️ **本页的表格全部由 `tools/update.py` 遍历 `map-print-data.json` 生成，不要手改。**
+> ⚠️ **本页的表格全部由 `tools/build.py` 遍历 `map-print-data.json` 生成，不要手改。**
 > 改棋盘数据请改那份 JSON，跑一次脚本，这里（连同打印页、电子地图）自动同步。
 
 ---

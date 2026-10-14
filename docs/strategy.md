@@ -1,6 +1,6 @@
 # 原版地图胜率策略（基于 64 格地图数据）
 
-> 数据来源：[original.html](../original.html) · `content/map-print-data.json` · 卡牌见 `content/original/cards.md` · 规则见 `content/original/manual.md`
+> 数据来源：[original.html](../original.html) · `source/map-print-data.json` · 卡牌见 `source/original/cards.md` · 规则见 `source/original/manual.md`
 > 初始资金 $15,000；起点酬金 $2,000/圈；胜利条件为对手全部破产（或约定现金目标 $30,000 / $50,000）。
 > ⚠️ **本文只适用于「原版」规则**（2 颗六面骰、所有人从赤道出发、无连锁）。
 > 如果你们打的是首页默认的 **规则 2**（1 枚十六面骰、统一赤道起点、连锁过路费），请改看 **[strategy-v2.md](strategy-v2.md)**——
@@ -304,4 +304,4 @@
 
 ---
 
-*本文数字全部由 `content/map-print-data.json` 现算得出；改棋盘数据后请重跑 `tools/update.py` 核对。*
+*本文数字全部由 `source/map-print-data.json` 现算得出；改棋盘数据后请重跑 `tools/build.py` 核对。*

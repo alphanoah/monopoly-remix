@@ -141,13 +141,25 @@ def gen_rules_html(ctx):
             'index.html 规则区（%d 字符）' % len(h))
 
 
-def gen_props_html(ctx):
-    h = props_lib.build_props_html()
+def gen_props_rules_html(ctx):
+    h = props_lib.build_props_rules_html()
     if not h:
         return None
-    return (r'<!-- PROPS:START -->.*?<!-- PROPS:END -->',
-            '<!-- PROPS:START -->\n' + h + '\n<!-- PROPS:END -->',
-            'index.html 道具区（%d 字符）' % len(h))
+    return (r'<!-- PROPS_RULES:START -->.*?<!-- PROPS_RULES:END -->',
+            '<!-- PROPS_RULES:START -->\n' + h + '\n<!-- PROPS_RULES:END -->',
+            'index.html 道具规则（%d 字符）' % len(h))
+
+
+def gen_props_js(ctx):
+    """把道具数据序列化成 const PROPS = {...} 注入 index.html，供 JS 动态渲染道具卡网格。"""
+    props = props_lib.parse_props()
+    if not props:
+        return None
+    js = ('const PROPS = ' +
+          json.dumps(props, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';')
+    return (r'/\* PROPS_DATA:START \*/.*?/\* PROPS_DATA:END \*/',
+            '/* PROPS_DATA:START */\n' + js + '\n/* PROPS_DATA:END */',
+            'index.html 道具数据（%d 件道具）' % len(props['items']))
 
 
 def gen_map_info(ctx):
@@ -230,7 +242,8 @@ def gen_props_fallback(ctx):
 GENERATORS = {
     'cards_js': gen_cards_js,
     'rules_html': gen_rules_html,
-    'props_html': gen_props_html,
+    'props_data': gen_props_js,
+    'props_rules': gen_props_rules_html,
     'map_info': gen_map_info,
     'card_fields_quick': gen_card_fields_quick,
     'original_html': gen_original_html,

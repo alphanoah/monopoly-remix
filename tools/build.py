@@ -57,7 +57,8 @@ PAGES = [
     ('index.html', [
         ('CARDS', 'cards_js'),           # const DECKS = 卡牌全量数据
         ('RULES', 'rules_html'),         # 规则三版切换区（RULE_DOCS）
-        ('PROPS', 'props_html'),         # 道具清单（source/props.md 整篇转 HTML）
+        ('PROPS_DATA', 'props_data'),   # 道具数据 JSON（给 JS 渲染道具卡网格）
+        ('PROPS_RULES', 'props_rules'), # 道具使用规则 HTML（静态 <ol>）
         ('MAPINFO', 'map_info'),         # 「电子地图」区说明（格子数/尺寸现算）
         ('CARD_FIELDS_QUICK', 'card_fields_quick'),  # 「字段说明」弹窗内容（docs/card-fields.md 速查节）
     ]),

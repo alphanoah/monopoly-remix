@@ -161,6 +161,13 @@
   .amt { display: inline-block; padding: 0 .38em; border-radius: .45em; font-size: .94em; font-weight: 600; line-height: inherit; white-space: nowrap; }
   .card.chance .amt { background: rgba(255,255,255,.94); color: #9B4F6A; }
   .card.fate .amt { background: #2C3E6B; color: #F3E6C8; }
+  /* 道具卡：深蓝底米黄字，与命运牌（米黄底深蓝字）互为翻转 */
+  .card.prop { background: #2C3E6B; color: #F3E6C8; }
+  .card.prop .amt { background: #F3E6C8; color: #2C3E6B; }
+  /* 道具卡底部的售价胶囊 + 数量 */
+  .card.prop .c-foot { margin-top: auto; padding-top: 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 12.5px; opacity: .88; }
+  .card.prop .pprice { font-size: .92em; font-weight: 600; }
+  .card.prop .pqty { font-size: .88em; opacity: .7; }
   .empty { color: #8a8880; font-size: 13.5px; }
 
   .md { font-size: 14.5px; }
@@ -604,9 +611,9 @@
 <details class="blk" id="props" open>
   <summary><h2>道具清单</h2><span class="tog"></span></summary>
   <p class="meta">v2 新增的「道具商店」开在印度洋和大西洋两格，进店随机刷 3 个道具可以买；
-     下表是全部 14 件道具的价钱、效果和印量。</p>
+     下面是以卡牌样式展示的全部道具。</p>
   <div class="md">
-<!-- PROPS:START -->
+<!-- PROPS_RULES:START -->
 <h3>使用规则</h3>
 <ol>
 <li>道具可以指定玩家所在格子的前后 3 格内使用
@@ -615,27 +622,16 @@
 </li>
 <li>玩家进入商店时，可以半价出售持有的道具
 </li></ol>
-<h3>道具列表</h3>
-<div class="tw"><table>
-<thead><tr><th>道具</th><th>价格</th><th>效果</th><th>数量</th></tr></thead>
-<tbody>
-<tr><td>乌龟帽</td><td>1000</td><td>接下来的 3 回合只能前进一格</td><td>2</td></tr>
-<tr><td>工程机器人</td><td>2000</td><td>升级指定格子的房子</td><td>2</td></tr>
-<tr><td>导弹</td><td>2000</td><td>降级指定格子的房子</td><td>2</td></tr>
-<tr><td>遥控骰子</td><td>1000</td><td>你可以前进指定格数（1–16）</td><td>2</td></tr>
-<tr><td>路障</td><td>500</td><td>任何人撞上去会立即停止（不能放在有玩家的格子）</td><td>2</td></tr>
-<tr><td>嫁祸卡</td><td>1000</td><td>当你被送进监狱时，指定让另外一名玩家背锅</td><td>2</td></tr>
-<tr><td>免责卡</td><td>1000</td><td>抵消你一次送进监狱</td><td>2</td></tr>
-<tr><td>汽车</td><td>1000</td><td>你下一次移动前进双倍格数</td><td>2</td></tr>
-<tr><td>冷冻枪</td><td>1000</td><td>指定玩家原地停留 1 回合</td><td>2</td></tr>
-<tr><td>抢夺卡</td><td>1000</td><td>抢夺指定玩家的 1 件道具（盲抽）</td><td>2</td></tr>
-<tr><td>转向卡</td><td>1000</td><td>让指定玩家掉头</td><td>2</td></tr>
-<tr><td>绿卡</td><td>1500</td><td>抵消你一次付款</td><td>2</td></tr>
-<tr><td>红卡</td><td>1500</td><td>让你一次收款翻倍</td><td>2</td></tr>
-<tr><td>拍卖卡</td><td>2000</td><td>强制拍卖指定房子</td><td>2</td></tr>
-</tbody></table></div>
-<!-- PROPS:END -->
+<!-- PROPS_RULES:END -->
   </div>
+  <div class="ctrl">
+    <div class="seg" id="propExportSeg" title="导出道具清单为 CSV / Excel，批量改完再回写 source/props.md">
+      <button type="button" data-fmt="csv">导出 CSV</button>
+      <button type="button" data-fmt="xlsx" id="propBtnXlsx" hidden>导出 Excel</button>
+    </div>
+  </div>
+  <p class="meta" id="propMeta"></p>
+  <div class="grid" id="propGrid"></div>
 </details>
 
 <section class="blk" id="print">
@@ -1838,6 +1834,103 @@ const DECKS = {
 };
 /* CARDS:END */
 </script>
+<script id="propData">
+/* PROPS_DATA:START */
+const PROPS = {
+  "rules": [
+    "道具可以指定玩家所在格子的前后 3 格内使用",
+    "玩家进入商店时，随机刷新 3 个道具供购买",
+    "玩家进入商店时，可以半价出售持有的道具"
+  ],
+  "items": [
+    {
+      "name": "乌龟帽",
+      "price": "1000",
+      "effect": "接下来的 3 回合只能前进一格",
+      "qty": "2"
+    },
+    {
+      "name": "工程机器人",
+      "price": "2000",
+      "effect": "升级指定格子的房子",
+      "qty": "2"
+    },
+    {
+      "name": "导弹",
+      "price": "2000",
+      "effect": "降级指定格子的房子",
+      "qty": "2"
+    },
+    {
+      "name": "遥控骰子",
+      "price": "1000",
+      "effect": "你可以前进指定格数（1–16）",
+      "qty": "2"
+    },
+    {
+      "name": "路障",
+      "price": "500",
+      "effect": "任何人撞上去会立即停止（不能放在有玩家的格子）",
+      "qty": "2"
+    },
+    {
+      "name": "嫁祸卡",
+      "price": "1000",
+      "effect": "当你被送进监狱时，指定让另外一名玩家背锅",
+      "qty": "2"
+    },
+    {
+      "name": "免责卡",
+      "price": "1000",
+      "effect": "抵消你一次送进监狱",
+      "qty": "2"
+    },
+    {
+      "name": "汽车",
+      "price": "1000",
+      "effect": "你下一次移动前进双倍格数",
+      "qty": "2"
+    },
+    {
+      "name": "冷冻枪",
+      "price": "1000",
+      "effect": "指定玩家原地停留 1 回合",
+      "qty": "2"
+    },
+    {
+      "name": "抢夺卡",
+      "price": "1000",
+      "effect": "抢夺指定玩家的 1 件道具（盲抽）",
+      "qty": "2"
+    },
+    {
+      "name": "转向卡",
+      "price": "1000",
+      "effect": "让指定玩家掉头",
+      "qty": "2"
+    },
+    {
+      "name": "绿卡",
+      "price": "1500",
+      "effect": "抵消你一次付款",
+      "qty": "2"
+    },
+    {
+      "name": "红卡",
+      "price": "1500",
+      "effect": "让你一次收款翻倍",
+      "qty": "2"
+    },
+    {
+      "name": "拍卖卡",
+      "price": "2000",
+      "effect": "强制拍卖指定房子",
+      "qty": "2"
+    }
+  ]
+};
+/* PROPS_DATA:END */
+</script>
 <script>
 function faceSVG(kind) {
   const mouth = kind === 'smile' ? 'M6.5 12.8 Q10 16.2 13.5 12.8' : 'M6.5 14.2 Q10 10.8 13.5 14.2';
@@ -1975,6 +2068,71 @@ render();
   btn.addEventListener('click', () => { (dlg.showModal || dlg.show).call(dlg); });
   document.getElementById('btnFieldsX').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });   // 点遮罩关闭
+})();
+
+// ---- 道具卡：动态渲染 + CSV/Excel 导出 ----
+(function () {
+  const grid = document.getElementById('propGrid');
+  const meta = document.getElementById('propMeta');
+  if (!grid || typeof PROPS === 'undefined' || !PROPS.items || !PROPS.items.length) {
+    if (grid) grid.innerHTML = '<p class="empty">道具数据还没生成，跑一次 <code>python3 tools/build.py</code> 就有了。</p>';
+    return;
+  }
+
+  function propHTML(p, seq, total) {
+    return '<div class="card prop">' +
+      '<div class="c-top"><span class="c-title">道具</span>' +
+      '<span class="c-num">' + seq + '-' + total + '</span></div>' +
+      '<div class="c-ev">' + p.name + '<i class="cdiv"></i></div>' +
+      '<div class="c-line"><span>' + amtHtml(p.effect || '') + '</span></div>' +
+      '<div class="c-foot"><span class="pprice">售价 ¥' + p.price + '</span>' +
+      '<span class="pqty">印 ×' + p.qty + '</span></div>' +
+      '</div>';
+  }
+
+  const total = PROPS.items.length;
+  grid.innerHTML = PROPS.items.map((p, i) => propHTML(p, i + 1, total)).join('');
+  meta.textContent = '共 ' + total + ' 件道具' + (PROPS.rules && PROPS.rules.length ? '（' + PROPS.rules.length + ' 条使用规则）' : '');
+
+  // ---- 导出 ----
+  const COLS = ['name', 'price', 'effect', 'qty'];
+  const grp = document.getElementById('propExportSeg');
+  if (!grp) return;
+
+  const aoa = () => [COLS].concat((PROPS.items || []).map(p => COLS.map(c => p[c] || '')));
+
+  function download(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function exportCSV() {
+    const esc = s => { s = String(s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    download(new Blob(['\ufeff' + aoa().map(r => r.map(esc).join(',')).join('\r\n') + '\r\n'],
+      { type: 'text/csv;charset=utf-8' }), 'props.csv');
+  }
+  function exportXLSX() {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa()), 'props');
+    XLSX.writeFile(wb, 'props.xlsx');
+  }
+  grp.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.fmt === 'csv') exportCSV();
+    else if (b.dataset.fmt === 'xlsx' && window.XLSX) exportXLSX();
+  });
+
+  // 跟卡牌区共用同一份 SheetJS（卡牌区先加载，道具区只等它好了就显示 Excel 按钮）
+  const check = setInterval(() => {
+    if (window.XLSX) {
+      document.getElementById('propBtnXlsx').hidden = false;
+      clearInterval(check);
+    }
+  }, 200);
+  setTimeout(() => clearInterval(check), 8000);   // 8 秒超时别白等
 })();
 
 // ---- 游戏规则：三版卡片切换（原版 / v1 / v2）----

@@ -1,4 +1,9 @@
-"""道具真源（source/props.md）的两种读法：整篇转 HTML（首页道具清单）/ 解析成结构化 dict（打印页道具卡）。"""
+"""道具真源（source/props.md）的三种读法：
+  1. build_props_rules_html() — 使用规则 <ol>（首页道具卡区块顶部静态展示）
+  2. parse_props()            — 结构化 dict（打印页道具卡 + data/props.json）
+  3. gen_props_json_block()   — 注入首页的内嵌 JSON（给 JS 动态渲染道具卡网格）
+"""
+import json
 import os
 import re
 
@@ -6,13 +11,19 @@ from lib import md as mdlib
 from lib import paths
 
 
-def build_props_html():
-    """把 source/props.md 转成首页「道具清单」区的内容。"""
+def build_props_rules_html():
+    """把 source/props.md 的「使用规则」章节转成 <ol> HTML（首页静态展示，道具列表由 JS 渲染）。"""
     if not os.path.exists(paths.PROPS_PATH):
         print('  跳过：未找到 source/props.md')
         return ''
     with open(paths.PROPS_PATH, encoding='utf-8') as f:
-        return mdlib.md_to_html(f.read())
+        text = f.read()
+    body = mdlib.md_to_html(text)
+    # md_to_html 会把整篇 md 转成 HTML，截到 </ol> 就停（只留规则，道具表格和后续都不要）
+    cut = body.find('</ol>')
+    if cut == -1:
+        return body
+    return body[:cut + 5]
 
 
 def parse_props():

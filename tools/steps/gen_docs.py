@@ -132,6 +132,14 @@ def run(ctx):
     docs = ctx['docs']
     os.makedirs(paths.OTHER_DIR, exist_ok=True)
 
+    # 清理已移除条目的旧产物（gen_docs 只生成 DOCS 里登记的，不会自动删旧的）
+    keep = {name + '.html' for name, _, _ in docs} | {'index.html'}
+    stale = [f for f in os.listdir(paths.OTHER_DIR)
+             if f.endswith('.html') and f not in keep]
+    for f in stale:
+        os.remove(os.path.join(paths.OTHER_DIR, f))
+        print('  清理旧产物：other/' + f)
+
     # 已登记文档的站点根路径 → 输出文件名（互链重写用）
     doc_map = {'docs/%s.md' % name: '%s.html' % name for name, _, _ in docs}
 

@@ -111,6 +111,8 @@ JAIL_NO_RENT = os.environ.get("JAIL_NO_RENT", "1") == "1"
 PROP_STOCK_PER_KIND = None if os.environ.get("PROP_UNLIMITED") else 2
 # 卡牌实战插桩：AUDIT=1 时逐张记录触发次数与净值变化
 AUDIT = os.environ.get("AUDIT") == "1"
+# 单回合净值账本：LEDGER=1 时逐回合记录净值变化（验证「坐牢代价」等口径）
+LEDGER = os.environ.get("LEDGER") == "1"
 
 
 class Game:
@@ -134,6 +136,8 @@ class Game:
         self.jail_events = 0
         self.jail_lead_cost = self.jail_lead_n = 0
         self.jail_big_cost = self.jail_big_n = 0
+        self.ledger = []                   # LEDGER 插桩：(回合, 玩家, 模式, 净值Δ)
+        self.flow = Counter()              # LEDGER 资金流分解（赤道/过路费/坐牢拒收）
         self.round_no = 0                  # 当前进行到第几回合（破产计时用）
         self.first_death_round = None
         self.player_turns = 0              # 累计「人·回合」数（= 真人掷骰次数）
@@ -283,6 +287,7 @@ class Game:
                 passed = new >= pl["pos"] and pl["pos"] != 0
         if passed:
             pl["cash"] += GO_BONUS
+            self.flow["go"] += GO_BONUS
             pl["laps"] += 1
         pl["pos"] = new
         return self.resolve(pl)
@@ -318,12 +323,15 @@ class Game:
         if not other["alive"]:
             return
         if JAIL_NO_RENT and other["jail"] > 0:
+            self.flow["rent_denied_n"] += 1
+            self.flow["rent_denied"] += self.chain_rent(cell, owner)
             return                         # 规则：坐牢期间不能收租
         # 机会 18（付方翻倍）× 命运 5（收方翻倍/减半）
         rent = self.chain_rent(cell, owner) * pl["toll_mult"] * other["rent_mult"]
         if rent >= RED_CARD_MIN and "红卡" in other["props"]:
             other["props"].remove("红卡")   # 红卡：让这一次收款翻倍
             rent *= 2
+        self.flow["rent"] += rent
         self.pay(pl, rent, other, is_rent=True)
 
     def richest(self, exclude=None):
@@ -359,6 +367,11 @@ class Game:
                 cost += p * (1.0 if s == 5 else 0.5)
             tot += cost
         return tot
+
+    def networth(self, i):
+        """LEDGER：一人的当前净值（现金 + 名下房产已投入成本）。"""
+        pairs = [(self.owner[c], self.level[c]) for c in range(N_CELLS)]
+        return self.players[i]["cash"] + self._worth(pairs, i)
 
     def audit_card(self, kind, idx, snap, who):
         """记录一张牌触发前后的净值变化（抽卡者 vs 其余人）。"""
@@ -757,16 +770,24 @@ class Game:
 
     # ---------- 一回合 ----------
     def turn(self, pl):
+        if LEDGER:
+            v0 = self.networth(pl["idx"])
         if pl["jail"] > 0:
-            if AUDIT and pl.get("_ja") is None:
+            if pl.get("_ja") is None:                # 入狱窗口净值（常态收集，AUDIT 不必开）
                 pl["_ja"] = self.snapshot()
             pl["jail"] -= 1
-            if pl["jail"] == 0 and AUDIT and pl.get("_ja") is not None:
+            if pl["jail"] == 0 and pl.get("_ja") is not None:
                 self.audit_jail(pl["idx"], pl.pop("_ja"))
                 self.jail_events += 1
+            if LEDGER:
+                self.ledger.append((self.round_no, pl["idx"], "jail",
+                                    self.networth(pl["idx"]) - v0))
             return
         if pl["stay"] > 0:                       # 原地停留（机会 4/7、命运 2）
             pl["stay"] -= 1
+            if LEDGER:
+                self.ledger.append((self.round_no, pl["idx"], "stay",
+                                    self.networth(pl["idx"]) - v0))
             return
         # 激活上一回合挂起的「下一回合」状态；本回合结束后统一清掉
         pl["rent_mult"], pl["rent_pending"] = pl["rent_pending"], 1.0
@@ -819,6 +840,9 @@ class Game:
             pl["rent_mult"] = 1.0
             pl["toll_mult"] = 1.0
             pl["mute"] = False
+            if LEDGER:
+                self.ledger.append((self.round_no, pl["idx"], "normal",
+                                    self.networth(pl["idx"]) - v0))
             if AUDIT:
                 self.flush_audit()
 
@@ -902,6 +926,86 @@ def ab_main():
                   f"   ({b[gid] / trials * 100 - a[gid] / trials * 100:+.1f})")
     print(f"\n  黄绿 = 排序第 1 的组（6 格 2 段，满级连锁 $42,000）；"
           f"平均破产满分 8（= 8 表示全部打到只剩一人）")
+
+
+def ledger_main():
+    """LEDGER=1：单回合净值账本——正常回合 vs 坐牢/停留回合的净值期望对照。
+
+    回答「坐牢到底贵不贵」：两个独立口径互验——
+      口径 A：坐牢窗口（入狱→出狱）的实际净值变化（与 balance-v7 同口径）
+      口径 B：机会成本 = 同阶段正常回合的期望净值变化 × 坐牢时长 − 口径 A
+    另附资金流分解（赤道注入 / 过路费 / 坐牢期间被拒收的租金）。
+    """
+    data = load_map()
+    groups = {g["id"]: g for g in data["colorGroups"]}
+    tiles = {t["id"]: t for t in data["tiles"]}
+    score = []
+    for gid, g in groups.items():
+        ids = [t for t in data["tiles"] if t.get("colorId") == gid]
+        total = sum(t["price"] for t in ids)
+        score.append((len(ids) * total, gid))
+    score.sort(reverse=True)
+    order = [gid for _, gid in score][:8]
+    trials = int(os.environ.get("TRIALS", "300"))
+    rng = random.Random(20261014)
+    led = []
+    flow = Counter()
+    jail_cost, jail_n = 0.0, 0
+    for _ in range(trials):
+        targets = order[:]
+        rng.shuffle(targets)
+        _w, g, r, ok = run_game(rng, data, targets)
+        led.extend(g.ledger)
+        flow.update(g.flow)
+        jail_cost += g.jail_cost
+        jail_n += g.jail_events
+
+    T = float(trials)
+    n = len(led)
+    mean = lambda vals: sum(vals) / len(vals) if vals else float("nan")
+    med = lambda vals: sorted(vals)[len(vals) // 2] if vals else float("nan")
+    stages = [("前 52 回合(发育期)", lambda rd: rd < 52),
+              ("52–150 回合(中期)", lambda rd: 52 <= rd <= 150),
+              ("150 回合后(残局)", lambda rd: rd > 150)]
+
+    print("=" * 78)
+    print(f"单回合净值账本 · 8 人局 × {trials} 局 · 共 {n} 条回合记录"
+          f"（净值 = 现金 + 名下房产已投入成本）")
+    print("=" * 78)
+    print(f"\n【口径 A · 坐牢窗口实际净值变化】{jail_n/T:.2f} 次/局 · "
+          f"{jail_cost/jail_n:+.1f} 元/次（入狱→出狱整体，含他人回合）")
+    for name, f in stages:
+        ns = [d for rd, _p, m, d in led if m == "normal" and f(rd)]
+        js = [d for rd, _p, m, d in led if m == "jail" and f(rd)]
+        if not ns:
+            continue
+        print(f"\n【{name}】正常回合 {len(ns)} 条 · 坐牢跳过 {len(js)} 条")
+        print(f"  正常回合 Δ净值：均值 {mean(ns):+8.0f} · 中位 {med(ns):+8.0f} 元/回合")
+        if js:
+            print(f"  坐牢回合 Δ净值：均值 {mean(js):+8.0f} · 中位 {med(js):+8.0f} 元/回合"
+                  f"（跳过回合本身 ≈ 0 即验证账本无误）")
+    ns_all = [d for _rd, _p, m, d in led if m == "normal"]
+    js_all = [d for _rd, _p, m, d in led if m == "jail"]
+    ss_all = [d for _rd, _p, m, d in led if m == "stay"]
+    print(f"\n【合计】正常 {len(ns_all)} 条 · 坐牢 {len(js_all)} 条 · 停留 {len(ss_all)} 条")
+    print(f"  全体正常回合：均值 {mean(ns_all):+.0f} · 中位 {med(ns_all):+.0f} 元/回合")
+    print(f"  全体坐牢回合：均值 {mean(js_all):+.0f} 元/回合"
+          f" · 停留回合：均值 {mean(ss_all):+.0f} 元/回合")
+    if js_all:
+        e_normal = mean(ns_all)
+        opp = e_normal - mean(js_all)
+        print(f"\n【口径 B · 机会成本】坐牢回合若正常行动，期望多变化 "
+              f"{opp:+.0f} 元/回合（E[正常] − E[坐牢]）")
+        print(f"  × 平均刑期 ≈ {len(js_all)/max(jail_n,1):.2f} 回合/次 → "
+              f"每次坐牢的机会成本 ≈ {opp * len(js_all)/max(jail_n,1):+.0f} 元")
+    print(f"\n【资金流分解】/局")
+    print(f"  赤道酬金注入：{flow['go']/T:,.0f} 元")
+    print(f"  过路费成交总额：{flow['rent']/T:,.0f} 元")
+    if flow["rent_denied_n"]:
+        print(f"  坐牢被拒收租金：{flow['rent_denied_n']/T:.2f} 次/局 · "
+              f"共 {flow['rent_denied']/T:,.0f} 元/局 · "
+              f"均 {flow['rent_denied']/flow['rent_denied_n']:,.0f} 元/次"
+              f"（地主坐牢期间，别人踩他地不用付）")
 
 
 def audit_main():
@@ -1007,6 +1111,9 @@ def main():
         return
     if os.environ.get("COHORT"):
         cohort_main()
+        return
+    if os.environ.get("LEDGER"):
+        ledger_main()
         return
     if os.environ.get("AUDIT"):
         audit_main()

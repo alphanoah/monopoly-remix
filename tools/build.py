@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import paths  # noqa: F401  路径统一在 lib/paths.py
 from steps import validate, gen_data, gen_pages, gen_map, gen_docs, gen_readme
 
-# 首页「游戏规则」区：三版并列，点卡片切换
+# 首页「游戏规则」区：多版并列，点卡片切换
 #   (key, 卡片主标题, 卡片副标题, md 路径, 页面里的源文件链接, 链接前缀, 要折叠的小节)
 #   折叠小节 = (标题层级, 标题关键字, 是否折到文末, 折叠后显示的标题 / None = 用原标题)
 RULE_DOCS = [
@@ -27,10 +27,13 @@ RULE_DOCS = [
      os.path.join(paths.SOURCE_DIR, 'rules.md'), 'source/rules.md', 'source/',
      [(3, '卡牌', True, '卡牌（cards.md 与历史存档）'),
       (4, '备选', False, None)]),
-    ('v2', 'v2', '最新改版规则',
+    ('v2', 'v2', '过渡改版规则',
      os.path.join(paths.SOURCE_DIR, 'new-rule.md'), 'source/new-rule.md', 'source/', []),
+    ('v3', 'v3', '最新改版规则',
+     os.path.join(paths.SOURCE_DIR, 'new-rule-v3.md'), 'source/new-rule-v3.md', 'source/',
+     [(3, '卡牌配套修订建议', True, '卡牌配套修订建议（改卡面，不改规则）')]),
 ]
-DEFAULT_RULE = 'v2'
+DEFAULT_RULE = 'v3'
 
 # 原版实体资料（original.html）：文件名 → 区块标题（None = 用 md 里的一级标题；函数 = 按内容现算）
 #                                 → 是否默认展开
@@ -56,7 +59,7 @@ DOCS = [
 PAGES = [
     ('index.html', [
         ('CARDS', 'cards_js'),           # const DECKS = 卡牌全量数据
-        ('RULES', 'rules_html'),         # 规则三版切换区（RULE_DOCS）
+        ('RULES', 'rules_html'),         # 规则多版切换区（RULE_DOCS）
         ('PROPS_DATA', 'props_data'),   # 道具数据 JSON（给 JS 渲染道具卡网格）
         ('PROPS_RULES', 'props_rules'), # 道具使用规则 HTML（静态 <ol>）
         ('MAPINFO', 'map_info'),         # 「电子地图」区说明（格子数/尺寸现算）

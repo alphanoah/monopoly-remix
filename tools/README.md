@@ -13,7 +13,7 @@ push 后 GitHub Actions（`.github/workflows/build-pages.yml`）跑的是同一�
 
 | 文件 | 作用 |
 |---|---|
-| `build.py` | 入口。顶部是声明式配置：RULE_DOCS（三版规则）、ORIGINAL_DOCS、PAGES（站点地图）、STEPS（步骤链） |
+| `build.py` | 入口。顶部是声明式配置：RULE_DOCS（多版规则）、ORIGINAL_DOCS、PAGES（站点地图）、STEPS（步骤链） |
 | `import-cards.py` | 卡牌 CSV → `source/cards.md` 回导（配合首页「导出 CSV / Excel」批量编辑；校验 + 回读比对，不一致不写） |
 | `steps/validate.py` | 校验真源：卡牌硬失败（不写任何文件），棋盘/道具软失败（跳过相关块） |
 | `steps/gen_data.py` | 生成 `data/cards.json`、`data/props.json` |
@@ -34,8 +34,9 @@ push 后 GitHub Actions（`.github/workflows/build-pages.yml`）跑的是同一�
 | 真源（手写） | 产物（脚本生成，勿手改） |
 |---|---|
 | `source/cards.md` | `data/cards.json` + `index.html` 卡牌区 + `print.html` 兜底 |
-| `source/new-rule.md`（v2）| `index.html` 规则 tab（默认打开） |
-| `source/rules.md`（v1）| `index.html` 规则 tab |
+| `source/new-rule-v3.md`（v3，现行）| `index.html` 规则 tab（默认打开） |
+| `source/new-rule.md`（v2，过渡）| `index.html` 规则 tab |
+| `source/rules.md`（v1，朋友初版）| `index.html` 规则 tab |
 | `source/original/manual.md` | `index.html` 原版 tab + `original.html` |
 | `source/original/cards.md` | `original.html` |
 | `source/original/map-data-guide.md` | `original.html` 折叠区块（统计表由脚本现算插入） |

@@ -238,11 +238,12 @@
   <summary><h2>游戏规则</h2><span class="tog"></span></summary>
   <div class="md">
 <!-- RULES:START -->
-<p class="rnote">规则改过两轮，这里把三版并列放好，点上面的卡片切换。<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，<strong>v1</strong> = 第一次改版，<strong>v2</strong> = 现在在玩的最新一版。</p>
+<p class="rnote">规则迭代了多个版本，这里并列放好，点上面的卡片切换。<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，<strong>v1</strong> = 朋友初版，<strong>v2</strong> = 过渡版，<strong>v3</strong> = 现行版本（审查修订见 docs/rule-v2-review.md）。</p>
 <div class="rtabs" role="tablist" aria-label="规则版本">
 <button type="button" class="rtab" role="tab" aria-selected="false" id="rtab-original" aria-controls="rview-original" data-rule="original"><span class="rttxt"><span class="rt-n">原版</span><span class="rt-d">实体说明书</span></span></button>
 <button type="button" class="rtab" role="tab" aria-selected="false" id="rtab-v1" aria-controls="rview-v1" data-rule="v1"><span class="rttxt"><span class="rt-n">v1</span><span class="rt-d">初版改版规则</span></span></button>
-<button type="button" class="rtab on" role="tab" aria-selected="true" id="rtab-v2" aria-controls="rview-v2" data-rule="v2"><span class="rttxt"><span class="rt-n">v2</span><span class="rt-d">最新改版规则</span></span><span class="rt-b">默认</span></button>
+<button type="button" class="rtab" role="tab" aria-selected="false" id="rtab-v2" aria-controls="rview-v2" data-rule="v2"><span class="rttxt"><span class="rt-n">v2</span><span class="rt-d">过渡改版规则</span></span></button>
+<button type="button" class="rtab on" role="tab" aria-selected="true" id="rtab-v3" aria-controls="rview-v3" data-rule="v3"><span class="rttxt"><span class="rt-n">v3</span><span class="rt-d">最新改版规则</span></span><span class="rt-b">默认</span></button>
 </div>
 <div class="rviews">
 <div class="rview" role="tabpanel" id="rview-original" aria-labelledby="rtab-original" data-rule="original">
@@ -305,6 +306,7 @@
 <div class="rview" role="tabpanel" id="rview-v1" aria-labelledby="rtab-v1" data-rule="v1">
 <h3 class="rttl">大富翁玩法更新</h3>
 <div class="md">
+<blockquote>v1 调整思路：朋友初版。沿用原版骨架，改十六面骰、四档房产（1–3 绿 / 4 红）、连锁收租、拍卖应急，新增乞丐条款；未写明的部分沿用原版说明书。</blockquote>
 <h3>基本规则：</h3>
 <ul>
 <li>沿用地图
@@ -457,9 +459,10 @@
 </div>
 <p class="rsrc">源文件 <a href="source/rules.md">source/rules.md</a></p>
 </div>
-<div class="rview on" role="tabpanel" id="rview-v2" aria-labelledby="rtab-v2" data-rule="v2">
+<div class="rview" role="tabpanel" id="rview-v2" aria-labelledby="rtab-v2" data-rule="v2">
 <h3 class="rttl">大富翁新规则</h3>
 <div class="md">
+<blockquote>v2 调整思路：回归原版五档等级（1–4 绿 / 5 红）与 15000 资金口径；印度洋、大西洋改道具商店；监狱禁用道具；出狱手段道具化（嫁祸卡 / 免责卡）；条目改为「说明 + 备选方案」表格体。</blockquote>
 <blockquote>「备选方案」列为该条规则的替代玩法，<code>无</code> 表示没有备选。</blockquote>
 <h3>地图</h3>
 <div class="tw"><table>
@@ -541,6 +544,148 @@
 </tbody></table></div>
 </div>
 <p class="rsrc">源文件 <a href="source/new-rule.md">source/new-rule.md</a></p>
+</div>
+<div class="rview on" role="tabpanel" id="rview-v3" aria-labelledby="rtab-v3" data-rule="v3">
+<h3 class="rttl">大富翁新规则 v3</h3>
+<div class="md">
+<blockquote><strong>v3 调整思路</strong>：在 v2 基础上补全「破产 / 胜利条件」闭环，修复实测确认的「坐牢免费」与道具上限问题，抽卡改为 16 张牌池 + 掷骰点选；升级回归原版「踩到自己地才能买/升」。标注【建议】的条款为配套修订，起因写在各条括号里，全部实测数据见 <code>docs/balance-v7.md</code> 与 <code>docs/rule-v2-review.md</code>。<br>「备选方案」列为该条规则的替代玩法，<code>无</code> 表示没有备选。</blockquote>
+<h3>地图</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>赤道</td><td>出生点，每次经过奖励 2000</td><td>无</td></tr>
+<tr><td>北极</td><td>监狱：送进监狱时强制移动到这里</td><td>无</td></tr>
+<tr><td>印度洋</td><td>道具商店</td><td>无</td></tr>
+<tr><td>大西洋</td><td>道具商店</td><td>无</td></tr>
+<tr><td>太平洋</td><td>无事件海洋格（沿用原版海洋）</td><td>无</td></tr>
+<tr><td>玩家起点</td><td>固定赤道，所有人同起点、顺时针前进</td><td>无</td></tr>
+</tbody></table></div>
+<h3>骰子</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>样式</td><td>1 枚十六面骰子</td><td>无</td></tr>
+<tr><td>规则</td><td>摇到 16 可以再摇一次，连续两次 16 送进监狱 1 回合</td><td>取消此项</td></tr>
+</tbody></table></div>
+<h3>资金</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>初始资金</td><td>15000 = 5000×2 + 2000 + 1000×2 + 500 + 200 + 100×2 + 50 + 10×5</td><td>20000</td></tr>
+<tr><td>赤道</td><td>每次经过赤道奖励 2000</td><td>出生点</td></tr>
+<tr><td>乞丐条款</td><td><strong>v3 删除</strong>（v1/v2 的「路过破产玩家施舍 500」废除：破产者退出游戏后条款无对象，且属于无卡面声明的强制领先税）</td><td>留场玩法见「破产」一节【建议】块</td></tr>
+</tbody></table></div>
+<h3>地产</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>等级</td><td>0 级空地 → 1–4 级绿色房屋 → 5 级红色旅馆（4 绿缴回换 1 红，与原版「五幢换旅馆」一致）</td><td>根据房契</td></tr>
+<tr><td>升级前提</td><td><strong>必须走到自己的地产才能购买 / 升级</strong>（沿用原版第四条）</td><td>【建议】任意回合可操作：自己回合内随时买地/升级，节奏更快更凶</td></tr>
+<tr><td>升级费用</td><td>绿色：购地款 × 50%，红色：购地款 × 100%</td><td>根据房契</td></tr>
+<tr><td>过路费</td><td>空地 = 购地款 × 20%，绿色 = 购地款 × 50% × 等级，红色 = 购地款 × 300%</td><td>根据房契</td></tr>
+<tr><td>连锁</td><td><strong>默认开启</strong>：总过路费 = 同色同归属的所有房屋过路费之和，向下取整十</td><td>开局可表决关闭（注意：关闭后卡牌的反领先设计需整体重估赔率）</td></tr>
+</tbody></table></div>
+<blockquote><strong>连锁最大量级推算（满级、默认公式）</strong>：满级连锁 = 该色组地价合计 × 300%（每格 5 级红 = 购地款 × 300%，同色同归属求和）。<br><br>| 色组 | 格数 | 地价合计 | 满级连锁/次 |<br>|------|-----|---------|------------|<br>| 黄绿 | 6 | 14,000 | <strong>42,000</strong> |<br>| 深灰 | 5 | 12,600 | <strong>37,800</strong> |<br>| 红 | 5 | 11,700 | <strong>35,100</strong> |<br>| 粉 | 4 | 11,400 | <strong>34,200</strong> |<br>| 粉红 | 4 | 10,200 | <strong>30,600</strong> |<br>| 绿 | 5 | 10,100 | <strong>30,300</strong> |<br>| 卡其 | 4 | 9,200 | <strong>27,600</strong> |<br>| 浅蓝 | 5 | 9,000 | <strong>27,000</strong> |<br>| 紫 | 5 | 7,200 | <strong>21,600</strong> |<br>| 深蓝 | 4 | 6,400 | <strong>19,200</strong> |<br>| 浅绿 | 4 | 4,800 | <strong>14,400</strong> |<br><br>最高 = 黄绿 42,000（斯里兰卡 1,400 / 伊朗 2,000 / 伊拉克 1,800 / 沙特阿拉伯 1,800 / 叙利亚 3,500 / 土耳其 3,500），为初始资金 15000 的 2.8 倍；地主挂红卡再翻倍至 84,000。开局表决「是否开连锁」时请参照本表知情选择。</blockquote>
+<h3>监狱</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>规则</td><td>强制移动到监狱格子，跳过回合，无法收租，无法参与拍卖，无法使用道具</td><td>无</td></tr>
+<tr><td>基础刑期</td><td>1 回合（卡牌写明刑期的按卡牌，未写明的默认 1 回合）</td><td>无</td></tr>
+<tr><td>双连 16</td><td>连续两次 16 坐牢 1 回合</td><td>取消此项</td></tr>
+<tr><td>卡牌</td><td>机会/命运牌可送进监狱</td><td>无</td></tr>
+<tr><td>保释金【建议】</td><td>刑满出狱时向银行缴纳 <strong>1000 × 关押回合数</strong>（坐牢 1 回合交 1000，3 回合交 3000）</td><td>不修改：改为逐卡调整赔率（见「卡牌配套修订建议」末行）</td></tr>
+<tr><td>嫁祸卡 / 免责卡</td><td>道具，效果同 v2；保释金落地后这两件道具才真正值 1000 元定价</td><td>无</td></tr>
+</tbody></table></div>
+<blockquote>保释金起因：实测（600 局账本，复现命令 <code>LEDGER=1 TRIALS=600 python3 sim/game.py</code>）坐牢窗口净值变化仅 <strong>−2.4 元/次</strong>，且正常回合期望净值为负（全体 −741 元/回合）——坐牢等于免费休息甚至保护。后果：命运 1 实测正期望 +1,457（卡面是全库最吓人的赌局）、命运 13 +729、命运 4 +480，嫁祸卡/免责卡沦为白板。卡面标注本就把「坐牢 3 回合 ≈ −3000」当赔率写，保释金是把该赔率兑现；一处修改，命运 1/4/13、机会 15、两件道具共六处全部归位。</blockquote>
+<h3>拍卖</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>规则</td><td>所有人都可以参加拍卖（其他规则限定除外）</td><td>无</td></tr>
+<tr><td>拍卖条件</td><td>被动交钱时现金不足，可以选择一个房子进行拍卖</td><td>取消此项</td></tr>
+<tr><td>强制拍卖</td><td>破产清算、卡牌效果、道具（拍卖卡）会触发强制拍卖</td><td>无</td></tr>
+<tr><td>底价</td><td>起拍价为房子总价的 50%，向下取整十</td><td>无</td></tr>
+<tr><td>竞价</td><td>每次竞价最少加 100</td><td>无</td></tr>
+<tr><td>成交</td><td>成交后房子归购买者</td><td>无</td></tr>
+<tr><td>流拍</td><td>银行以起拍价收购房子，此后房子无主</td><td>无</td></tr>
+<tr><td>拍卖所得</td><td>拍卖所得的 25% 上交银行，向下取整十，剩下部分归房屋所有者</td><td>无</td></tr>
+</tbody></table></div>
+<h3>破产（v3 新增）</h3>
+<ul>
+<li><strong>触发</strong>：任何时候现金 + 拍卖筹资仍不足以清偿应付款，即宣告破产（沿用原版第十一条）
+</li>
+<li><strong>清算</strong>：名下房产逐一强制拍卖（起拍价 = 总价 50% 向下取整十，流拍归银行），拍卖所得按 75%/25% 结算后，连同全部剩余现金交给债主；债主为多人的，按欠款比例分配
+</li>
+<li><strong>缺口</strong>：清偿后仍有缺口的，由债主自担，不向其他玩家追索
+</li>
+<li><strong>归属</strong>：破产玩家退出游戏，未清算的空地全部变无主
+</li>
+<li><strong>说明</strong>：本版<strong>无抵押贷款与半价售房</strong>（原版第九、十条不使用），应急变现手段 = 拍卖 + 道具商店半价回售
+</li>
+<li>【建议】留场玩法（不推荐）：破产者不退出，棋子留在原地变「乞丐」——不掷骰、不参与拍卖、名下地全部无主；其他玩家经过其所在格时向银行缴 500，乞丐同时从银行领 500 救济；游戏结束时乞丐按剩余现金参与排名
+</li></ul>
+<h3>道具</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>购买</td><td>玩家进入道具商店时，随机刷新 3 个道具以供购买</td><td>无</td></tr>
+<tr><td>出售</td><td>玩家进入道具商店时，可以以半价出售持有的道具</td><td>无</td></tr>
+<tr><td>使用</td><td>道具可以指定玩家所在格子的前后 3 格内使用</td><td>无</td></tr>
+<tr><td>使用时点【建议】</td><td>主动道具（工程机器人/导弹/遥控骰子/路障/汽车/冷冻枪/抢夺卡/转向卡）只能在自己回合使用，一回合最多 1 件；响应道具（嫁祸卡/免责卡/绿卡）可在任何时点使用，不限件数；工程机器人不能直接盖出红色 5 级</td><td>无</td></tr>
+<tr><td>库存【建议】</td><td>半价回售的道具立即重新上架；商店只从「有库存」的品类刷新（否则 28 张开局两圈售罄，后半局商店空转，实测真实需求 55 件/局）</td><td>不限量（等价于回售即补货，对局提速 8%）</td></tr>
+<tr><td>路障【建议】</td><td>放置在无主地产格或海洋格，持续 2 圈；任何人移动撞上即停在路障前一格；同一格最多 1 个；不能放在有玩家的格子</td><td>无</td></tr>
+<tr><td>红卡 / 绿卡【建议】</td><td>收款翻倍 / 抵消付款，单次上限 <strong>8000</strong>（后期满级连锁单次 42,000 时，1500 元道具杠杆达 28 倍）</td><td>无上限（v2 现状）</td></tr>
+</tbody></table></div>
+<h3>机会</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>抽卡</td><td>每局开局从 20 张牌库随机取 <strong>16 张</strong>成本局牌池（被排除的 4 张不亮出）；玩家进入机会格时摇十六面骰，按点数从牌池取对应的一张，执行完后放回牌池底</td><td>沿用原版：洗牌后翻顶牌，用完置底</td></tr>
+</tbody></table></div>
+<h3>命运</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>抽卡</td><td>同机会：16 张牌池 + 掷骰点选，用完放回</td><td>沿用原版：洗牌后翻顶牌，用完置底</td></tr>
+</tbody></table></div>
+<details class="fold"><summary>卡牌配套修订建议（改卡面，不改规则）</summary>
+
+<div class="tw"><table>
+<thead><tr><th>卡</th><th>现状</th><th>【建议】改法</th><th>起因（实测）</th></tr></thead>
+<tbody>
+<tr><td>机会 15 出千被抓</td><td>强制拍卖自己一处房，所得全交赌场；无房则坐牢 3 回合</td><td>拍卖后拿回 37.5%；无房者改 −2000</td><td>实测 −6,137 元/次、领先者 −8,870，全场最狠的卡</td></tr>
+<tr><td>机会 8 迪拜泻药</td><td>强制拍卖现金最多玩家一处房（自己指定），其本人不得竞价</td><td>限定只能指定 ≤3 级的房</td><td>单次可打掉满级组核心（对方均亏 3,798）</td></tr>
+<tr><td>命运 18 赏金猎人</td><td>拿走对方现金的 20%</td><td>封顶 5,000</td><td>极值 74,940（后期对方现金可达 30 万）</td></tr>
+<tr><td>机会 7 / 14</td><td>smile 卡：+1 骰子次数</td><td>卡面改 frown，或加「本次额外移动不付过路费」</td><td>实测负期望 −927 / −822，多走一次 = 多踩一次雷</td></tr>
+<tr><td>机会 12 仿冒包</td><td>「欧洲区域玩家每人付你 1000」</td><td>写死「持有 ≥2 块欧洲地产的玩家」</td><td>「欧洲区域」无定义，实体局必吵架</td></tr>
+<tr><td>命运 7 金库</td><td>卡面「点数 &lt; 6」，命中率标 37.5%</td><td>卡面改「≤ 6」（31.25%）或改标注</td><td>卡面与标注不一致</td></tr>
+<tr><td>机会 11 监狱代购</td><td>狱中玩家每人付你 300</td><td>改 1000/人，或附加「自己若在牢中则立即出狱」</td><td>8 人局平均在牢 0.18 人，实测白板</td></tr>
+<tr><td>命运 20 拉什努显灵</td><td>抽卡者零参与，纯判官卡</td><td>给抽卡者 ±500 小利</td><td>被降级者平白亏几千，抽卡者无感</td></tr>
+<tr><td>命运 1 / 4 / 13（仅当不采用保释金时）</td><td>输面为坐牢</td><td>命运 1 赢面 +3000→+1500；命运 13 +3000→+800；命运 4 赢面 +1000→+500</td><td>把「坐牢 ≈ 0 元」折现进赔率</td></tr>
+</tbody></table></div>
+<h3>胜利条件（v3 新增）</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>标准</td><td>最后未破产的玩家获胜（沿用原版第十一条）</td><td>无</td></tr>
+<tr><td>加速【建议】</td><td>约定回合上限（建议 <strong>150 回合</strong>），到达后按「现金 + 名下房产已投入成本（购地价 + 已花升级费）」排名，最高者获胜</td><td>无</td></tr>
+<tr><td>现金目标【建议】</td><td>开局约定现金目标（如 50,000），最先达成者获胜（沿用原版第十二条）</td><td>无</td></tr>
+</tbody></table></div>
+<blockquote>起因：8 人局实测平均 241 回合 / 979 次行动 ≈ 真人 5.4~12.2 小时，98% 打到只剩一人；首次破产中位第 52 回合，150 回合时局势已完全明朗。</blockquote>
+<h3>其他</h3>
+<div class="tw"><table>
+<thead><tr><th>项目</th><th>说明</th><th>备选方案</th></tr></thead>
+<tbody>
+<tr><td>行动顺序</td><td>开局各掷一次骰，点数大者先行（沿用原版第二条）</td><td>无</td></tr>
+<tr><td>无主地产</td><td>停留可购买；放弃则保持无主</td><td>【建议】放弃即拍卖（经典规则）</td></tr>
+<tr><td>玩家交易</td><td>允许自由交易地产 / 道具 / 现金，价格自拟；默认不允许借贷</td><td>可开局约定允许借贷</td></tr>
+<tr><td>银行</td><td>公共资金池，负责赤道酬金、流拍收购、拍卖税与卡牌罚金收支；兼任出纳者不得私下借贷影响公平（沿用原版第七条、第十二条）</td><td>无</td></tr>
+</tbody></table></div>
+</details>
+
+</div>
+<p class="rsrc">源文件 <a href="source/new-rule-v3.md">source/new-rule-v3.md</a></p>
 </div>
 </div>
 <!-- RULES:END -->

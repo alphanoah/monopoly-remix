@@ -14,7 +14,7 @@ from lib import md as mdlib
 from lib import props as props_lib
 
 
-# ---------- 首页「游戏规则」区：三版并列，点卡片切换 ----------
+# ---------- 首页「游戏规则」区：多版并列，点卡片切换 ----------
 def build_rules(ctx):
     docs = []
     for key, name, desc, path, rel, prefix, folds in ctx['rule_docs']:
@@ -49,10 +49,11 @@ def build_rules(ctx):
             % (' on' if on else '', d['key'], d['key'], d['key'], html.escape(d['title']),
                d['body'], d['rel'], d['rel']))
 
-    note = ('<p class="rnote">规则改过两轮，这里把三版并列放好，点上面的卡片切换。'
+    note = ('<p class="rnote">规则迭代了多个版本，这里并列放好，点上面的卡片切换。'
             '<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，'
-            '<strong>v1</strong> = 第一次改版，<strong>v2</strong> = 现在在玩的最新一版。</p>')
-    print('  规则三版：%s（默认 %s）' % (' / '.join(d['name'] for d in docs), default))
+            '<strong>v1</strong> = 朋友初版，<strong>v2</strong> = 过渡版，'
+            '<strong>v3</strong> = 现行版本（审查修订见 docs/rule-v2-review.md）。</p>')
+    print('  规则版本：%s（默认 %s）' % (' / '.join(d['name'] for d in docs), default))
     return (note + '\n<div class="rtabs" role="tablist" aria-label="规则版本">\n' + '\n'.join(tabs) +
             '\n</div>\n<div class="rviews">\n' + '\n'.join(panes) + '\n</div>')
 

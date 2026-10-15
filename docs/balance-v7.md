@@ -323,5 +323,5 @@
 - 机会 4 / 命运 2 的「停留时事件照常触发」未实现（停留那一回合不结算地产）；
 - 命运 5 / 机会 18 的「下回合倍率」效果落在测量窗口之外，实测值偏低。
 
-*所有数字由 `source/map-print-data.json` + `source/cards.md`（v7）+ `source/props.md`
+*所有数字由 `source/map.json` + `source/cards.md`（v7）+ `source/props.md`
 + `sim/game.py` 现算得出（2026-10-13）。*

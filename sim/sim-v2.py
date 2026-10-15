@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""规则 2（source/new-rule.md）落点与收益模拟。
+"""规则 2（source/remix/manual-v2.md）落点与收益模拟。
 
 规则 2 与原版的关键差异（本脚本按这些口径跑）：
   1. 骰子：1 枚十六面骰（1-16 等概率）。摇到 16 → 移动 16 格并结算，然后再摇一次；
@@ -8,7 +8,7 @@
   2. 起点：**统一赤道 #0**，所有人同起点、同方向（顺时针前进）。
      （规则 v2 原文的「四角随机起点 + 单双定方向」是备选玩法，因为它会跟监狱冲突，
        本脚本按用户 2026-10-13 的确认走「赤道统一起点」这一支。）
-  3. 地图：格子类型**不硬编码**，全部读 source/map-print-data.json 的 variants.v2.replace —
+  3. 地图：格子类型**不硬编码**，全部读 source/map.json 的 variants.v2.replace —
      北极 #32 → 监狱、印度洋 #24 / 大西洋 #59 → 道具商店（太平洋 #10 仍是普通海洋格）。
   4. 监狱 = 北极 #32：被送进监狱时强制移动到这里，跳过若干回合，期间无法收租。
      送监狱来源：双 16、命运 1/4/13、机会 15（名下无房时）。
@@ -26,7 +26,7 @@ import os
 import random
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAP_JSON = os.path.join(ROOT, "source", "map-print-data.json")
+MAP_JSON = os.path.join(ROOT, "source", "map.json")
 
 N_CELLS = 64
 GO_CELL = 0             # 赤道：统一起点（v2 备选口径）

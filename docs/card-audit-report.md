@@ -185,6 +185,6 @@
    属于设计选择而非缺陷。
 4. **方差失控的只有命运 18**（极值 74,940），加封顶即可。
 
-*所有数字由 `source/map-print-data.json` + `source/cards.md`（v7）+ `sim/game.py`
+*所有数字由 `source/map.json` + `source/cards.md`（v7）+ `sim/game.py`
 （`AUDIT=1 TRIALS=600`）现算得出，2026-10-13。修改建议的完整优先级清单见
 [balance-v7.md](balance-v7.md) 第七节。*

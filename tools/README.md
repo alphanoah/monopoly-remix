@@ -23,7 +23,7 @@ push 后 GitHub Actions（`.github/workflows/build-pages.yml`）跑的是同一�
 | `steps/gen_readme.py` | 刷新 `README.md` 的「数据速览」块 |
 | `lib/md.py` | 简易 md → HTML（标题/列表/引用/表格/链接/粗体/行内码） |
 | `lib/cards.py` | cards.md 三层结构（版本→花色→表格）的解析 / 校验 / 生成 |
-| `lib/mapdata.py` | `source/map-print-data.json` 的解析与统计表生成 |
+| `lib/mapdata.py` | `source/map.json` 的解析与统计表生成 |
 | `lib/props.py` | `source/props.md` 道具清单解析 |
 | `lib/html_block.py` | 标记块替换（`<!-- XXX:START -->...<!-- XXX:END -->`），手改部分不动 |
 | `lib/ctx.py` | 步骤间共享的真源缓存（按需加载） |
@@ -34,16 +34,16 @@ push 后 GitHub Actions（`.github/workflows/build-pages.yml`）跑的是同一�
 | 真源（手写） | 产物（脚本生成，勿手改） |
 |---|---|
 | `source/cards.md` | `data/cards.json` + `index.html` 卡牌区 + `print.html` 兜底 |
-| `source/new-rule-v3.md`（v3，现行）| `index.html` 规则 tab（默认打开） |
-| `source/new-rule.md`（v2，过渡）| `index.html` 规则 tab |
-| `source/rules.md`（v1，朋友初版）| `index.html` 规则 tab |
+| `source/remix/manual-v3.md`（v3，现行）| `index.html` 规则 tab（默认打开） |
+| `source/remix/manual-v2.md`（v2，过渡）| `index.html` 规则 tab |
+| `source/remix/manual-v1.md`（v1，朋友初版）| `index.html` 规则 tab |
 | `source/original/manual.md` | `index.html` 原版 tab + `original.html` |
 | `source/original/cards.md` | `original.html` |
 | `source/original/map-data-guide.md` | `original.html` 折叠区块（统计表由脚本现算插入） |
 | `source/original/map-tiles.md` | `original.html` 折叠区块（同上） |
 | `source/props.md` | `index.html` 道具区 + `data/props.json` + `print.html` 兜底 |
-| `source/map-print-data.json` | `map.html` 兜底 + `index.html` 地图区 + README 速览 |
-| `docs/*.md`（build.py 的 DOCS 登记的 4 篇） | `other/<同名>.html` + `other/index.html` 索引页 |
+| `source/map.json` | `map.html` 兜底 + `index.html` 地图区 + README 速览 |
+| `docs/*.md`（build.py 的 DOCS 登记的 6 篇） | `other/<同名>.html` + `other/index.html` 索引页 |
 
 产物页面里只有 `<!-- XXX:START/END -->` 标记块内的内容会被脚本覆盖，块外的手写部分（页面骨架、样式、交互 JS）不受影响。
 

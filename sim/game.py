@@ -7,7 +7,7 @@
 「如果一组归你、另一组归他，谁更可能活到最后」。
 
 【模型口径 / 简化说明】
-  · 骰子、起点、监狱、赤道酬金完全按 source/new-rule.md（1 枚十六面骰）。
+  · 骰子、起点、监狱、赤道酬金完全按 source/remix/manual-v2.md（1 枚十六面骰）。
     摇到 16 → 移动并结算后再摇一次；同一回合内连续两次 16 → 送进监狱 1 回合。
   · **起点：统一赤道 #0，所有人同起点、同方向**（v2 原文的四角随机起点 + 单双定方向
     会跟监狱冲突，按用户 2026-10-13 的确认不用）。
@@ -40,7 +40,7 @@ import random
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAP_JSON = os.path.join(ROOT, "source", "map-print-data.json")
+MAP_JSON = os.path.join(ROOT, "source", "map.json")
 
 N_CELLS = 64
 GO_CELL = 0             # 赤道：统一出生点

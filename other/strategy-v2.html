@@ -72,7 +72,7 @@
   <p>现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测</p>
 </header>
 <div class="md">
-<blockquote>规则来源：<a href="../source/new-rule.md"><code>source/new-rule.md</code></a>（首页「游戏规则」默认打开的 v2 面板）<br>数据来源：<code>source/map-print-data.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/cards.md</code>（v7）· 道具 <code>source/props.md</code><br>模拟脚本：<code>python3 sim/sim-v2.py</code>（落点分布 + 组经济）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=1000</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2 对照）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）<br>⚠️ 本文只适用于<strong>规则 2</strong>（1 枚十六面骰、统一赤道起点、连锁过路费）。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略与本文结论<strong>完全不同，不能混用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
+<blockquote>规则来源：<a href="../source/remix/manual-v2.md"><code>source/remix/manual-v2.md</code></a>（首页「游戏规则」的 v2 面板）<br>数据来源：<code>source/map.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/cards.md</code>（v7）· 道具 <code>source/props.md</code><br>模拟脚本：<code>python3 sim/sim-v2.py</code>（落点分布 + 组经济）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=1000</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2 对照）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）<br>⚠️ 本文只适用于<strong>规则 2</strong>（1 枚十六面骰、统一赤道起点、连锁过路费）。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略与本文结论<strong>完全不同，不能混用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
 <h3>〇、速览（先看这段就够打一局）</h3>
 <p><strong>一句话：规则 2 里位置只值 ±5%（统一起点后的残余偏差），胜负手是「把地集中在一个颜色里」。</strong></p>
 <p><strong>四条铁律</strong></p>
@@ -248,7 +248,7 @@
 </li></ul>
 <h3>六、规则 2 独有的打法</h3>
 <h4>6.1 道具：唯一的「反领先武器」</h4>
-<p>商店格在<strong>印度洋 #24 / 大西洋 #59</strong>（<code>source/map-print-data.json</code> 的 <code>variants.v2</code> 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。</p>
+<p>商店格在<strong>印度洋 #24 / 大西洋 #59</strong>（<code>source/map.json</code> 的 <code>variants.v2</code> 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。</p>
 <p>完整 14 种道具，按模拟里 AI 的估价从高到低：</p>
 <div class="tw"><table>
 <thead><tr><th>道具</th><th>价格</th><th>效果</th><th>关键用法</th></tr></thead>
@@ -368,10 +368,10 @@
 <tr><td>选组依据</td><td>段数 + 均价</td><td><strong>格数（收益率）+ 总地价（打击力）+ 段数（买入速度）</strong></td></tr>
 <tr><td>最推荐</td><td>浅蓝 → 粉 → 紫</td><td><strong>黄绿 → 深灰 → 浅蓝（开局）</strong></td></tr>
 </tbody></table></div>
-<p>*本文所有数字由 <code>source/map-print-data.json</code> + <code>source/cards.md</code>（v7）+ <code>source/props.md</code> + <code>sim/sim-v2.py</code> + <code>sim/game.py</code> 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*</p>
+<p>*本文所有数字由 <code>source/map.json</code> + <code>source/cards.md</code>（v7）+ <code>source/props.md</code> + <code>sim/sim-v2.py</code> + <code>sim/game.py</code> 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*</p>
 <p><strong>口径备忘</strong>（都写成常量，改一个就能重跑）：</p>
 <ol>
-<li><strong>监狱/商店格</strong>：由 <code>source/map-print-data.json</code> 的 <code>variants.v2</code> 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
+<li><strong>监狱/商店格</strong>：由 <code>source/map.json</code> 的 <code>variants.v2</code> 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
 </li>
 <li><strong>自然走到监狱算不算坐牢？</strong> 现行默认<strong>算</strong>（<code>ARRIVE_JAIL_CELL_JAILS = True</code>）；要改回「只有被送才算」，把两个脚本里的开关设为 <code>False</code> 重跑。
 </li>

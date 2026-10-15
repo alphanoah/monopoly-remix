@@ -1,4 +1,4 @@
-"""把 map-print-data.json 的内置兜底写进 map.html（本地 file:// 打开时用）。"""
+"""把 map.json 的内置兜底写进 map.html（本地 file:// 打开时用）。"""
 import json
 import os
 
@@ -13,7 +13,7 @@ def gen_map_fallback(ctx):
     if not data:
         return None
     js = json.dumps(data, ensure_ascii=False, indent=2).replace('<', '\\u003c')
-    block = ('/* MAP_FALLBACK:START */  // 由 tools/build.py 从 source/map-print-data.json 生成，请勿手改\n'
+    block = ('/* MAP_FALLBACK:START */  // 由 tools/build.py 从 source/map.json 生成，请勿手改\n'
              '%s\n'
              '/* MAP_FALLBACK:END */' % js)
     return (r'\/\* MAP_FALLBACK:START \*\/.*?\/\* MAP_FALLBACK:END \*\/',

@@ -1,7 +1,7 @@
 # 规则 2 胜率策略（1 枚十六面骰 · 连锁过路费）
 
-> 规则来源：[`source/new-rule.md`](../source/new-rule.md)（首页「游戏规则」默认打开的 v2 面板）
-> 数据来源：`source/map-print-data.json`（**监狱/商店格由 `variants.v2` 定义**）· 卡牌 `source/cards.md`（v7）· 道具 `source/props.md`
+> 规则来源：[`source/remix/manual-v2.md`](../source/remix/manual-v2.md)（首页「游戏规则」的 v2 面板）
+> 数据来源：`source/map.json`（**监狱/商店格由 `variants.v2` 定义**）· 卡牌 `source/cards.md`（v7）· 道具 `source/props.md`
 > 模拟脚本：`python3 sim/sim-v2.py`（落点分布 + 组经济）· `python3 sim/game.py`（完整对局，`TRIALS=1000`）· `AB=1 python3 sim/game.py`（道具 × 监狱口径 2×2 对照）· `COHORT=1 python3 sim/game.py`（集中同色 vs 到处撒）
 > ⚠️ 本文只适用于**规则 2**（1 枚十六面骰、统一赤道起点、连锁过路费）。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略与本文结论**完全不同，不能混用**。
 > 卡牌与道具的**平衡性评估**（哪些卡不公平、道具价格/数量、8 人局时长）见 [`balance-v7.md`](balance-v7.md)。
@@ -230,7 +230,7 @@
 
 ### 6.1 道具：唯一的「反领先武器」
 
-商店格在**印度洋 #24 / 大西洋 #59**（`source/map-print-data.json` 的 `variants.v2` 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。
+商店格在**印度洋 #24 / 大西洋 #59**（`source/map.json` 的 `variants.v2` 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。
 
 完整 14 种道具，按模拟里 AI 的估价从高到低：
 
@@ -369,10 +369,10 @@
 
 ---
 
-*本文所有数字由 `source/map-print-data.json` + `source/cards.md`（v7）+ `source/props.md` + `sim/sim-v2.py` + `sim/game.py` 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*
+*本文所有数字由 `source/map.json` + `source/cards.md`（v7）+ `source/props.md` + `sim/sim-v2.py` + `sim/game.py` 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*
 
 **口径备忘**（都写成常量，改一个就能重跑）：
 
-1. **监狱/商店格**：由 `source/map-print-data.json` 的 `variants.v2` 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
+1. **监狱/商店格**：由 `source/map.json` 的 `variants.v2` 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
 2. **自然走到监狱算不算坐牢？** 现行默认**算**（`ARRIVE_JAIL_CELL_JAILS = True`）；要改回「只有被送才算」，把两个脚本里的开关设为 `False` 重跑。
 3. **统一起点**：现行默认（`START_MODE = "equator"`）；四角随机起点保留为对照口径（`START_MODE = "corners"`）。

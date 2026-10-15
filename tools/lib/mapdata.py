@@ -1,4 +1,4 @@
-"""棋盘真源（source/map-print-data.json）的读取、校验与统计渲染。
+"""棋盘真源（source/map.json）的读取、校验与统计渲染。
 
 两档布局（打印版/放大版）共用这一份 JSON；统计表格给 original.html 的 {{STATS:key}} 占位符、
 首页「电子地图」区和 README「数据速览」用，数字全部现算不写死。
@@ -64,16 +64,16 @@ def validate_map(data):
 
 
 def load(path=None):
-    """读 map-print-data.json 并跑一遍体检；有错就打印并返回 None（地图相关的块跳过不写）。"""
+    """读 map.json 并跑一遍体检；有错就打印并返回 None（地图相关的块跳过不写）。"""
     path = path or paths.MAP_DATA_PATH
     if not os.path.exists(path):
-        print('  跳过：未找到 map-print-data.json')
+        print('  跳过：未找到 map.json')
         return None
     with open(path, encoding='utf-8') as f:
         data = json.load(f)
     errs = validate_map(data)
     if errs:
-        print('  !! map-print-data.json 校验未通过：')
+        print('  !! map.json 校验未通过：')
         for e in errs:
             print('     - ' + e)
         return None
@@ -353,7 +353,7 @@ MAP_STATS = collections.OrderedDict([
 
 def render_map_stats(body, data):
     """把 md 里的 {{STATS:key}} 占位符换成从棋盘 JSON 现算的表格（没有数据时给个提示）。"""
-    miss = '<p class="empty">棋盘数据没读到：先跑一次 tools/build.py 生成 map-print-data.json 的兜底。</p>'
+    miss = '<p class="empty">棋盘数据没读到：先跑一次 tools/build.py 生成 map.json 的兜底。</p>'
     for key, fn in MAP_STATS.items():
         marker = '<p>{{STATS:%s}}</p>' % key
         if marker in body:

@@ -1,7 +1,7 @@
 # 规则 v2 调整建议清单
 
 > 本文档是 [rule-v2-review.md](rule-v2-review.md) 的配套交付物：**只给建议，不改正源**。
-> `source/new-rule.md`、`source/rules.md`、`source/cards.md`、`source/props.md` 等文件均未改动。
+> `source/remix/manual-v2.md`、`source/remix/manual-v1.md`、`source/cards.md`、`source/props.md` 等文件均未改动。
 > 按项目惯例，每条新增/修改条款以「【建议】」标注，并附起因；优先级 P0 = 不修会争议/崩公平，P1 = 明显影响体验，P2 = 润色。
 > 全部实测数据引自 [balance-v7.md](balance-v7.md)（600 局插桩，8 人局，现行 v2 口径）。
 
@@ -9,7 +9,7 @@
 
 | 条目 | v3 去向 |
 |------|---------|
-| P0-1 破产条款 | ✅ 并入 `source/new-rule-v3.md`「破产」节（留场玩法作【建议】块备查） |
+| P0-1 破产条款 | ✅ 并入 `source/remix/manual-v3.md`「破产」节（留场玩法作【建议】块备查） |
 | P0-2 保释金 | 🟡 v3「监狱」节以【建议】写入（1000 × 关押回合数），起因附 600 局实测；「不修改→逐卡改赔率」作为该条备选 |
 | P0-3 红卡/绿卡上限 | 🟡 v3「道具」节【建议】（单次 8000） |
 | P0-4 抽卡机制 | ✅ 用户拍板替代方案：16 张牌池 + 掷骰点选、用完放回（替代本清单原建议的「回退原版抽法」） |
@@ -206,7 +206,7 @@
 ## 落地方式
 
 1. 确定取舍：P0-5 的 A/B 方案（乞丐删除还是留）、P1-10 连锁默认开还是关，这两处是口味选择，其余均可直接采用。
-2. 把采纳的条款合并进 `source/new-rule.md` 对应小节（条款措辞可直接复制上文【建议】块）。
+2. 把采纳的条款合并进 `source/remix/manual-v2.md` 对应小节（条款措辞可直接复制上文【建议】块）。
 3. 涉及卡面/道具数值的条目（P0-2/3/5、P1-8/9/11）同步改 `source/cards.md`、`source/props.md`，再跑 `python3 tools/build.py`。
 4. 卡牌卡面改动后，建议跑一次 `AUDIT=1 TRIALS=600 python3 sim/game.py` 复核期望是否回到 ±500 区间（balance-v7 的验收口径）。
 5. 想让本页上站点：在 `tools/build.py` 的 `DOCS` 列表加一行（本次未改构建配置，保持「不动真源」）。

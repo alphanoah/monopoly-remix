@@ -50,7 +50,7 @@
 ### 当前生效的卡牌
 
 在 **`cards.md`**，打印页读的就是它。要改卡牌内容请改这个文件，
-字段怎么填见 [card-fields.md](../docs/card-fields.md)；想用 Excel 批量改，
+字段怎么填见 [card-fields.md](../../docs/card-fields.md)；想用 Excel 批量改，
 先在首页「机会/命运卡牌」区导出 CSV / Excel，改完跑 `python3 tools/import-cards.py` 回导。
 
 ### 历史版本

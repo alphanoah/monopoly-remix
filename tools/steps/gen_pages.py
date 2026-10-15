@@ -16,6 +16,8 @@ from lib import props as props_lib
 
 # ---------- 首页「游戏规则」区：多版并列，点卡片切换 ----------
 def build_rules(ctx):
+    # 规则 md 里链到 docs/ 已登记文档时，指向渲染页 other/<同名>.html，别给用户裸 .md
+    doc_map = {'docs/%s.md' % name: 'other/%s.html' % name for name, _, _ in ctx.get('docs', [])}
     docs = []
     for key, name, desc, path, rel, prefix, folds in ctx['rule_docs']:
         if not os.path.exists(path):
@@ -26,6 +28,10 @@ def build_rules(ctx):
         body = mdlib.md_to_html(text, prefix=prefix)
         for level, keyword, to_end, title in folds:
             body = mdlib.fold(body, level, keyword, to_end, title)
+        if doc_map:
+            body = re.sub(r'href="([^"]+)"',
+                          lambda m: 'href="%s"' % doc_map[m.group(1)]
+                          if m.group(1) in doc_map else m.group(0), body)
         docs.append({'key': key, 'name': name, 'desc': desc, 'rel': rel,
                      'title': mdlib.md_title(text) or name, 'body': body})
     if not docs:
@@ -52,7 +58,8 @@ def build_rules(ctx):
     note = ('<p class="rnote">规则迭代了多个版本，这里并列放好，点上面的卡片切换。'
             '<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，'
             '<strong>v1</strong> = 朋友初版，<strong>v2</strong> = 过渡版，'
-            '<strong>v3</strong> = 现行版本（审查修订见 docs/rule-v2-review.md）。</p>')
+            '<strong>v3</strong> = 现行版本（审查修订见 '
+            '<a href="other/rule-v2-review.html">rule-v2-review.md</a>）。</p>')
     print('  规则版本：%s（默认 %s）' % (' / '.join(d['name'] for d in docs), default))
     return (note + '\n<div class="rtabs" role="tablist" aria-label="规则版本">\n' + '\n'.join(tabs) +
             '\n</div>\n<div class="rviews">\n' + '\n'.join(panes) + '\n</div>')
@@ -101,7 +108,7 @@ def title_for_tiles(text, data):
 def build_original(ctx):
     """把 source/original/ 下的原版实体资料转成 original.html 的正文区块。
 
-    md 里可以写 `{{STATS:xxx}}` 占位符，渲染时换成从 source/map-print-data.json
+    md 里可以写 `{{STATS:xxx}}` 占位符，渲染时换成从 source/map.json
     遍历出来的表格——地图那两篇的统计就不再是手抄的。
     """
     data = ctxlib.board(ctx)

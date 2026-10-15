@@ -7,10 +7,11 @@ DATA_DIR = os.path.join(ROOT, 'data')
 DOCS_DIR = os.path.join(ROOT, 'docs')
 OTHER_DIR = os.path.join(ROOT, 'other')
 ORIGINAL_DIR = os.path.join(SOURCE_DIR, 'original')
+REMIX_DIR = os.path.join(SOURCE_DIR, 'remix')
 
 CARDS_MD_PATH = os.path.join(SOURCE_DIR, 'cards.md')
 PROPS_PATH = os.path.join(SOURCE_DIR, 'props.md')
-MAP_DATA_PATH = os.path.join(SOURCE_DIR, 'map-print-data.json')
+MAP_DATA_PATH = os.path.join(SOURCE_DIR, 'map.json')
 CARDFIELDS_MD_PATH = os.path.join(DOCS_DIR, 'card-fields.md')
 
 CARDS_JSON_PATH = os.path.join(DATA_DIR, 'cards.json')

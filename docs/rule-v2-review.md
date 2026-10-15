@@ -1,9 +1,9 @@
 # 大富翁改版规则 v2 审查报告
 
-> 对照基线：原版《大富翁世界之旅（银牌）》说明书（`source/original/manual.md`）、v1（`source/rules.md`，朋友初版）、v2（`source/new-rule.md`，现行版本）。
+> 对照基线：原版《大富翁世界之旅（银牌）》说明书（`source/original/manual.md`）、v1（`source/remix/manual-v1.md`，朋友初版）、v2（`source/remix/manual-v2.md`，当时现行）。
 > 数据基础：`sim/game.py` 全量对局模拟（800 局 + 卡牌插桩 600 局），口径与 [balance-v7.md](balance-v7.md) 完全一致（起始资金 15000、赤道统一起点、北极监狱、道具全开、v7 卡牌 40 张）。
 > 结论对应的逐条调整文本见 [rule-v2-adjustments.md](rule-v2-adjustments.md)，本报告不改任何真源。
-> **状态更新（2026-10-15）**：审查结论已落地为 `source/new-rule-v3.md`（站点默认版本，首页规则区第 4 个卡片）；17 条建议的去向见 [rule-v2-adjustments.md](rule-v2-adjustments.md) 的「落地状态」表。坐牢「免费」结论另经独立复核：`LEDGER=1` 单回合净值账本（600 局、59 万条回合记录），口径 A（坐牢窗口实际变化）**−2.4 元/次**、口径 B（机会成本：正常回合期望 **−741 元/回合** vs 坐牢回合 0）——两条独立路径互验成立。
+> **状态更新（2026-10-15）**：审查结论已落地为 `source/remix/manual-v3.md`（站点默认版本，首页规则区第 4 个卡片）；17 条建议的去向见 [rule-v2-adjustments.md](rule-v2-adjustments.md) 的「落地状态」表。坐牢「免费」结论另经独立复核：`LEDGER=1` 单回合净值账本（600 局、59 万条回合记录），口径 A（坐牢窗口实际变化）**−2.4 元/次**、口径 B（机会成本：正常回合期望 **−741 元/回合** vs 坐牢回合 0）——两条独立路径互验成立。
 
 ## 摘要
 
@@ -29,7 +29,7 @@
 
 ## 2. 三版规则差异总览
 
-| 维度 | 原版（说明书） | v1（rules.md） | v2（new-rule.md） |
+| 维度 | 原版（说明书） | v1（manual-v1.md） | v2（manual-v2.md） |
 |------|--------------|----------------|-------------------|
 | 初始资金 | 15000 | 19580 | 15000（备选 20000） |
 | 房产等级 | 5 幢房 → 第 5 幢换旅馆（红） | 0 空 / 1–3 绿 / 4 红（4 档） | 0 空 / 1–4 绿 / 5 红（5 档，回归原版） |
@@ -122,10 +122,10 @@ v2 是一版方向正确、骨架健康、已经完成了「从初版到可玩�
 ## 7. 参考资料
 
 [1] 大富翁世界之旅（银牌）说明书（照片转录）[Z]. `source/original/manual.md`.
-[2] 大富翁玩法更新 v1[Z]. `source/rules.md`.
-[3] 大富翁新规则 v2[Z]. `source/new-rule.md`.
+[2] 大富翁玩法更新 v1[Z]. `source/remix/manual-v1.md`.
+[3] 大富翁新规则 v2[Z]. `source/remix/manual-v2.md`.
 [4] v7 卡牌 & 道具平衡性评估（8 人局实测）[R]. `docs/balance-v7.md`, 2026-10-13.
 [5] 卡牌公平性审计报告[R]. `docs/card-audit-report.md`.
 [6] 大富翁道具表[Z]. `source/props.md`.
 [7] v7 邪恶版 · 世界之旅（修订）卡牌真源[Z]. `source/cards.md`.
-[8] 大富翁「世界之旅」地图 · 格子数据[DS]. `source/map-print-data.json`.
+[8] 大富翁「世界之旅」地图 · 格子数据[DS]. `source/map.json`.

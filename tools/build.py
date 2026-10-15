@@ -24,13 +24,13 @@ RULE_DOCS = [
      os.path.join(paths.ORIGINAL_DIR, 'manual.md'), 'source/original/manual.md',
      'source/original/', []),
     ('v1', 'v1', '初版改版规则',
-     os.path.join(paths.SOURCE_DIR, 'rules.md'), 'source/rules.md', 'source/',
+     os.path.join(paths.REMIX_DIR, 'manual-v1.md'), 'source/remix/manual-v1.md', 'source/remix/',
      [(3, '卡牌', True, '卡牌（cards.md 与历史存档）'),
       (4, '备选', False, None)]),
     ('v2', 'v2', '过渡改版规则',
-     os.path.join(paths.SOURCE_DIR, 'new-rule.md'), 'source/new-rule.md', 'source/', []),
+     os.path.join(paths.REMIX_DIR, 'manual-v2.md'), 'source/remix/manual-v2.md', 'source/remix/', []),
     ('v3', 'v3', '最新改版规则',
-     os.path.join(paths.SOURCE_DIR, 'new-rule-v3.md'), 'source/new-rule-v3.md', 'source/',
+     os.path.join(paths.REMIX_DIR, 'manual-v3.md'), 'source/remix/manual-v3.md', 'source/remix/',
      [(3, '卡牌配套修订建议', True, '卡牌配套修订建议（改卡面，不改规则）')]),
 ]
 DEFAULT_RULE = 'v3'
@@ -48,6 +48,8 @@ ORIGINAL_DOCS = [
 # docs/ 文档 → other/ 独立页面（gen_docs）：(文档名, 类别, 索引页一句话简介)
 #   源是 docs/<文档名>.md，输出 other/<文档名>.html；页面标题自动取 md 的一级标题，不要在这里重复写
 DOCS = [
+    ('rule-v2-review', '规则', 'v2 规则审查报告：800 局模拟 + 坐牢代价独立复核，17 条修订建议（P0 已全部并入 v3）'),
+    ('rule-v2-adjustments', '规则', '17 条修订建议的逐条落地状态：哪些并入了 manual-v3、哪些留作【建议】块'),
     ('strategy-v2', '攻略', '现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测'),
     ('balance-v7', '平衡性', 'v7 卡牌 & 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长'),
     ('card-audit-report', '平衡性', '卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定'),

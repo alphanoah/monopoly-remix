@@ -26,11 +26,11 @@
   **打印版**（按实体棋盘一比一还原的 80×80cm 软垫图，点「打印」直接出 800×800mm）、
   **放大版**（同一张图，跑道加厚吃进中间空、文字竖排放大，手机上也能看清）。
   两档视图都固定一屏放下（不缩放不平移），可按颜色组筛选色块。
-  「v2 规则地图」**默认开启**：按 `source/map.json` 里 `variants.v2` 的替换表改格子（北极→监狱、印度洋/大西洋→道具商店，赤道仍是起点），再点一次看原版地图（或直接开 `map.html#v=0`），导出文件名会带 `-v2` 标记；
+  「v2 规则地图」**默认开启**：按 `source/remix/map.json` 里 `variants.v2` 的替换表改格子（北极→监狱、印度洋/大西洋→道具商店，赤道仍是起点），再点一次看原版地图（或直接开 `map.html#v=0`），导出文件名会带 `-v2` 标记；
   按钮按档位出现：放大版只有「导出图片」（7200×7200px PNG，80cm 成品下约 229 DPI）；
   打印版多出「打印」和「导出 SVG」（矢量文件，画布直接是 800×800mm，可给印刷商家或用 Illustrator 打开），
   并附「给商家打印」说明卡：首选打印存 PDF，商家要改图给 SVG，字体有问题给 PNG，且提醒商家直接出图别用 AI/PS 二次编辑。
-- **打印 / 电子地图共用一份真源**：`source/map.json`
+- **打印 / 电子地图共用一份真源**：`source/remix/map.json`
 - **原版资料 `original.html`**：实体《大富翁》的卡牌、说明书、地图数据转录，用来对照改版改了什么
 - **打印页 `print.html`**：排版打印工具，选好纸张和版式直接打印；最左边可切「卡牌 / 道具」
 - **更多文档 `other/index.html`**：改版过程中的分析文档（规则审查、攻略、平衡性、卡牌审计、字段说明），由 `docs/` 下的 md 生成
@@ -43,7 +43,7 @@
 
 ## 改完内容怎么同步
 
-改卡牌改 `source/cards.md`，改规则改对应的规则源文件（见下），改道具改 `source/props.md`，
+改卡牌改 `source/remix/cards.md`，改规则改对应的规则源文件（见下），改道具改 `source/remix/props.md`，
 改原版资料改 `source/original/*.md`，然后**跑一次脚本**：
 
 ```bash
@@ -52,7 +52,7 @@ python3 tools/build.py
 
 macOS 上也可以直接双击 **`update.command`**，不用开终端。
 
-脚本会：校验 `source/cards.md` → 生成 `data/cards.json` → 重写首页的卡牌与四版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `source/props.md` 生成 `data/props.json` 并注入打印页道具兜底 → **校验 `source/map.json` 并把它的兜底写进地图页 `map.html`** → **按真源刷新首页「电子地图」区和 README 的「数据速览」**。
+脚本会：校验 `source/remix/cards.md` → 生成 `data/cards.json` → 重写首页的卡牌与四版规则切换区、道具清单 → 重写 `original.html` → 回写打印页内置兜底 → 解析 `source/remix/props.md` 生成 `data/props.json` 并注入打印页道具兜底 → **校验 `source/remix/map.json` 并把它的兜底写进地图页 `map.html`** → **按真源刷新首页「电子地图」区和 README 的「数据速览」**。
 push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永远一致。
 
 > 校验不通过就不写任何文件，终端会指出哪张牌错在哪。
@@ -61,7 +61,7 @@ push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永�
 
 ## 数据怎么改
 
-卡牌内容的**唯一来源是 `source/cards.md`**（Markdown 表格），不要手改 `index.html` 里的数据块。
+卡牌内容的**唯一来源是 `source/remix/cards.md`**（Markdown 表格），不要手改 `index.html` 里的数据块。
 
 结构是「版本 → 花色 → 表格」三层：`## v7 · 邪恶版 · 世界之旅（修订）` 分版本（标题整行就是页面版本下拉的显示名），
 `### 机会牌` / `### 命运牌` 分花色，每节一张表：
@@ -89,7 +89,7 @@ push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永�
 | v2 | `source/remix/manual-v2.md` | 过渡改版（回归五档房产、道具商店那一版） |
 | v3 | `source/remix/manual-v3.md` | 最新改版，首页默认打开的就是它 |
 
-道具清单改 `source/props.md`（首页「道具清单」区由它生成，打印页的道具卡也由它生成）。
+道具清单改 `source/remix/props.md`（首页「道具清单」区由它生成，打印页的道具卡也由它生成）。
 `source/original/` 下的原版资料也是一样：改 md，跑脚本，`original.html` 就会更新。
 
 ---
@@ -105,7 +105,7 @@ push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永�
 打印页保留双轨是因为本地 `file://` 打开时浏览器会拦截 fetch，内置兜底是必需品而不是摆设；
 首页不需要，内容直接由脚本写进 HTML，本地线上都一样。
 
-地图页 `map.html` fetch 的是 `source/map.json`（**改棋盘只改这一份**），
+地图页 `map.html` fetch 的是 `source/remix/map.json`（**改棋盘只改这一份**），
 本地双击打开时用脚本注入的内置兜底。
 
 ---
@@ -131,9 +131,9 @@ push 之后 GitHub Actions 跑的是同一个脚本，所以线上和本地永�
 
 ```bash
 # 1. 改内容（任选）
-#    卡牌   → source/cards.md
+#    卡牌   → source/remix/cards.md
 #    规则   → source/remix/manual-v3.md（v3，默认）/ manual-v2.md（v2）/ manual-v1.md（v1）/ source/original/manual.md（原版）
-#    道具   → source/props.md
+#    道具   → source/remix/props.md
 #    原版   → source/original/*.md
 
 # 2. 本地重新生成（macOS 也可以直接双击 update.command）
@@ -161,7 +161,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 |---|---|
 | Pages | Settings → Pages → Deploy from a branch → `main` / `/ (root)` |
 | Actions 权限 | Settings → Actions → General → Workflow permissions → **Read and write** |
-| Actions 自动触发 | 改了 `source/cards.md` / `source/remix/**` / `source/props.md` / `source/original/**` / `source/map.json` / `docs/**` / `tools/**` 时 |
+| Actions 自动触发 | 改了 `source/remix/**` / `source/original/**` / `docs/**` / `tools/**` 时 |
 | 手动触发 | Actions → 重新生成页面 → Run workflow |
 
 > Actions 的写权限是**必须的**：workflow 要把生成的文件提交回仓库，只读权限会失败。
@@ -181,7 +181,7 @@ push 之后 `.github/workflows/build-pages.yml` 会在 GitHub 上再跑一次同
 
 ```
 richer/
-├── index.html              首页：改版背景 + 规则三版切换（原版/v1/v2，默认 v2）+ 机会/命运卡牌（v4–v7 可切）+ 道具清单 + 打印/地图/原版资料/更多文档入口（脚本生成，静态）
+├── index.html              首页：改版背景 + 规则四版切换（原版/v1/v2/v3，默认 v3）+ 机会/命运卡牌（v4–v7 可切）+ 道具清单 + 打印/地图/原版资料/更多文档入口（脚本生成，静态）
 ├── original.html           原版资料页：原版卡牌/说明书/地图（脚本生成，静态）
 ├── print.html              打印页：排版打印工具，可切卡牌/道具（脚本回写兜底）
 ├── map.html                电子地图：棋盘 SVG（脚本回写兜底）
@@ -191,7 +191,10 @@ richer/
 ├── update.command          macOS 双击运行 tools/build.py
 ├── README.md
 ├── LICENSE.md              CC BY-NC 4.0
-├── source/                ← 手写真源：要改东西就改这里（详见下表）
+├── source/                ← 手写真源：要改东西就改这里（详见下面两张表）
+│   ├── remix/             改版内容（本项目在玩的）：规则 manual-v1/v2/v3 · cards.md · props.md · map.json
+│   ├── original/          原版实体资料存档：manual.md · cards.md · map-tiles.md · map-data-guide.md
+│   │                      （两个目录对称：一边是改版，一边是原版）
 ├── data/                   ← 脚本生成：cards.json / props.json，勿手改（见 data/README.md）
 ├── docs/                   ← 手写真源：攻略 / 平衡性 / 卡牌对照等文档（详见下表）
 ├── other/                  ← 脚本生成：docs/ 的 HTML 版 + 索引页，勿手改
@@ -199,11 +202,11 @@ richer/
 │   ├── build.py            一键更新入口：source/ → data/ + 首页 + 原版页 + 打印页 + 地图页 + README 速览
 │   │                       · python3 tools/build.py              全部跑一遍
 │   │                       · python3 tools/build.py --step gen_pages   只跑某一步
-│   ├── import-cards.py     卡牌 CSV → source/cards.md 回导（配合首页「导出」按钮批量编辑）
+│   ├── import-cards.py     卡牌 CSV → source/remix/cards.md 回导（配合首页「导出」按钮批量编辑）
 │   ├── steps/              六个构建步骤：validate / gen_data / gen_pages / gen_map / gen_docs / gen_readme
 │   └── lib/                公共模块：cards / props / mapdata 解析、md→HTML、标记块替换、路径
 ├── sim/                    ← 对局模拟，独立于构建链
-│   ├── sim-v2.py           规则 2 模拟：落点分布 + 组经济 + 起点口径对照（python3 sim/sim-v2.py）
+│   ├── landing.py         落点与移动学模拟（版本无关，原 sim-v2.py）：落点分布 + 组经济 + 起点口径对照（python3 sim/landing.py）
 │   └── game.py             规则 2 完整对局模拟：8 人混战，含 14 件道具与全部 v7 卡牌
 │                           · python3 sim/game.py             单配置（夺冠率）
 │                           · AB=1 python3 sim/game.py        「道具 × 监狱口径」2×2 对照
@@ -215,17 +218,18 @@ richer/
 
 `photos/`（原版实体照片 13.8MB）不上传仓库，仅本地保留。
 
-### `source/` 里都是什么（真源）
+### `source/remix/` 里都是什么（改版真源）
 
 | 文件 | 是什么 | 谁在用 |
 |---|---|---|
 | `cards.md` | **卡牌数据真源**（当前 v4–v7 四版，每版的张数见下方速览） | 生成 `data/cards.json`；打印页线上读它 |
-| `remix/manual-v3.md` | **规则 v3 真源**（最新改版：破产 / 胜利条件闭环、坐牢与道具上限修复、16 张牌池抽卡、踩自己地才能买 / 升） | 首页「游戏规则」默认打开的面板，脚本生成 |
-| `remix/manual-v2.md` | **规则 v2 真源**（过渡改版：回归五档房产与 15000 资金、道具商店、出狱手段道具化） | 首页「游戏规则」的 v2 面板，脚本生成 |
-| `remix/manual-v1.md` | **规则 v1 真源**（初版改版，19580 起始资金那一版） | 首页「游戏规则」的 v1 面板，脚本生成 |
+| `manual-v3.md` | **规则 v3 真源**（最新改版：破产 / 胜利条件闭环、坐牢与道具上限修复、16 张牌池抽卡、踩自己地才能买 / 升） | 首页「游戏规则」默认打开的面板，脚本生成 |
+| `manual-v2.md` | **规则 v2 真源**（过渡改版：回归五档房产与 15000 资金、道具商店、出狱手段道具化） | 首页「游戏规则」的 v2 面板，脚本生成 |
+| `manual-v1.md` | **规则 v1 真源**（初版改版，19580 起始资金那一版） | 首页「游戏规则」的 v1 面板，脚本生成 |
 | `props.md` | **道具清单**：每件道具的价格 / 效果 / 印量，以及商店买卖规则（件数见下方速览） | 首页「道具清单」区 + `data/props.json`，脚本生成 |
-| `map.json` | **棋盘唯一真源**：64 格（名字/国旗 emoji/首都/价格/位置）+ 11 个颜色组（带 id 与照片取色的 hex）+ 版式参数 + 牌堆配色 + 格子类型表 | `map.html`（电子地图 + 80cm 打印版，一个页面两档布局）共用：线上 `fetch`，本地打开用内置兜底（由 `tools/build.py` 注入） |
-| `original/` | 原版实体《大富翁》的电子化存档（`original.html` 由它生成，见下表） | 脚本生成 |
+| `map.json` | **棋盘唯一真源**：64 格（名字/国旗 emoji/首都/价格/位置）+ 11 个颜色组（带 id 与照片取色的 hex）+ 版式参数 + 牌堆配色 + 格子类型表 + `variants.v2`（改版替换表） | `map.html`（电子地图 + 80cm 打印版，一个页面两档布局）共用：线上 `fetch`，本地打开用内置兜底（由 `tools/build.py` 注入） |
+
+> 加新版规则 = 在 `source/remix/` 加一个 `manual-vN.md` + `tools/build.py` 的 `RULE_DOCS` 登记一行。
 
 ### `source/original/` 里都是什么
 
@@ -242,7 +246,11 @@ richer/
 
 | 文件 | 是什么 |
 |---|---|
-| `card-fields.md` | `source/cards.md` 每个字段怎么填、对应 JSON 哪个字段、脚本会拦哪些错、Excel 批量编辑怎么回导 |
-| `strategy-v2.md` | **规则 2** 的胜率攻略：统一起点后的残余落点偏差（≤±5%）、连锁机制的 K 倍放大器、完整对局模拟夺冠率排名、14 件道具的「加速 + 反领先」效应、监狱口径 A/B |
-| `balance-v7.md` | **v7 卡牌 & 道具平衡性评估**：40 张牌的实战净值实测（哪张不公平）、道具价格/数量（供给只满足 45% 需求）、8 人局节奏与时长（约 979 次行动 ≈ 5.5-12 小时）、「坐牢在规则 2 里是免费的」这一系统性漏洞 |
+| `rule-changelog.md` | **规则修订记录**：v2 的 17 条审查意见 + 实测数据 + 逐条去向（回答「v3 为什么是现在这样」） |
+| `strategy-v2.md` | **规则 2** 的胜率攻略（历史）：统一起点后的残余落点偏差、连锁 K 倍放大器、夺冠率排名、14 件道具效应、监狱口径 A/B |
+| `balance-v7.md` | **v7 卡牌 & 道具平衡性评估**：40 张牌的实战净值实测（哪张不公平）、道具价格/数量（供给只满足 45% 需求）、8 人局节奏与时长、「坐牢在规则 2 里是免费的」这一系统性漏洞 |
+| `card-audit-report.md` | **卡牌公平性审计**：净值口径、坐牢代价实测、逐卡判定 |
+| `card-fields.md` | `source/remix/cards.md` 每个字段怎么填、对应 JSON 哪个字段、脚本会拦哪些错、Excel 批量编辑怎么回导 |
+
+> `docs/` 下的 md **全都会被发布**成 `other/` 页面，不用登记清单；分类 / 简介 / 排序写在 md 头顶的注释里（`tools/lib/docs.py` 有说明），文件名以 `_` 开头的当草稿跳过。
 

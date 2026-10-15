@@ -6,6 +6,7 @@
 import sys
 
 from lib import cards as cards_lib
+from lib import docs as docs_lib
 from lib import mapdata
 from lib import props as props_lib
 
@@ -32,3 +33,10 @@ def props(ctx):
     if 'props' not in ctx:
         ctx['props'] = props_lib.parse_props()
     return ctx['props']
+
+
+def docs(ctx):
+    """docs/ 下的文档清单（扫描目录得来，不用在 build.py 登记）。"""
+    if 'doc_list' not in ctx:
+        ctx['doc_list'] = docs_lib.load()
+    return ctx['doc_list']

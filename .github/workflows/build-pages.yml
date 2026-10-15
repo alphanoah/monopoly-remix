@@ -1,15 +1,12 @@
 name: 重新生成页面
 
-# 改了 source/ 下的真源（卡牌 cards.md、改版规则 remix/*、道具 props.md、原版资料 original/*）就自动跑，不用手动生成
+# 改了 source/ 下的真源（改版内容 remix/*、原版资料 original/*）或 docs/ 文档就自动跑，不用手动生成
 on:
   push:
     branches: [main]
     paths:
-      - 'source/cards.md'
-      - 'source/remix/**'                   # 改版规则 manual-v1 / v2 / v3
-      - 'source/props.md'
+      - 'source/remix/**'                   # 改版真源：规则 manual-v1/v2/v3 · cards.md · props.md · map.json
       - 'source/original/**'
-      - 'source/map.json'          # 棋盘真源：改了要重算兜底与首页/ README 的统计
       - 'docs/**'                             # 文档真源
       - 'tools/**'
       - '.github/workflows/build-pages.yml'

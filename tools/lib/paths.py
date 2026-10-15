@@ -9,9 +9,12 @@ OTHER_DIR = os.path.join(ROOT, 'other')
 ORIGINAL_DIR = os.path.join(SOURCE_DIR, 'original')
 REMIX_DIR = os.path.join(SOURCE_DIR, 'remix')
 
-CARDS_MD_PATH = os.path.join(SOURCE_DIR, 'cards.md')
-PROPS_PATH = os.path.join(SOURCE_DIR, 'props.md')
-MAP_DATA_PATH = os.path.join(SOURCE_DIR, 'map.json')
+# 改版真源（与 original/ 对偶：一边是本项目的改版内容，一边是原版实体资料转录）
+REMIX_DIR = os.path.join(SOURCE_DIR, 'remix')
+
+CARDS_MD_PATH = os.path.join(REMIX_DIR, 'cards.md')
+PROPS_PATH = os.path.join(REMIX_DIR, 'props.md')
+MAP_DATA_PATH = os.path.join(REMIX_DIR, 'map.json')
 CARDFIELDS_MD_PATH = os.path.join(DOCS_DIR, 'card-fields.md')
 
 CARDS_JSON_PATH = os.path.join(DATA_DIR, 'cards.json')

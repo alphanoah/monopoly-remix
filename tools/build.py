@@ -45,16 +45,9 @@ ORIGINAL_DOCS = [
     ('map-tiles.md', gen_pages.title_for_tiles, False),
 ]
 
-# docs/ 文档 → other/ 独立页面（gen_docs）：(文档名, 类别, 索引页一句话简介)
-#   源是 docs/<文档名>.md，输出 other/<文档名>.html；页面标题自动取 md 的一级标题，不要在这里重复写
-DOCS = [
-    ('rule-v2-review', '规则', 'v2 规则审查报告：800 局模拟 + 坐牢代价独立复核，17 条修订建议（P0 已全部并入 v3）'),
-    ('rule-v2-adjustments', '规则', '17 条修订建议的逐条落地状态：哪些并入了 manual-v3、哪些留作【建议】块'),
-    ('strategy-v2', '攻略', '现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测'),
-    ('balance-v7', '平衡性', 'v7 卡牌 & 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长'),
-    ('card-audit-report', '平衡性', '卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定'),
-    ('card-fields', '维护', '卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导'),
-]
+# docs/ → other/ 独立页面：**不用在这登记**，gen_docs 直接扫描 docs/ 目录。
+#   _.md 开头的是草稿不发布；文档的分类 / 简介 / 排序 / 状态提示写在各自 md 头顶的注释里，
+#   详见 tools/lib/docs.py 顶部说明。
 
 # 站点地图：页面 → [(标记块, 生成器名)]。生成器在各 step 模块的 GENERATORS 里注册，这里只声明「谁喂谁」。
 # 加新区块 = 在对应 step 里写生成器 + 在这里登记一行。
@@ -108,7 +101,6 @@ def main():
         'original_docs': ORIGINAL_DOCS,
         'default_rule': DEFAULT_RULE,
         'pages': PAGES,
-        'docs': DOCS,
     }
     for name, mod in STEPS:
         if selected and name not in selected:

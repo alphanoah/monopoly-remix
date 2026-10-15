@@ -21,6 +21,18 @@
   .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
   .nav a:hover { border-color: #96597A; }
 
+  .guide {
+    margin: 18px 0 0; padding: 12px 16px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; font-size: 13.5px; color: #6b6a66; line-height: 1.7;
+  }
+  .guide b { color: #2c2c2a; font-weight: 500; }
+  .guide a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+
+  .status {
+    margin: 18px 0 0; padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+    background: #fdf6e9; border: 1px solid #e8d9b4; color: #7a5f2a;
+  }
+
   .md { font-size: 14.5px; padding: 8px 0 10px; }
   .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
   .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
@@ -40,7 +52,10 @@
   .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
   .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
 
-  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .gcat { font-size: 15px; font-weight: 500; margin: 28px 0 2px; }
+  .gcat span { font-weight: 400; font-size: 13px; color: #8a8880; margin-left: 10px; }
+
+  .docs { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 12px; }
   .docs a {
     display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
     border-radius: 10px; text-decoration: none; color: inherit;
@@ -51,6 +66,9 @@
   .docs em {
     font-style: normal; font-size: 11.5px; color: #96597A;
     background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+  .docs i {
+    font-style: normal; font-size: 12.5px; color: #7a5f2a; display: block; margin-top: 5px;
   }
 
   footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
@@ -69,10 +87,10 @@
 <header>
   <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
   <h1>规则 2 胜率策略（1 枚十六面骰 · 连锁过路费）</h1>
-  <p>现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测</p>
-</header>
+  <p>规则 2（十六面骰 · 连锁过路费）下的落点偏差、连锁放大器、夺冠率与道具效应实测</p>
+<p class="status">历史文档：结论基于规则 v2。v3 改了抽卡牌池 / 保释金 / 破产清算，本文数据已过时，现行攻略见 strategy-v3。</p></header>
 <div class="md">
-<blockquote>规则来源：<a href="../source/remix/manual-v2.md"><code>source/remix/manual-v2.md</code></a>（首页「游戏规则」的 v2 面板）<br>数据来源：<code>source/map.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/cards.md</code>（v7）· 道具 <code>source/props.md</code><br>模拟脚本：<code>python3 sim/sim-v2.py</code>（落点分布 + 组经济）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=1000</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2 对照）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）<br>⚠️ 本文只适用于<strong>规则 2</strong>（1 枚十六面骰、统一赤道起点、连锁过路费）。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略与本文结论<strong>完全不同，不能混用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
+<blockquote>规则来源：<a href="../source/remix/manual-v2.md"><code>source/remix/manual-v2.md</code></a>（首页「游戏规则」的 v2 面板）<br>数据来源：<code>source/remix/map.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/remix/cards.md</code>（v7）· 道具 <code>source/remix/props.md</code><br>模拟脚本：<code>python3 sim/landing.py</code>（落点分布 + 组经济）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=1000</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2 对照）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）<br>⚠️ 本文只适用于<strong>规则 2</strong>（1 枚十六面骰、统一赤道起点、连锁过路费）。原版（2 颗骰子、监狱在北极之外、无连锁）的攻略与本文结论<strong>完全不同，不能混用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="other/balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
 <h3>〇、速览（先看这段就够打一局）</h3>
 <p><strong>一句话：规则 2 里位置只值 ±5%（统一起点后的残余偏差），胜负手是「把地集中在一个颜色里」。</strong></p>
 <p><strong>四条铁律</strong></p>
@@ -108,7 +126,7 @@
 <tr><td>无道具</td><td>55.0%</td><td>18.9%</td><td>5.8%</td><td>6.5%</td><td>3.6%</td><td>6.6%</td><td>3.1%</td><td>0.5%</td></tr>
 <tr><td>带道具（不限量）</td><td>37.4%</td><td>32.0%</td><td>9.8%</td><td>7.6%</td><td>3.6%</td><td>5.2%</td><td>3.3%</td><td>1.1%</td></tr>
 </tbody></table></div>
-<blockquote><strong>一句话读法</strong>：满级连锁过路费（打击力）决定上限，段数决定你能不能及时买到。<br>红组和深灰打击力几乎一样（$38,100 vs $37,800），但红组被切成 3 段——夺冠率只有深灰的 <strong>1/7</strong>。<br><br><strong>⚠️ 为什么现行口径下黄绿回到了 45%？</strong> 因为<strong>道具限每种 2 张</strong>后，全桌拿来对付你的<br>导弹 / 转向卡 / 乌龟帽总量被砍掉一半以上（实测每局只买到 24.6 件，而真实需求是 55 件）。<br>反领先工具变少 → 纸面上最强的组就重新变强。**实体局如果严格执行「每种 2 张」，<br>请按上面那张表的预期玩。** 详见 <a href="balance-v7.html">balance-v7.md</a> 第五节。</blockquote>
+<blockquote><strong>一句话读法</strong>：满级连锁过路费（打击力）决定上限，段数决定你能不能及时买到。<br>红组和深灰打击力几乎一样（$38,100 vs $37,800），但红组被切成 3 段——夺冠率只有深灰的 <strong>1/7</strong>。<br><br><strong>⚠️ 为什么现行口径下黄绿回到了 45%？</strong> 因为<strong>道具限每种 2 张</strong>后，全桌拿来对付你的<br>导弹 / 转向卡 / 乌龟帽总量被砍掉一半以上（实测每局只买到 24.6 件，而真实需求是 55 件）。<br>反领先工具变少 → 纸面上最强的组就重新变强。**实体局如果严格执行「每种 2 张」，<br>请按上面那张表的预期玩。** 详见 <a href="other/balance-v7.html">balance-v7.md</a> 第五节。</blockquote>
 <h3>一、规则 2 到底改了什么</h3>
 <div class="tw"><table>
 <thead><tr><th>项</th><th>原版</th><th><strong>规则 2</strong></th><th>对策略的影响</th></tr></thead>
@@ -130,7 +148,7 @@
 </li>
 <li><strong>统一起点后，棋子总是从 #0 单向出发</strong>——起点下游的格子会多被踩几脚，这个偏差随圈数衰减（解析推演：1 圈 2.09× → 3 圈 1.35× → 10 圈 1.09× → 27 圈 1.03×）。
 </li></ol>
-<p><code>sim/sim-v2.py</code> 实测（8 人 × 250 回合 × 400 局，共 <strong>851,533 次落点</strong>，含坐牢与卡牌移动）：</p>
+<p><code>sim/landing.py</code> 实测（8 人 × 250 回合 × 400 局，共 <strong>851,533 次落点</strong>，含坐牢与卡牌移动）：</p>
 <div class="tw"><table>
 <thead><tr><th>项</th><th>数值</th></tr></thead>
 <tbody>
@@ -171,7 +189,7 @@
 <tr><td>只有被送才坐牢</td><td>0.93% / 回合</td><td>15.2 圈</td><td>双 16 43% · 卡牌 57%</td><td>239 回合</td></tr>
 <tr><td><strong>走到监狱格也坐牢（现行默认）</strong></td><td><strong>2.56% / 回合</strong></td><td><strong>5.5 圈</strong></td><td>走到监狱 64% · 卡牌 21% · 双 16 15%</td><td>236 回合</td></tr>
 </tbody></table></div>
-<blockquote>频率与来源来自 <code>sim/sim-v2.py</code>（落点模拟）；一局总长来自 <code>sim/game.py</code>（完整对局，每格 1000 局）。<br>两种口径的对局长度差别（236 vs 239、219 vs 216）方向不稳定，<strong>落在噪声内</strong>。</blockquote>
+<blockquote>频率与来源来自 <code>sim/landing.py</code>（落点模拟）；一局总长来自 <code>sim/game.py</code>（完整对局，每格 1000 局）。<br>两种口径的对局长度差别（236 vs 239、219 vs 216）方向不稳定，<strong>落在噪声内</strong>。</blockquote>
 <p><strong>为什么默认「走到也坐牢」：</strong></p>
 <ul>
 <li>✅ 让北极格从「装饰」变成<strong>有存在感的格子</strong>（走上去什么也不发生的监狱很奇怪）；
@@ -182,7 +200,7 @@
 </li>
 <li>⚠️ 唯一的位置副作用：坐过牢的人从 #32 重新出发，#32 下游（#45-48 夏威夷一带）多约 5% 落点（见第二节）。
 </li></ul>
-<p>如果你想把这条改回「只有被送才坐牢」，把 <code>sim/sim-v2.py</code> / <code>sim/game.py</code> 里的 <code>ARRIVE_JAIL_CELL_JAILS</code> 设回 <code>False</code> 重跑即可，本文所有数字都会跟着变。</p>
+<p>如果你想把这条改回「只有被送才坐牢」，把 <code>sim/landing.py</code> / <code>sim/game.py</code> 里的 <code>ARRIVE_JAIL_CELL_JAILS</code> 设回 <code>False</code> 重跑即可，本文所有数字都会跟着变。</p>
 <h3>四、规则 2 的经济学（本文最重要的一节）</h3>
 <h4>4.1 连锁 = K 倍放大器</h4>
 <p>规则 2 的「连锁」是最容易被低估的一条：<strong>总过路费 = 同色同归属所有房屋过路费的总和</strong>。</p>
@@ -248,7 +266,7 @@
 </li></ul>
 <h3>六、规则 2 独有的打法</h3>
 <h4>6.1 道具：唯一的「反领先武器」</h4>
-<p>商店格在<strong>印度洋 #24 / 大西洋 #59</strong>（<code>source/map.json</code> 的 <code>variants.v2</code> 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。</p>
+<p>商店格在<strong>印度洋 #24 / 大西洋 #59</strong>（<code>source/remix/map.json</code> 的 <code>variants.v2</code> 定义，地图页「v2 规则地图」就是这套视图）；太平洋 #10 仍是普通海洋格。进店随机刷 3 件、可半价回售，作用范围「目标格前后 3 格」。</p>
 <p>完整 14 种道具，按模拟里 AI 的估价从高到低：</p>
 <div class="tw"><table>
 <thead><tr><th>道具</th><th>价格</th><th>效果</th><th>关键用法</th></tr></thead>
@@ -296,7 +314,7 @@
 </tbody></table></div>
 <p><strong>共同点：卡牌鼓励你先买地</strong>——「名下无房」在机会 15 那边是直接送监狱 3 回合。</p>
 <h3>七、完整对局模拟：道具 × 监狱口径 的 2×2 对照</h3>
-<blockquote>⚠️ <strong>本节数字跑于「道具不限量 + 坐牢仍可收租」的旧口径</strong>，与第〇节的现行口径<br>（道具每种 2 张 + 坐牢不能收租 + 命运 19/17 实现修正）不同。<br>相对关系（道具加速、反领先、集中 &gt; 撒开）依然成立，绝对数字请以第〇节和<br><a href="balance-v7.html">balance-v7.md</a> 为准。</blockquote>
+<blockquote>⚠️ <strong>本节数字跑于「道具不限量 + 坐牢仍可收租」的旧口径</strong>，与第〇节的现行口径<br>（道具每种 2 张 + 坐牢不能收租 + 命运 19/17 实现修正）不同。<br>相对关系（道具加速、反领先、集中 &gt; 撒开）依然成立，绝对数字请以第〇节和<br><a href="other/balance-v7.html">balance-v7.md</a> 为准。</blockquote>
 <p><code>AB=1 python3 sim/game.py</code>（8 人混战、各自锁定一个目标组、每组政策相同；每格 <strong>1000 局</strong>）</p>
 <h4>7.1 主表</h4>
 <div class="tw"><table>
@@ -354,7 +372,7 @@
 <tr><td>「囤现金最安全」</td><td>机会 15 专治没地的人；而且现金不产生任何收益</td></tr>
 <tr><td>「道具只是锦上添花」</td><td>错。道具是全场<strong>唯一的反领先机制</strong>（不限量时黄绿 55.0%→37.4%）</td></tr>
 <tr><td>「监狱格离得远就不用管」</td><td>坐牢每 5.5 圈一次，出狱从北极继续走——<strong>#45-48 夏威夷一带因此成了全盘最热区</strong>，路过别嫌贵</td></tr>
-<tr><td><strong>「被送进监狱很惨」</strong></td><td><strong>实测每次净值变化只有 −5 元</strong>。不走路 = 不付租，8 人局里踩雷概率高于收租，所以坐牢 ≈ 免费休息。命运 1/4/13 的「送进监狱」惩罚基本是假的（详见 <a href="balance-v7.html">balance-v7.md</a> 第二节）</td></tr>
+<tr><td><strong>「被送进监狱很惨」</strong></td><td><strong>实测每次净值变化只有 −5 元</strong>。不走路 = 不付租，8 人局里踩雷概率高于收租，所以坐牢 ≈ 免费休息。命运 1/4/13 的「送进监狱」惩罚基本是假的（详见 <a href="other/balance-v7.html">balance-v7.md</a> 第二节）</td></tr>
 <tr><td>「多走一次总是好事」</td><td>相反：机会 7 / 14 这类「额外移动」卡实测是<strong>负期望</strong>（−927 / −822）——多走一步就多一次踩满级组的机会</td></tr>
 </tbody></table></div>
 <h3>附：和原版攻略的关系</h3>
@@ -368,10 +386,10 @@
 <tr><td>选组依据</td><td>段数 + 均价</td><td><strong>格数（收益率）+ 总地价（打击力）+ 段数（买入速度）</strong></td></tr>
 <tr><td>最推荐</td><td>浅蓝 → 粉 → 紫</td><td><strong>黄绿 → 深灰 → 浅蓝（开局）</strong></td></tr>
 </tbody></table></div>
-<p>*本文所有数字由 <code>source/map.json</code> + <code>source/cards.md</code>（v7）+ <code>source/props.md</code> + <code>sim/sim-v2.py</code> + <code>sim/game.py</code> 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*</p>
+<p>*本文所有数字由 <code>source/remix/map.json</code> + <code>source/remix/cards.md</code>（v7）+ <code>source/remix/props.md</code> + <code>sim/landing.py</code> + <code>sim/game.py</code> 现算得出。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*</p>
 <p><strong>口径备忘</strong>（都写成常量，改一个就能重跑）：</p>
 <ol>
-<li><strong>监狱/商店格</strong>：由 <code>source/map.json</code> 的 <code>variants.v2</code> 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
+<li><strong>监狱/商店格</strong>：由 <code>source/remix/map.json</code> 的 <code>variants.v2</code> 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
 </li>
 <li><strong>自然走到监狱算不算坐牢？</strong> 现行默认<strong>算</strong>（<code>ARRIVE_JAIL_CELL_JAILS = True</code>）；要改回「只有被送才算」，把两个脚本里的开关设为 <code>False</code> 重跑。
 </li>

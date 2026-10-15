@@ -238,7 +238,7 @@
   <summary><h2>游戏规则</h2><span class="tog"></span></summary>
   <div class="md">
 <!-- RULES:START -->
-<p class="rnote">规则迭代了多个版本，这里并列放好，点上面的卡片切换。<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，<strong>v1</strong> = 朋友初版，<strong>v2</strong> = 过渡版，<strong>v3</strong> = 现行版本（审查修订见 <a href="other/rule-v2-review.html">rule-v2-review.md</a>）。</p>
+<p class="rnote">规则迭代了多个版本，这里并列放好，点上面的卡片切换。<strong>原版</strong> = 实体《大富翁世界之旅（银牌）》说明书的原文，<strong>v1</strong> = 朋友初版，<strong>v2</strong> = 过渡版，<strong>v3</strong> = 现行版本（为什么这么定见 <a href="other/rule-changelog.html">规则修订记录</a>）。</p>
 <div class="rtabs" role="tablist" aria-label="规则版本">
 <button type="button" class="rtab" role="tab" aria-selected="false" id="rtab-original" aria-controls="rview-original" data-rule="original"><span class="rttxt"><span class="rt-n">原版</span><span class="rt-d">实体说明书</span></span></button>
 <button type="button" class="rtab" role="tab" aria-selected="false" id="rtab-v1" aria-controls="rview-v1" data-rule="v1"><span class="rttxt"><span class="rt-n">v1</span><span class="rt-d">初版改版规则</span></span></button>
@@ -382,7 +382,7 @@
 <h4>当前生效的卡牌</h4>
 <p>在 <strong><code>cards.md</code></strong>，打印页读的就是它。要改卡牌内容请改这个文件，<br>字段怎么填见 <a href="other/card-fields.html">card-fields.md</a>；想用 Excel 批量改，<br>先在首页「机会/命运卡牌」区导出 CSV / Excel，改完跑 <code>python3 tools/import-cards.py</code> 回导。</p>
 <h4>历史版本</h4>
-<p>卡牌从 v1 一路改到 v7，历史版本的演变过程都在 git 提交记录里（<code>git log --follow -- source/cards.md</code> 可回看每一版）。<br>当前生效的是 <strong>v7 · 邪恶版 · 世界之旅（修订）</strong>。</p>
+<p>卡牌从 v1 一路改到 v7，历史版本的演变过程都在 git 提交记录里（<code>git log --follow -- source/remix/cards.md</code> 可回看每一版）。<br>当前生效的是 <strong>v7 · 邪恶版 · 世界之旅（修订）</strong>。</p>
 <h4>初版卡牌（2026-10-08，机会 16 + 命运 16）</h4>
 <p>最早写在 Word 文档里的版本，此处存档备查，实际游戏已不使用。</p>
 <p><strong>机会牌</strong></p>
@@ -770,7 +770,7 @@
 <!-- PROPS_RULES:END -->
   </div>
   <div class="ctrl">
-    <div class="seg" id="propExportSeg" title="导出道具清单为 CSV / Excel，批量改完再回写 source/props.md">
+    <div class="seg" id="propExportSeg" title="导出道具清单为 CSV / Excel，批量改完再回写 source/remix/props.md">
       <button type="button" data-fmt="csv">导出 CSV</button>
       <button type="button" data-fmt="xlsx" id="propBtnXlsx" hidden>导出 Excel</button>
     </div>
@@ -818,7 +818,7 @@
   <a href="print.html">打印页</a>
   <a href="map.html">电子地图</a>
   <a href="source/remix/manual-v3.md">规则源文件（v3）</a>
-  <a href="source/props.md">道具源文件</a>
+  <a href="source/remix/props.md">道具源文件</a>
   <a href="other/card-fields.html">卡牌字段说明</a>
   <span>CC BY-NC 4.0</span>
 </footer>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>卡牌字段说明（`source/cards.md`） · 大富翁改版</title>
+<title>卡牌字段说明（`source/remix/cards.md`） · 大富翁改版</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -20,6 +20,18 @@
   .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
   .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
   .nav a:hover { border-color: #96597A; }
+
+  .guide {
+    margin: 18px 0 0; padding: 12px 16px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; font-size: 13.5px; color: #6b6a66; line-height: 1.7;
+  }
+  .guide b { color: #2c2c2a; font-weight: 500; }
+  .guide a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+
+  .status {
+    margin: 18px 0 0; padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+    background: #fdf6e9; border: 1px solid #e8d9b4; color: #7a5f2a;
+  }
 
   .md { font-size: 14.5px; padding: 8px 0 10px; }
   .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
@@ -40,7 +52,10 @@
   .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
   .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
 
-  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .gcat { font-size: 15px; font-weight: 500; margin: 28px 0 2px; }
+  .gcat span { font-weight: 400; font-size: 13px; color: #8a8880; margin-left: 10px; }
+
+  .docs { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 12px; }
   .docs a {
     display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
     border-radius: 10px; text-decoration: none; color: inherit;
@@ -51,6 +66,9 @@
   .docs em {
     font-style: normal; font-size: 11.5px; color: #96597A;
     background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+  .docs i {
+    font-style: normal; font-size: 12.5px; color: #7a5f2a; display: block; margin-top: 5px;
   }
 
   footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
@@ -68,7 +86,7 @@
 <div class="wrap">
 <header>
   <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
-  <h1>卡牌字段说明（`source/cards.md`）</h1>
+  <h1>卡牌字段说明（`source/remix/cards.md`）</h1>
   <p>卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导</p>
 </header>
 <div class="md">
@@ -103,7 +121,7 @@
 </li>
 <li><strong>调卡牌顺序直接拖行</strong>：卡牌顺序 = CSV 行序；<code>seq</code> 不同步刷新不影响页面。
 </li></ul>
-<p>卡牌内容的唯一真源是 <strong><code>source/cards.md</code></strong>（Markdown 表格）。改这里 → 跑 <code>python3 tools/build.py</code><br>→ 生成 <code>data/cards.json</code> 并同步首页 / 打印页 / README。push 后 GitHub Actions 跑同一个脚本。</p>
+<p>卡牌内容的唯一真源是 <strong><code>source/remix/cards.md</code></strong>（Markdown 表格）。改这里 → 跑 <code>python3 tools/build.py</code><br>→ 生成 <code>data/cards.json</code> 并同步首页 / 打印页 / README。push 后 GitHub Actions 跑同一个脚本。</p>
 <p>想用 Excel / Numbers 批量改：首页「机会/命运卡牌」区点「导出 CSV / Excel」→ 改完 →<br><code>python3 tools/import-cards.py 文件.csv</code> 回导成 cards.md（回导前会自动校验 + 回读比对）。</p>
 <h3>一、cards.md 的结构</h3>
 <p>三层结构：<strong>版本 → 花色 → 表格</strong>。</p>

@@ -227,7 +227,7 @@
 <script>
 // ===================================================================
 // 大富翁「世界之旅」电子地图
-// 唯一真源：source/map.json（线上 fetch，本地 file:// 打开用内置兜底）
+// 唯一真源：source/remix/map.json（线上 fetch，本地 file:// 打开用内置兜底）
 // 两档布局：
 //   print      打印版 —— 按实体棋盘照片一比一还原的 80cm 软垫图
 //   print-zoom 放大版 —— 同一张图，跑道加厚吃进中间空、文字竖排放大（手机上可读）
@@ -247,8 +247,8 @@ let RAW = null;                  // 真源原样（未套变体）
 let v2Mode = !/\bv=0\b/.test(location.hash);   // 默认按规则 v2 替换格子（北极→监狱 / 印度洋·大西洋→道具商店）；加 #v=0 可默认看原版地图
 let V2VARIANT = null;            // 当前变体描述（label / desc / replace）
 
-// ===== 内置兜底数据（同 source/map.json；由 tools/build.py 生成，勿手改）=====
-const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/build.py 从 source/map.json 生成，请勿手改
+// ===== 内置兜底数据（同 source/remix/map.json；由 tools/build.py 生成，勿手改）=====
+const FALLBACK_DATA = /* MAP_FALLBACK:START */  // 由 tools/build.py 从 source/remix/map.json 生成，请勿手改
 {
   "version": "1.0",
   "name": "大富翁「世界之旅」· 打印版棋盘",
@@ -2060,13 +2060,13 @@ function exportPNG() {
 initToolbar();   // 按钮是静态元素，先绑好，不等地图渲染
 
 // ===== 加载数据：优先 fetch JSON，失败则用内置兜底 =====
-fetch("./source/map.json")
+fetch("./source/remix/map.json")
   .then(res => {
     if (!res.ok) throw new Error("HTTP " + res.status);
     return res.json();
   })
   .then(data => {
-    console.log("[map] 数据来源: source/map.json");
+    console.log("[map] 数据来源: source/remix/map.json");
     renderMap(data);
     renderDeliver();
   })

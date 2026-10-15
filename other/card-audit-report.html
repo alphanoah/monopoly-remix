@@ -21,6 +21,18 @@
   .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
   .nav a:hover { border-color: #96597A; }
 
+  .guide {
+    margin: 18px 0 0; padding: 12px 16px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; font-size: 13.5px; color: #6b6a66; line-height: 1.7;
+  }
+  .guide b { color: #2c2c2a; font-weight: 500; }
+  .guide a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+
+  .status {
+    margin: 18px 0 0; padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+    background: #fdf6e9; border: 1px solid #e8d9b4; color: #7a5f2a;
+  }
+
   .md { font-size: 14.5px; padding: 8px 0 10px; }
   .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
   .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
@@ -40,7 +52,10 @@
   .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
   .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
 
-  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .gcat { font-size: 15px; font-weight: 500; margin: 28px 0 2px; }
+  .gcat span { font-weight: 400; font-size: 13px; color: #8a8880; margin-left: 10px; }
+
+  .docs { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 12px; }
   .docs a {
     display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
     border-radius: 10px; text-decoration: none; color: inherit;
@@ -51,6 +66,9 @@
   .docs em {
     font-style: normal; font-size: 11.5px; color: #96597A;
     background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+  .docs i {
+    font-style: normal; font-size: 12.5px; color: #7a5f2a; display: block; margin-top: 5px;
   }
 
   footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
@@ -70,9 +88,9 @@
   <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
   <h1>卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测</h1>
   <p>卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定</p>
-</header>
+<p class="status">历史数据：基于规则 v2 口径的插桩实测，v3 加入保释金后坐牢代价已重算，见 strategy-v3。</p></header>
 <div class="md">
-<blockquote><strong>数据口径</strong>：<code>sim/game.py</code> 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、<br>坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。<br><strong>样本</strong>：<code>AUDIT=1 TRIALS=600 python3 sim/game.py</code>（逐卡插桩 600 局）。<br><strong>配套文档</strong>：修改建议清单见 <a href="balance-v7.html">balance-v7.md</a>，打法攻略见<br><a href="strategy-v2.html">strategy-v2.md</a>。本文回答三个问题：<br><strong>① 净值是怎么算的 ② 坐牢到底亏不亏 ③ 哪些卡不公平。</strong></blockquote>
+<blockquote><strong>数据口径</strong>：<code>sim/game.py</code> 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、<br>坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。<br><strong>样本</strong>：<code>AUDIT=1 TRIALS=600 python3 sim/game.py</code>（逐卡插桩 600 局）。<br><strong>配套文档</strong>：修改建议清单见 <a href="other/balance-v7.html">balance-v7.md</a>，打法攻略见<br><a href="other/strategy-v2.html">strategy-v2.md</a>。本文回答三个问题：<br><strong>① 净值是怎么算的 ② 坐牢到底亏不亏 ③ 哪些卡不公平。</strong></blockquote>
 <h3>一、净值计算逻辑（测量的地基）</h3>
 <h4>1.1 净值定义</h4>
 <p><code>`</code><br>玩家净值 = 现金 + 名下每块房产的「已投入成本」<br>已投入成本 = 买地价 + 已花掉的升级费（1~4 级各 0.5×地价，第 5 级 1.0×地价）<br><code>`</code></p>
@@ -216,7 +234,7 @@
 <ol>
 <li><strong>方差失控的只有命运 18</strong>（极值 74,940），加封顶即可。
 </li></ol>
-<p>*所有数字由 <code>source/map.json</code> + <code>source/cards.md</code>（v7）+ <code>sim/game.py</code><br>（<code>AUDIT=1 TRIALS=600</code>）现算得出，2026-10-13。修改建议的完整优先级清单见<br><a href="balance-v7.html">balance-v7.md</a> 第七节。*</p>
+<p>*所有数字由 <code>source/remix/map.json</code> + <code>source/remix/cards.md</code>（v7）+ <code>sim/game.py</code><br>（<code>AUDIT=1 TRIALS=600</code>）现算得出，2026-10-13。修改建议的完整优先级清单见<br><a href="other/balance-v7.html">balance-v7.md</a> 第七节。*</p>
 </div>
 <footer>本文由 <code>tools/build.py</code> 从 <code>docs/card-audit-report.md</code> 生成，改文档改那份 md 再跑脚本。</footer>
 </div>

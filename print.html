@@ -236,7 +236,7 @@
 // 来源优先级：先尝试 fetch data/cards.json（GitHub Pages 上同源可读）；
 // 读不到就回退到下面的内置兜底数据 —— 本地双击打开是 file:// 协议，fetch 会被浏览器拦掉，
 // 所以内置兜底不是摆设，是本地使用模式的必需品。
-// 内置兜底由 tools/build.py 从 source/cards.md 自动生成，改卡牌请改 source/cards.md，别手改这里。
+// 内置兜底由 tools/build.py 从 source/remix/cards.md 自动生成，改卡牌请改 source/remix/cards.md，别手改这里。
   /* FALLBACK:START */  // 由 tools/build.py 生成，请勿手改
   const FALLBACK = {
   "version": "v7",
@@ -528,8 +528,8 @@
 
 // ===== 道具数据 =====
 // 与卡牌同一套路：先 fetch data/props.json，读不到就用内置兜底（本地 file:// 双击时用得到）。
-// 真源是 source/props.md，由 tools/build.py 解析生成，改道具请改 source/props.md。
-  /* PROPS:START */  // 由 tools/build.py 从 source/props.md 生成，请勿手改
+// 真源是 source/remix/props.md，由 tools/build.py 解析生成，改道具请改 source/remix/props.md。
+  /* PROPS:START */  // 由 tools/build.py 从 source/remix/props.md 生成，请勿手改
   const PROPS_FALLBACK = {
   "rules": [
     "道具可以指定玩家所在格子的前后 3 格内使用",
@@ -1011,7 +1011,7 @@ function fillVerSel() {
     return;
   }
   sel.disabled = false;
-  sel.title = '数据来自 data/cards.json（由 source/cards.md 生成）';
+  sel.title = '数据来自 data/cards.json（由 source/remix/cards.md 生成）';
   sel.innerHTML = ALL.order.map(v =>
     '<option value="' + v + '"' + (v === currentId ? ' selected' : '') + '>' +
     ALL.versions[v].label + '</option>').join('');

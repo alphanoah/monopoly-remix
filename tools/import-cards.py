@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# 卡牌 CSV → source/cards.md 回导脚本。
+# 卡牌 CSV → source/remix/cards.md 回导脚本。
 #
-#   python3 tools/import-cards.py ~/Downloads/cards.csv      # 校验 + 写回 source/cards.md
+#   python3 tools/import-cards.py ~/Downloads/cards.csv      # 校验 + 写回 source/remix/cards.md
 #   python3 tools/import-cards.py ~/Downloads/cards.csv -n   # 只校验预览，不写文件
 #
 # 什么时候用：在首页「机会/命运卡牌」区点「导出 CSV / Excel」，用电子表格批量改完之后，
@@ -30,7 +30,7 @@ LEGACY_LABELS = {
 
 
 def main():
-    ap = argparse.ArgumentParser(description='卡牌 CSV → source/cards.md 回导')
+    ap = argparse.ArgumentParser(description='卡牌 CSV → source/remix/cards.md 回导')
     ap.add_argument('csv_path', help='首页导出 / Excel 编辑后的 CSV 文件')
     ap.add_argument('-n', '--dry-run', action='store_true', help='只校验和预览，不写文件')
     args = ap.parse_args()

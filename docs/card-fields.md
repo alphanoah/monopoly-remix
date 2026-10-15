@@ -1,4 +1,7 @@
-# 卡牌字段说明（`source/cards.md`）
+# 卡牌字段说明（`source/remix/cards.md`）
+<!-- cat: 维护 -->
+<!-- order: 1 -->
+<!-- blurb: 卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导 -->
 
 <!-- QUICK:START -->
 ## 30 秒速查：CSV / Excel 的 11 列
@@ -29,7 +32,7 @@
 - **调卡牌顺序直接拖行**：卡牌顺序 = CSV 行序；`seq` 不同步刷新不影响页面。
 <!-- QUICK:END -->
 
-卡牌内容的唯一真源是 **`source/cards.md`**（Markdown 表格）。改这里 → 跑 `python3 tools/build.py`
+卡牌内容的唯一真源是 **`source/remix/cards.md`**（Markdown 表格）。改这里 → 跑 `python3 tools/build.py`
 → 生成 `data/cards.json` 并同步首页 / 打印页 / README。push 后 GitHub Actions 跑同一个脚本。
 
 想用 Excel / Numbers 批量改：首页「机会/命运卡牌」区点「导出 CSV / Excel」→ 改完 →

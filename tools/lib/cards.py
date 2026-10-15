@@ -1,4 +1,4 @@
-"""卡牌真源（source/cards.md）的解析、校验与构建。
+"""卡牌真源（source/remix/cards.md）的解析、校验与构建。
 
 cards.md 的结构约定：## 版本号 · 版本名 → ### 机会牌 / ### 命运牌 → 每节一张表。
 列名和列序固定（tools/import-cards.py 回导出来的就是这个格式），两种花色的列不同。

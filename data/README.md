@@ -8,7 +8,7 @@ python3 tools/build.py        # 或双击 update.command
 
 | 文件 | 由谁生成 | 谁在读 |
 |---|---|---|
-| `cards.json` | `source/cards.md` | `print.html`（线上 fetch，读不到时用页内兜底） |
-| `props.json` | `source/props.md` | `print.html`（线上 fetch，读不到时用页内兜底） |
+| `cards.json` | `source/remix/cards.md` | `print.html`（线上 fetch，读不到时用页内兜底） |
+| `props.json` | `source/remix/props.md` | `print.html`（线上 fetch，读不到时用页内兜底） |
 
 要改内容请改 `source/` 里的源文件，不要改这里——下次跑脚本会被整块覆盖。

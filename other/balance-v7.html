@@ -21,6 +21,18 @@
   .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
   .nav a:hover { border-color: #96597A; }
 
+  .guide {
+    margin: 18px 0 0; padding: 12px 16px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; font-size: 13.5px; color: #6b6a66; line-height: 1.7;
+  }
+  .guide b { color: #2c2c2a; font-weight: 500; }
+  .guide a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+
+  .status {
+    margin: 18px 0 0; padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+    background: #fdf6e9; border: 1px solid #e8d9b4; color: #7a5f2a;
+  }
+
   .md { font-size: 14.5px; padding: 8px 0 10px; }
   .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
   .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
@@ -40,7 +52,10 @@
   .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
   .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
 
-  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .gcat { font-size: 15px; font-weight: 500; margin: 28px 0 2px; }
+  .gcat span { font-weight: 400; font-size: 13px; color: #8a8880; margin-left: 10px; }
+
+  .docs { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 12px; }
   .docs a {
     display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
     border-radius: 10px; text-decoration: none; color: inherit;
@@ -51,6 +66,9 @@
   .docs em {
     font-style: normal; font-size: 11.5px; color: #96597A;
     background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+  .docs i {
+    font-style: normal; font-size: 12.5px; color: #7a5f2a; display: block; margin-top: 5px;
   }
 
   footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
@@ -70,9 +88,9 @@
   <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
   <h1>v7 卡牌 &amp; 道具平衡性评估（8 人局实测）</h1>
   <p>v7 卡牌 &amp; 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长</p>
-</header>
+<p class="status">历史数据：模拟口径为规则 v2（20 张等概率抽卡、无保释金）。v3 口径重测见 strategy-v3。</p></header>
 <div class="md">
-<blockquote><strong>数据口径</strong>：<code>sim/game.py</code> 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、<br>坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。<br><strong>样本</strong>：主表 800 局 · 卡牌插桩 600 局 · 不限量道具对照 400 局。<br><strong>复现</strong>：<code>python3 sim/game.py</code>（夺冠率）· <code>AUDIT=1 TRIALS=600 python3 sim/game.py</code>（卡牌插桩）<br>· <code>AUDIT=1 PROP_UNLIMITED=1 python3 sim/game.py</code>（道具不限量对照）<br><br>本文是<strong>平衡性评估</strong>，打法攻略见 <a href="strategy-v2.html">strategy-v2.md</a>。<br>「净值」= 现金 + 名下房产的已投入成本（买地价 + 已花掉的升级费），是唯一跨房产/现金可比的口径。</blockquote>
+<blockquote><strong>数据口径</strong>：<code>sim/game.py</code> 完整对局模拟，现行默认规则 —— 统一赤道起点、走到北极即坐牢、<br>坐牢期间不能收租、道具全开（每种 2 张）、v7 卡牌 40 张全量。<br><strong>样本</strong>：主表 800 局 · 卡牌插桩 600 局 · 不限量道具对照 400 局。<br><strong>复现</strong>：<code>python3 sim/game.py</code>（夺冠率）· <code>AUDIT=1 TRIALS=600 python3 sim/game.py</code>（卡牌插桩）<br>· <code>AUDIT=1 PROP_UNLIMITED=1 python3 sim/game.py</code>（道具不限量对照）<br><br>本文是<strong>平衡性评估</strong>，打法攻略见 <a href="other/strategy-v2.html">strategy-v2.md</a>。<br>「净值」= 现金 + 名下房产的已投入成本（买地价 + 已花掉的升级费），是唯一跨房产/现金可比的口径。</blockquote>
 <h3>〇、结论速览</h3>
 <p><strong>整体判断：v7 卡牌体系设计功底不错，但有 1 个系统性漏洞 + 5 张卡需要处理。</strong></p>
 <p>命运牌 20 张里有 <strong>16 张实测期望落在 ±500 以内</strong>（零期望原则执行到位），这是全牌库最健康的部分。<br>真正的问题不在单卡数值，而在<strong>一个规则漏洞让整类惩罚失效</strong>：</p>
@@ -394,7 +412,7 @@
 </li>
 <li>命运 5 / 机会 18 的「下回合倍率」效果落在测量窗口之外，实测值偏低。
 </li></ul>
-<p>*所有数字由 <code>source/map.json</code> + <code>source/cards.md</code>（v7）+ <code>source/props.md</code></p>
+<p>*所有数字由 <code>source/remix/map.json</code> + <code>source/remix/cards.md</code>（v7）+ <code>source/remix/props.md</code></p>
 <ul>
 <li><code>sim/game.py</code> 现算得出（2026-10-13）。*
 </li></ul>

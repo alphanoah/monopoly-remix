@@ -1,5 +1,5 @@
 #!/bin/bash
-# macOS 双击运行：改完 source/ 下的真源（cards.md / remix/manual-v*.md / props.md / original/*）后跑一次，首页和打印页就都更新了
+# macOS 双击运行：改完 source/ 下的真源（remix/ 改版内容 · original/ 原版资料）或 docs/ 文档后跑一次
 cd "$(dirname "$0")" || exit 1
 
 PY="$(command -v python3)"

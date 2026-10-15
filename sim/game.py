@@ -1,46 +1,55 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""规则 2 · 完整对局模拟（8 人混战，打到只剩一个）。
+"""规则 v3 · 完整对局模拟（8 人混战，打到只剩一个或到回合上限）。
 
-跟 sim-v2.py 的落点模拟不同，这里跑的是「一局完整游戏」：
-买卖地产、升级房子、连锁收租、付不出钱就拍卖、破产退出。用来回答
-「如果一组归你、另一组归他，谁更可能活到最后」。
+跟 sim/landing.py 的落点模拟不同，这里跑的是「一局完整游戏」：买卖地产、升级房子、
+连锁收租、付不出钱就拍卖、破产退出。用来回答「如果一组归你、另一组归他，谁更可能活到最后」。
 
-【模型口径 / 简化说明】
-  · 骰子、起点、监狱、赤道酬金完全按 source/remix/manual-v2.md（1 枚十六面骰）。
-    摇到 16 → 移动并结算后再摇一次；同一回合内连续两次 16 → 送进监狱 1 回合。
-  · **起点：统一赤道 #0，所有人同起点、同方向**（v2 原文的四角随机起点 + 单双定方向
-    会跟监狱冲突，按用户 2026-10-13 的确认不用）。
-  · **地图格子类型不硬编码**，全部读 JSON 的 variants.v2.replace：
+【口径 = source/remix/manual-v3.md（站点默认版本）】
+  · 骰子 / 起点 / 赤道酬金：1 枚十六面骰，摇到 16 再摇一次，连续两次 16 坐牢 1 回合；
+    统一赤道 #0、同方向顺时针出发（v3 备选玩法「四角随机起点 + 单双定方向」不用）。
+  · 地图格子类型不硬编码，全部读 JSON 的 variants.v2.replace：
     北极 #32 → 监狱，印度洋 #24 / 大西洋 #59 → 道具商店（太平洋 #10 仍是普通海洋格）。
-  · 过路费 / 升级费 / 连锁按规则 2；连锁只统计「同色且同归属」的房子。
-  · 现金不够交过路费时按规则 2 拍卖：底价 = 已投入总额的 50%（向下取整十），
-    你回收其中 75%（25% 上交银行）→ 实际只能拿回约 37.5%，卖完还不够 = 破产。
-  · 破产：剩余现金与名下地产全部归债主。
-  · **卡牌已全量建模**：v7 的 20 张机会 + 20 张命运，含金钱、移动、坐牢、
-    原地停留、禁言、下回合租金/过路费倍率、单双限行、与前方玩家对决等；
-    条件牌的赢面直接用 cards.md 的 rate。
-  · **道具已建模 14 种**：商店格 = JSON 里 type=shop 的两格（印度洋 #24 / 大西洋 #59）。
-    AI 只在「有确定性收益」时买与用（遥控骰子推进自家地、工程机器人免费升级、
-    导弹降级对手满级房…）。
-  · **未建模**：路障（无效果）、拍卖场上的玩家竞价（按底价成交）、玩家之间的
-    讨价还价与交易。因此本模拟的绝对破产圈数偏乐观，但**组与组之间的相对排名可信**。
+  · 过路费 / 升级费 / 连锁按 v3；升级**只能升脚下这一格**（v3「必须走到自己的地产才能购买/升级」）。
+  · 抽卡 = **16 张牌池 + 掷骰点选**：开局从 20 张里随机取 16 张成本局牌池，
+    踩到格子摇 d16、按点数取对应那张，执行完放回池底（机会 / 命运各自一副）。
+  · 监狱 = 北极：跳过回合、不能收租、不能用道具；刑满出狱缴**保释金 1000 × 关押回合数**。
+  · 破产清算 = 名下房产**逐一强制拍卖**（起拍价 = 已投入总额 50% 向下取整十，流拍归银行），
+    所得 25% 上交银行、75% 归自己，连同剩余现金一起交给债主；缺口由债主自担。
+  · 红卡 / 绿卡单次上限 8000；主动道具一回合最多用 1 件；工程机器人盖不出红房（≤4 级）。
+  · 胜负：最后未破产者胜；到回合上限（默认 600，`MAX_ROUNDS=150` 可试 v3 的加速口径）
+    按**净值 = 现金 + 名下房产已投入成本**排名。
+  · **卡牌已全量建模**：v7 的 20 张机会 + 20 张命运；条件牌赢面从 `cards.md` 的「命中率」列读，
+    不再手抄进脚本。
+  · **道具已建模 14 种**：AI 只在「有确定性收益」时买与用（遥控骰子推进自家地、
+    工程机器人免费升级、导弹降级对手满级房…）。
+  · **未建模**：路障（无效果）、拍卖场上的玩家竞价（按底价成交）、玩家之间的讨价还价与交易。
+    因此绝对破产圈数偏乐观，但**组与组之间的相对排名可信**。
   · 8 名玩家各自锁定一个目标色组（政策相同），全部从赤道出发。
 
+【A/B 开关】（环境变量；v3 里有几条是【建议】条款，用开关量出它的影响）
+  BAIL=0         关掉保释金（回到 v2「坐牢免费」口径，用来验证这条修复到底改变了什么）
+  POOL16=0       关掉 16 张牌池，回到 20 张等概率随机抽
+  MAX_ROUNDS=150 回合上限（v3 的 150 回合加速胜利口径；默认 600）
+  TRIALS=250     每个配置跑多少局
+
 用法：
-  python3 tools/game.py               # 单配置：8 人各锁一组
-  AB=1 python3 tools/game.py          # 2×2 对照：道具 × 北极坐牢
-  COHORT=1 python3 tools/game.py      # A/B：集中同色 vs 到处撒
-  TRIALS=250 python3 tools/game.py    # 每个配置跑多少局（默认 400 / AB 默认 200）
+  python3 sim/game.py                     # 单配置：8 人各锁一组
+  BAIL=0 python3 sim/game.py              # A/B：保释金开 / 关
+  AB=1 python3 sim/game.py                # 2×2 对照：道具 × 北极坐牢
+  COHORT=1 python3 sim/game.py            # A/B：集中同色 vs 到处撒
+  LEDGER=1 TRIALS=600 python3 sim/game.py # 单回合净值账本
+  AUDIT=1 TRIALS=600 python3 sim/game.py  # 逐张卡牌实战净值插桩
 """
 
 import json
 import os
 import random
+import sys
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAP_JSON = os.path.join(ROOT, "source", "map.json")
+MAP_JSON = os.path.join(ROOT, "source", "remix", "map.json")
 
 N_CELLS = 64
 GO_CELL = 0             # 赤道：统一出生点
@@ -48,12 +57,44 @@ DICE_FACES = 16
 GO_BONUS = 2000
 START_CASH = 15000
 
-# 命运牌判定率（rate = 赢面），移动/坐牢效果在 resolve_card 里按 idx 处理
-FATE = {
-    1: 0.50, 2: 0.50, 3: 0.50, 4: 0.50, 5: 0.50, 6: 0.50, 7: 0.375,
-    8: 0.1875, 9: 0.9375, 10: 0.3125, 11: 0.50, 12: 0.50, 13: 0.25,
-    14: 0.50, 15: 0.50, 16: 0.50, 17: 0.50, 18: 0.50, 19: 0.50, 20: 0.50,
-}
+# 命运牌判定率（rate = 赢面）：从 source/remix/cards.md 的「命中率」列读，不再手抄
+# （单一真源）。解析失败才退回写死的兜底，并打印警告。
+def _parse_rate(s):
+    s = (s or "").strip().replace("%", "")
+    try:
+        x = float(s)
+    except ValueError:
+        return None
+    return x / 100.0 if x > 1 else x
+
+def load_fate_rates():
+    """读 cards.md 默认版本的命运牌，返回 {idx(1-20): 赢面浮点}。"""
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import lib.cards as cards_lib
+        text = open(cards_lib.paths.CARDS_MD_PATH, encoding="utf-8").read()
+        rows, _labels, errs = cards_lib.parse_cards_md(text)
+        if errs:
+            raise ValueError("cards.md 结构错误: " + errs[0])
+        ver = cards_lib.DEFAULT_VERSION
+        rates, order = {}, 0
+        for r in rows:
+            if r.get("deck") != "fate" or r.get("version") != ver:
+                continue
+            order += 1
+            rate = _parse_rate(r.get("rate"))
+            if rate is not None:
+                rates[order] = rate
+        if len(rates) != 20:
+            raise ValueError("命运牌不足 20 张: %d" % len(rates))
+        return rates
+    except Exception as e:
+        sys.stderr.write("[warn] 命运牌判定率回退写死值：%s\n" % e)
+        return {1:0.50,2:0.50,3:0.50,4:0.50,5:0.50,6:0.50,7:0.375,
+                8:0.1875,9:0.9375,10:0.3125,11:0.50,12:0.50,13:0.25,
+                14:0.50,15:0.50,16:0.50,17:0.50,18:0.50,19:0.50,20:0.50}
+
+FATE = load_fate_rates()
 
 
 def load_map():
@@ -114,6 +155,14 @@ AUDIT = os.environ.get("AUDIT") == "1"
 # 单回合净值账本：LEDGER=1 时逐回合记录净值变化（验证「坐牢代价」等口径）
 LEDGER = os.environ.get("LEDGER") == "1"
 
+# ---- v3 的 A/B 开关（环境变量；见文件头说明）----
+BAIL_ON = os.environ.get("BAIL", "1") != "0"          # 保释金 = 1000 × 关押回合数
+POOL16_ON = os.environ.get("POOL16", "1") != "0"      # 16 张牌池 + 掷骰点选
+MAX_ROUNDS = int(os.environ.get("MAX_ROUNDS", "600"))  # 回合上限（v3 加速口径 150）
+RED_GREEN_CAP = 8000        # 红卡 / 绿卡单次效果上限
+ACTIVE_PROP_PER_TURN = 1    # 主动道具每回合最多使用件数
+BAIL_PER_ROUND = 1000       # 保释金每回合单价
+
 
 class Game:
     def __init__(self, rng, data, targets):
@@ -157,7 +206,23 @@ class Game:
                 props=[],                          # 持有道具名（列表，可重复）
                 double_move=False,                 # 汽车：下次移动双倍
                 slow=0,                            # 乌龟帽：剩余回合只能走 1 格
+                bail_due=0,                        # 出狱待缴保释金（v3）
             ))
+        # v3 抽卡牌池：开局从 20 张各取 16 张成本局牌池（机会/命运各自一副）
+        self.deck_chance = self._build_deck(rng)
+        self.deck_destiny = self._build_deck(rng)
+
+    def _build_deck(self, rng):
+        """从 1-20 随机取 16 张成本局牌池（4 张不亮出）。"""
+        base = list(range(1, 21))
+        rng.shuffle(base)
+        return base[:16]
+
+    def _enter_jail(self, pl, rounds):
+        """送进监狱（北极），并记录保释金（v3：1000 × 关押回合数，出狱缴）。"""
+        if pl["jail"] == 0 and BAIL_ON:
+            pl["bail_due"] = BAIL_PER_ROUND * rounds
+        pl["jail"] = max(pl["jail"], rounds)
 
     # ---------- 基础 ----------
     def roll(self):
@@ -246,8 +311,10 @@ class Game:
         """付款，付不出则拍卖、仍不够就破产。"""
         amount = int(amount)
         if is_rent and amount >= GREEN_CARD_MIN and "绿卡" in pl["props"]:
-            pl["props"].remove("绿卡")      # 绿卡：抵消一次付款
-            return True
+            pl["props"].remove("绿卡")      # 绿卡：抵消一次付款（单次上限 8000）
+            if amount <= RED_GREEN_CAP:
+                return True
+            amount -= RED_GREEN_CAP         # 超出部分照付
         if pl["cash"] < amount:
             self.liquidate(pl, amount - pl["cash"])
         if pl["cash"] >= amount:
@@ -266,16 +333,32 @@ class Game:
         pl["alive"] = False
         if self.first_death_round is None:
             self.first_death_round = self.round_no
-        for c in range(N_CELLS):
-            if self.owner[c] == pl["idx"]:
-                if creditor is not None:
-                    self.owner[c] = creditor["idx"]
-                else:
-                    self.owner[c] = None
-                    self.level[c] = 0
-        if creditor is not None:
-            creditor["cash"] += pl["cash"]
+        mine = [c for c in range(N_CELLS) if self.owner[c] == pl["idx"]]
+        cash_to_creditor = pl["cash"]
         pl["cash"] = 0
+        for c in mine:
+            invested = self.invested(c)
+            start = int(invested * 0.5 // 10 * 10)   # 起拍价 = 已投入 50% 取整十
+            # 拍卖：找买得起的存活玩家（50% 折扣必捡漏，只要有钱）；债主本人优先 reclaim
+            buyers = [p for p in self.players
+                      if p["alive"] and p is not pl and p["cash"] >= start]
+            buyer = None
+            if buyers:
+                if creditor is not None and creditor["alive"] and creditor["cash"] >= start:
+                    buyer = creditor
+                else:
+                    buyer = max(buyers, key=lambda p: p["cash"])
+            if buyer is not None:
+                buyer["cash"] -= start
+                self.owner[c] = buyer["idx"]
+                self.level[c] = 0
+                if creditor is not None:
+                    creditor["cash"] += start * 0.75   # 75% 归债主，25% 归银行
+            else:
+                self.owner[c] = None     # 流拍归银行
+                self.level[c] = 0
+        if creditor is not None:
+            creditor["cash"] += cash_to_creditor
 
     def move(self, pl, r):
         new = (pl["pos"] + r * pl["direction"]) % N_CELLS
@@ -329,8 +412,8 @@ class Game:
         # 机会 18（付方翻倍）× 命运 5（收方翻倍/减半）
         rent = self.chain_rent(cell, owner) * pl["toll_mult"] * other["rent_mult"]
         if rent >= RED_CARD_MIN and "红卡" in other["props"]:
-            other["props"].remove("红卡")   # 红卡：让这一次收款翻倍
-            rent *= 2
+            other["props"].remove("红卡")   # 红卡：让这一次收款翻倍（单次上限 8000）
+            rent += min(rent, RED_GREEN_CAP)
         self.flow["rent"] += rent
         self.pay(pl, rent, other, is_rent=True)
 
@@ -399,7 +482,14 @@ class Game:
                            if snap["alive"][i] and not p["alive"])
 
     def resolve_card(self, pl, kind):
-        idx = self.rng.randint(1, 20)
+        pool = self.deck_chance if kind == "chance" else self.deck_destiny
+        if POOL16_ON and pool:
+            # 16 张牌池 + 掷骰点选：摇 d16 取对应那张，执行完放回池底
+            r = self.rng.randint(1, len(pool))
+            idx = pool[r - 1]
+            pool.append(pool.pop(r - 1))
+        else:
+            idx = self.rng.randint(1, 20)
         if AUDIT:
             # 结算点延到「该玩家本回合结束」——这样额外移动（机会 7/14、命运 17）
             # 与引发的连锁破产也能计入该卡的影响
@@ -488,7 +578,7 @@ class Game:
                     self.level[c] = 0
                     self.owner[c] = None
                 else:
-                    pl["jail"] = 3
+                    self._enter_jail(pl, 3)
             elif idx == 16:
                 pl["cash"] -= 1500
             elif idx == 17:
@@ -510,7 +600,7 @@ class Game:
             if win:
                 pl["cash"] += 3000
             else:
-                pl["jail"] = 3
+                self._enter_jail(pl, 3)
         elif idx == 2:
             pl["cash"] += 3000 if win else 0
             if not win:
@@ -522,7 +612,7 @@ class Game:
             if win:
                 pl["cash"] += 1000
             else:
-                pl["jail"] = 1
+                self._enter_jail(pl, 1)
         elif idx == 5:
             # 巫祝祝福/诅咒：下回合你的过路费「收入」翻倍 / 减半
             pl["rent_pending"] *= 2.0 if win else 0.5
@@ -547,7 +637,7 @@ class Game:
             if win:
                 pl["cash"] += 3000
             else:
-                pl["jail"] = 1
+                self._enter_jail(pl, 1)
         elif idx == 14:
             if win:
                 pl["cash"] += 1000
@@ -701,48 +791,59 @@ class Game:
         return False
 
     def use_props(self, pl):
-        """回合开始前使用道具。"""
+        """回合开始前使用道具；v3：主动道具一回合最多用 ACTIVE_PROP_PER_TURN 件。"""
         if not self.props_enabled or pl["mute"] or not pl["props"]:
             return
+        used = 0
+        def can():
+            return used < ACTIVE_PROP_PER_TURN
         # 遥控骰子：直接把自己送到自家地产上
-        if "遥控骰子" in pl["props"]:
+        if can() and "遥控骰子" in pl["props"]:
             s = self.aim_target(pl)
             if s is not None:
                 pl["props"].remove("遥控骰子")
+                used += 1
                 pl["pos"] = (pl["pos"] + s * pl["direction"]) % N_CELLS
                 self.resolve(pl)
-                return
-        if "汽车" in pl["props"] and self.aim_target(pl, range(1, 2 * DICE_FACES + 1)):
+                if not pl["alive"]:
+                    return
+        if can() and "汽车" in pl["props"] and self.aim_target(pl, range(1, 2 * DICE_FACES + 1)):
             pl["props"].remove("汽车")
+            used += 1
             pl["double_move"] = True                 # 下次移动双倍格数
-        if "工程机器人" in pl["props"]:
+        if can() and "工程机器人" in pl["props"]:
             c = self.upgradable(pl)
             if c is not None:
                 pl["props"].remove("工程机器人")
+                used += 1
                 self.level[c] += 1                   # 免费升一级
-        if "导弹" in pl["props"]:
+        if can() and "导弹" in pl["props"]:
             c = self.enemy_house(pl, 3)
             if c is not None:
                 pl["props"].remove("导弹")
+                used += 1
                 self.level[c] -= 1                   # 降级对手的房子
-        if "拍卖卡" in pl["props"]:
+        if can() and "拍卖卡" in pl["props"]:
             c = self.enemy_house(pl, 1)
             if c is not None:
                 pl["props"].remove("拍卖卡")
+                used += 1
                 o = self.players[self.owner[c]]
                 o["cash"] += self.invested(c) * AUCTION_RECOVERY
                 self.owner[c] = None
                 self.level[c] = 0
-        if "抢夺卡" in pl["props"]:
+        if can() and "抢夺卡" in pl["props"]:
             v = self.strongest_rival(pl)
             if v is not None and v["props"]:
                 pl["props"].remove("抢夺卡")
+                used += 1
                 pl["props"].append(v["props"].pop(self.rng.randrange(len(v["props"]))))
         for name in ("乌龟帽", "冷冻枪", "转向卡"):
-            if name in pl["props"]:
+            if can() and name in pl["props"]:
                 v = self.strongest_rival(pl)
                 if v is not None:
                     pl["props"].remove(name)
+                    used += 1
                     if name == "乌龟帽":
                         v["slow"] = 3                # 3 回合只能走 1 格
                     elif name == "冷冻枪":
@@ -776,9 +877,13 @@ class Game:
             if pl.get("_ja") is None:                # 入狱窗口净值（常态收集，AUDIT 不必开）
                 pl["_ja"] = self.snapshot()
             pl["jail"] -= 1
-            if pl["jail"] == 0 and pl.get("_ja") is not None:
-                self.audit_jail(pl["idx"], pl.pop("_ja"))
-                self.jail_events += 1
+            if pl["jail"] == 0:
+                if BAIL_ON and pl.get("bail_due"):
+                    bail = pl.pop("bail_due")
+                    self.pay(pl, bail)               # 保释金交给银行（付不出→破产）
+                if pl["alive"] and pl.get("_ja") is not None:
+                    self.audit_jail(pl["idx"], pl.pop("_ja"))
+                    self.jail_events += 1
             if LEDGER:
                 self.ledger.append((self.round_no, pl["idx"], "jail",
                                     self.networth(pl["idx"]) - v0))
@@ -823,11 +928,11 @@ class Game:
                     pl["jail"] = 0
                 if self.arrive_jail and pl["pos"] == self.jail:
                     if not self.avatar_escape(pl):  # 走到监狱格也坐牢（默认口径，A/B 可关）
-                        pl["jail"] = 1
+                        self._enter_jail(pl, 1)
                         return
                 if is16 and streak >= 2:         # 连续两次 16
                     if not self.avatar_escape(pl):
-                        pl["jail"] = 1
+                        self._enter_jail(pl, 1)
                         pl["pos"] = self.jail
                         return
                 if is16:
@@ -847,7 +952,7 @@ class Game:
                 self.flush_audit()
 
 
-def run_game(rng, data, targets, max_rounds=600, props=None, arrive_jail=None):
+def run_game(rng, data, targets, max_rounds=MAX_ROUNDS, props=None, arrive_jail=None):
     g = Game(rng, data, targets)
     if props is not None:
         g.props_enabled = props
@@ -871,7 +976,8 @@ def run_game(rng, data, targets, max_rounds=600, props=None, arrive_jail=None):
     alive = [p for p in g.players if p["alive"]]
     if len(alive) == 1:
         return alive[0], g, rounds_used, True
-    return max(alive, key=lambda p: p["cash"]), g, rounds_used, False
+    # 到回合上限：按净值（现金 + 名下房产已投入成本）排名判胜
+    return max(alive, key=lambda p: g.networth(p["idx"])), g, rounds_used, False
 
 
 def ab_main():
@@ -887,7 +993,7 @@ def ab_main():
     order = [gid for _, gid in score][:8]
     trials = int(os.environ.get("TRIALS", "250"))
     print("=" * 90)
-    print(f"规则 2 · 完整对局 A/B：道具系统 × 监狱口径（8 人混战 × {trials} 局/格）")
+    print(f"规则 3（v3）· 完整对局 A/B：道具系统 × 监狱口径（8 人混战 × {trials} 局/格）")
     print("=" * 90)
     print(f"\n  {'配置':<24}{'平均回合':>9}{'打完比例':>9}{'黄绿夺冠':>9}"
           f"{'道具购买/局':>12}{'平均破产':>9}")
@@ -1144,7 +1250,7 @@ def main():
         ended.append(settled)
 
     print("=" * 76)
-    print(f"规则 2 · 完整对局模拟：8 人混战 × {trials} 局（各自锁定一个目标色组）")
+    print(f"规则 3（v3）· 完整对局模拟：8 人混战 × {trials} 局（各自锁定一个目标色组）")
     print("=" * 76)
     print("\n  只有前 8 名的组会被分配玩家，所以下面只列这 8 个组\n")
     print("  组                格  段  总地价   满级连锁  夺冠次数   胜率")
@@ -1192,8 +1298,8 @@ def cohort_main():
         for pl in g.players:          # 统一起点：赤道 #0、单向顺时针
             pl["pos"] = GO_CELL
             pl["direction"] = 1
-        used = 600
-        for rd in range(600):
+        used = MAX_ROUNDS
+        for rd in range(MAX_ROUNDS):
             if sum(1 for p in g.players if p["alive"]) <= 1:
                 used = rd
                 break
@@ -1204,13 +1310,13 @@ def cohort_main():
         rounds.append(used)
         alive_conc += sum(1 for p in alive if not p.get("spread"))
         if alive:
-            w = max(alive, key=lambda p: p["cash"])
+            w = max(alive, key=lambda p: g.networth(p["idx"]))
             if w.get("spread"):
                 spread_wins += 1
             else:
                 conc_wins += 1
     print("=" * 70)
-    print(f"规则 2 · A/B 对照：4 名「集中同色」vs 4 名「到处撒」× {trials} 局")
+    print(f"规则 3（v3）· A/B 对照：4 名「集中同色」vs 4 名「到处撒」× {trials} 局")
     print("=" * 70)
     print("\n  两类玩家打法完全相同，唯一区别是「买不买同一个颜色」：")
     print("  都买地、都升级、都会连锁判租，撒开的人只是每块地颜色都不同。\n")

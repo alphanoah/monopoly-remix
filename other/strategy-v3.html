@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>规则 3（v3）胜率策略（1 枚十六面骰 · 连锁过路费 · 保释金坐牢） · 大富翁改版</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #fbfaf8; color: #2c2c2a;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 40px 0 24px; border-bottom: 1px solid #e8e5df; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; letter-spacing: .3px; }
+  header p { margin: 0; color: #6b6a66; font-size: 14.5px; max-width: 680px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
+  .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+  .nav a:hover { border-color: #96597A; }
+
+  .guide {
+    margin: 18px 0 0; padding: 12px 16px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; font-size: 13.5px; color: #6b6a66; line-height: 1.7;
+  }
+  .guide b { color: #2c2c2a; font-weight: 500; }
+  .guide a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+
+  .status {
+    margin: 18px 0 0; padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+    background: #fdf6e9; border: 1px solid #e8d9b4; color: #7a5f2a;
+  }
+
+  .md { font-size: 14.5px; padding: 8px 0 10px; }
+  .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
+  .md h4 { font-size: 15px; font-weight: 500; margin: 20px 0 8px; color: #55534e; }
+  .md h5 { font-size: 14px; font-weight: 500; margin: 16px 0 6px; color: #6b6a66; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md blockquote {
+    margin: 12px 0; padding: 8px 14px; border-left: 3px solid #ddd9d2;
+    color: #6b6a66; background: #f4f2ee; border-radius: 0 6px 6px 0;
+  }
+  .md code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .md p { margin: 10px 0; }
+  .md a { color: #96597A; }
+
+  .tw { overflow-x: auto; margin: 10px 0; -webkit-overflow-scrolling: touch; }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.5; }
+  .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
+  .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
+
+  .gcat { font-size: 15px; font-weight: 500; margin: 28px 0 2px; }
+  .gcat span { font-weight: 400; font-size: 13px; color: #8a8880; margin-left: 10px; }
+
+  .docs { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .docs a {
+    display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; text-decoration: none; color: inherit;
+  }
+  .docs a:hover { border-color: #96597A; }
+  .docs b { font-size: 15px; font-weight: 500; display: block; margin-bottom: 4px; }
+  .docs span { font-size: 13px; color: #6b6a66; display: block; line-height: 1.55; }
+  .docs em {
+    font-style: normal; font-size: 11.5px; color: #96597A;
+    background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+  .docs i {
+    font-style: normal; font-size: 12.5px; color: #7a5f2a; display: block; margin-top: 5px;
+  }
+
+  footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
+  footer code { background: #f0ede8; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer a { color: #6b6a66; text-decoration: none; border-bottom: 1px solid #ddd9d2; }
+
+  @media (max-width: 600px) {
+    header { padding: 30px 0 20px; }
+    header h1 { font-size: 20px; }
+    .md { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="nav"><a href="../index.html">← 首页</a><a href="index.html">更多文档</a></p>
+  <h1>规则 3（v3）胜率策略（1 枚十六面骰 · 连锁过路费 · 保释金坐牢）</h1>
+  <p>规则 3（v3）胜率攻略：十六面骰 + 连锁放大器下的夺冠率、保释金坐牢的真实代价、16 张牌池与道具效应实测</p>
+<p class="status">现行攻略，对应站点默认规则 manual-v3.md。前代见 strategy-v2（已过时）。</p></header>
+<div class="md">
+<blockquote>规则来源：<a href="../source/remix/manual-v3.md"><code>source/remix/manual-v3.md</code></a>（首页「游戏规则」默认打开的 v3 面板）<br>数据来源：<code>source/remix/map.json</code>（<strong>监狱/商店格由 <code>variants.v2</code> 定义</strong>）· 卡牌 <code>source/remix/cards.md</code>（v7）· 道具 <code>source/remix/props.md</code><br>模拟脚本：<code>python3 sim/landing.py</code>（落点分布与移动学，规则版本无关）· <code>python3 sim/game.py</code>（完整对局，<code>TRIALS=400</code>）· <code>AB=1 python3 sim/game.py</code>（道具 × 监狱口径 2×2）· <code>COHORT=1 python3 sim/game.py</code>（集中同色 vs 到处撒）· <code>LEDGER=1</code> / <code>AUDIT=1</code> 看账本与逐卡插桩<br>⚠️ 本文只适用于<strong>规则 3（v3）</strong>。原版（2 颗骰子、监狱在北极之外、无连锁）与规则 2 的结论都<strong>不能直接套用</strong>。<br>卡牌与道具的<strong>平衡性评估</strong>（哪些卡不公平、道具价格/数量、8 人局时长）见 <a href="other/balance-v7.html"><code>balance-v7.md</code></a>。</blockquote>
+<h3>〇、速览（先看这段就够打一局）</h3>
+<p><strong>一句话：v3 里位置只值 ±5%（统一起点后的残余偏差），胜负手仍是「把地集中在一个颜色里」——但「坐牢」从免费的变成了真花钱的，这是 v3 相对 v2 最大的玩法变化。</strong></p>
+<p><strong>四条铁律</strong></p>
+<ol>
+<li><strong>集中同色，别到处撒。</strong> 连锁按「同色同归属所有房子的过路费总和」收——集中 K 格的收益是打散在 K 个颜色的 <strong>K 倍</strong>。模拟实测：4 名集中 vs 4 名撒开，<strong>集中方 600 局全胜</strong>。
+</li>
+<li><strong>买齐就立刻升级，别留着空地。</strong> 空地过路费只有 20%，回本要 7-11 圈；升到满级（5 级红房）回本只要 <strong>1.9-2.9 圈</strong>。
+</li>
+<li><strong>别轻易坐牢——v3 坐牢要交保释金。</strong> 刑满出狱缴 <strong>1000 × 关押回合数</strong>（坐 3 回合 = −3000），实测每次坐牢净值 <strong>−1071 元</strong>。v2 里「送进监狱」几乎是免免费的休息，v3 里是真罚单。
+</li>
+<li><strong>进商店先买「遥控骰子 / 工程机器人 / 导弹」</strong>这三件，它们是唯一能直接改变棋盘结构的道具；红卡 / 绿卡被封顶到 8000，不再是灭世武器。
+</li></ol>
+<p><strong>目标组排序（完整对局模拟实测夺冠率，400 局）</strong></p>
+<p><strong>现行口径</strong>：统一赤道起点 · 走到监狱即坐牢（且交保释金）· 坐牢不能收租 · 道具每种限 2 张 · v7 卡牌 16 张牌池 · 破产逐一拍卖</p>
+<div class="tw"><table>
+<thead><tr><th>排名</th><th>组</th><th>格数</th><th>段数</th><th>满级连锁过路费</th><th>夺冠率</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>💛 黄绿 #11-15 + #17</td><td>6</td><td>2</td><td>$42,000</td><td><strong>41.0%</strong></td></tr>
+<tr><td>2</td><td>⬛ 深灰 #30-35</td><td>5</td><td>2</td><td>$37,800</td><td><strong>28.7%</strong></td></tr>
+<tr><td>3</td><td>🔵 浅蓝 #5-9</td><td>5</td><td><strong>1</strong></td><td>$27,000</td><td>9.8%</td></tr>
+<tr><td>4</td><td>🌸 粉 #25-28</td><td>4</td><td><strong>1</strong></td><td>$34,200</td><td>7.8%</td></tr>
+<tr><td>5</td><td>💗 粉红 #51-52+54-55</td><td>4</td><td>2</td><td>$30,600</td><td>4.5%</td></tr>
+<tr><td>6</td><td>🔴 红 #1,2,4,62,63</td><td>5</td><td><strong>3</strong></td><td>$38,100</td><td>4.0%</td></tr>
+<tr><td>7</td><td>🟩 绿 #56-58+60-61</td><td>5</td><td>2</td><td>$30,300</td><td>3.2%</td></tr>
+<tr><td>8</td><td>🟫 浅灰(卡其) #46-47+49-50</td><td>4</td><td>2</td><td>$27,600</td><td>1.0%</td></tr>
+</tbody></table></div>
+<blockquote><strong>一句话读法</strong>：满级连锁过路费（打击力）决定上限，段数决定你能不能及时买到。<br>红组和深灰打击力几乎一样（$38,100 vs $37,800），但红组被切成 3 段——夺冠率只有深灰的 <strong>1/7</strong>。<br><br><strong>⚠️ 和 v2 比，黄绿从 45% 降到 41%</strong>：v3 的 16 张牌池 + 保释金坐牢压低了「抽到损人卡立刻滚雪球」的爆发，纸面最强组的统治力略有松动，但仍是断层第一。</blockquote>
+<h3>一、规则 3（v3）相对 v2 改了什么</h3>
+<div class="tw"><table>
+<thead><tr><th>项</th><th>规则 2</th><th><strong>规则 3（v3）</strong></th><th>对策略的影响</th></tr></thead>
+<tbody>
+<tr><td>抽卡</td><td>20 张等概率随机抽</td><td><strong>16 张牌池 + 掷骰点选</strong>（开局从 20 取 16，摇 d16 取对应张，用完放回池底）</td><td>每局有 4 张不亮出，触发频率略降、组合更不可预测</td></tr>
+<tr><td>监狱</td><td>坐牢免费（几乎零成本）</td><td><strong>刑满出狱缴保释金 1000 × 关押回合数</strong></td><td>⭐ v3 最大变化：坐牢从休息变成真罚单（见第三节）</td></tr>
+<tr><td>破产清算</td><td>房产 100% 直接过户债主</td><td><strong>名下房产逐一强制拍卖</strong>（起拍 50% 投入、流拍归银行、75% 归债主 25% 归银行）</td><td>破产者损失更狠、债主回收打折，局势洗牌更剧烈</td></tr>
+<tr><td>红 / 绿卡</td><td>无上限</td><td><strong>单次效果封顶 8000</strong></td><td>灭世级「一击打死一桌」被压住，满级组不再那么怕这两张</td></tr>
+<tr><td>主动道具</td><td>一回合可连用多件</td><td><strong>主动道具一回合最多 1 件</strong></td><td>对手一回合内「导弹+转向+乌龟帽」连环combo 不再可能</td></tr>
+<tr><td>胜利判定</td><td>到回合上限按现金排名</td><td>到回合上限按 <strong>净值（现金 + 房产已投入）</strong> 排名</td><td>房产厚度也算分，鼓励早买早升</td></tr>
+<tr><td>骰子 / 起点 / 地图 / 过路费 / 连锁 / 道具种类</td><td>同 v2</td><td>不变</td><td>落点、节奏、经济学结论 v2→v3 <strong>完全沿用</strong></td></tr>
+</tbody></table></div>
+<h3>二、落点：位置优势被压到 ±5% 以内</h3>
+<blockquote>v2 的落点实测（<a href="../strategy-v2.md">strategy-v2</a> 第二节）由 <code>sim/landing.py</code> 跑出，骰子 / 地图 / 坐牢来源都没变，<strong>结论原样继承</strong>：</blockquote>
+<p><code>sim/landing.py</code> 实测（8 人 × 250 回合 × 400 局，共 <strong>851,533 次落点</strong>）：</p>
+<div class="tw"><table>
+<thead><tr><th>项</th><th>数值</th></tr></thead>
+<tbody>
+<tr><td>完全均匀基准</td><td>1/64 = 1.5625% / 落点</td></tr>
+<tr><td>实测极差</td><td><strong>1.087×</strong>（同样本量统计噪声只有 ±0.9%，这是真信号）</td></tr>
+<tr><td>最热的 5 格</td><td>#48 夏威夷 1.051× · #47 美国 1.041× · #45 南非 1.027× · #39 西班牙 1.026× · #46 加拿大 1.025×</td></tr>
+<tr><td>最冷的 5 格</td><td>#28 比利时 0.967× · #31 英国 0.968× · #30 荷兰 0.972× · #21 俄罗斯 0.975× · #62 澳大利亚 0.975×</td></tr>
+<tr><td>组与组的差距</td><td>🟫卡其 1.020× 最热 → 🌸粉 0.977× 最冷，组间极差 <strong>4.4%</strong></td></tr>
+</tbody></table></div>
+<p><strong>结论：位置在 v3 里仍是「次要因素」——组间落点差 ≤ 4.4%，选地依然只看经济结构（第四节）。</strong> 16 张牌池不影响落点，落点只由骰子与地图决定。</p>
+<h3>三、移动学（v3 的节奏与坐牢）</h3>
+<h4>3.1 基础节奏</h4>
+<div class="tw"><table>
+<thead><tr><th>项</th><th>v3</th><th>原版 2d6</th></tr></thead>
+<tbody>
+<tr><td>每回合平均移动</td><td><strong>9.07 格</strong></td><td>7 格</td></tr>
+<tr><td>每回合平均落点次数</td><td>1.0667 次</td><td>1 次</td></tr>
+<tr><td>走完一圈需要</td><td><strong>7.06 个回合</strong></td><td>9.14 掷</td></tr>
+<tr><td>每回合经过赤道概率</td><td>14.17% → <strong>约 280 元/回合</strong></td><td>10.9% → 219 元/回合</td></tr>
+</tbody></table></div>
+<ul>
+<li>v3 节奏比原版<strong>快约 30%</strong>（十六面骰跨度大）。
+</li>
+<li>每回合约 280 元固定收入、一圈 2000 元——全盘唯一「无风险收入」。
+</li>
+<li><strong>摇到 16 的概率 6.25%</strong>，白送一次额外移动。
+</li></ul>
+<h4>3.2 坐牢：v3 里这是真罚单（相对 v2 的颠覆性变化）</h4>
+<p>v2 的模拟里「坐牢 ≈ 免费休息」（每次净值变化只有 −5 元，因为不走路 = 不付租、8 人局踩雷概率高于收租）。<strong>v3 用保释金改写了这条</strong>：刑满出狱必须缴 <strong>1000 × 关押回合数</strong>，坐 3 回合就是 −3000 现金。</p>
+<p><code>LEDGER=1</code> 单回合净值账本（8 人 × 600 局）实测：</p>
+<div class="tw"><table>
+<thead><tr><th>口径</th><th>v3（保释金开）</th><th>v2（坐牢免费，BAIL=0 回退）</th></tr></thead>
+<tbody>
+<tr><td><strong>坐牢窗口实际净值变化</strong></td><td><strong>−1071.7 元/次</strong></td><td>−4.6 元/次</td></tr>
+<tr><td>坐牢回合 Δ净值（中位）</td><td><strong>−1000 元/回合</strong></td><td>0</td></tr>
+<tr><td>领先者坐牢</td><td>−1062 元/次（5.21 次/局）</td><td>—</td></tr>
+<tr><td>大地主坐牢（≥3 块地）</td><td>−1046 元/次（15.65 次/局）</td><td>—</td></tr>
+</tbody></table></div>
+<blockquote><strong>这是 v3 最重要的一个数字：坐牢从「几乎免费」变成「每次 −1071 元」。</strong> 它直接改写了三类策略：<br>1. <strong>机会 15（名下无房 → 送监狱 3 回合）</strong> 从「小惩罚」变成「−3000 起步」——裸奔囤现金的打法彻底报废；<br>2. <strong>命运 1 / 4 / 13（输 → 送监狱）</strong> 的输家代价翻了几十倍，抽到这类牌的「输」面现在真的疼；<br>3. <strong>免责卡 / 嫁祸卡</strong> 身价暴涨——能免一次坐牢 = 免一次 −1000~−3000。</blockquote>
+<p>⚠️ <strong>为什么审计（AUDIT）里命运 1 仍显示 +1483 元/次、看起来很赚？</strong> 因为 AUDIT 只量「抽到这张牌那一回合」的即时净值变化，而保释金是<strong>出狱时才缴（3 回合之后）</strong>，不在快照里。坐牢的真实代价只出现在账本（LEDGER）和「坐牢真实成本」统计里（−1070 元/次），不在逐卡审计里。读卡牌强度时要记得把「送监狱」类的输家代价往后推 3 回合看。</p>
+<h4>3.3 破产清算：房产逐一拍卖</h4>
+<p>v3 破产后，名下房产<strong>逐块强制拍卖</strong>：起拍价 = 已投入 50% 取整十，流拍归银行，成交价的 75% 归债主、25% 归银行。后果：</p>
+<ul>
+<li>破产者损失比 v2（100% 过户）更狠——既丢了地又只拿回少量现金；
+</li>
+<li>债主收回也打折（75%），所以「把人打破产」不再是免费接收对方全套连锁，而是<strong>双方都出血的洗牌</strong>；
+</li>
+<li>流拍的地变无主，可能打断对手的连锁链。
+</li></ul>
+<p>对策略的含义：<strong>能不破产就别破产</strong>，保释金坐牢 + 拍卖清算双管齐下，v3 里「濒死」比 v2 更脆。</p>
+<h3>四、规则 3 的经济学（与 v2 一致，沿用）</h3>
+<h4>4.1 连锁 = K 倍放大器</h4>
+<p><strong>总过路费 = 同色同归属所有房屋过路费的总和</strong>。手上有 K 块同色地、每块满级过路费 r：</p>
+<div class="tw"><table>
+<thead><tr><th>买法</th><th>对手每次落到你地上要付</th><th>每回合期望收入</th></tr></thead>
+<tbody>
+<tr><td><strong>K 块集中同色</strong></td><td>落在任意一块都收 <strong>K × r</strong></td><td><code>(K/64) × K r = K²r/64</code></td></tr>
+<tr><td>K 块撒在 K 个不同颜色</td><td>每次只收 <strong>r</strong></td><td><code>K × (1/64) × r = Kr/64</code></td></tr>
+</tbody></table></div>
+<p><strong>收益差了 K 倍。</strong> 6 块集中比 6 块撒开强 6 倍。模拟实测（<code>COHORT=1</code>）：</p>
+<p><code>`</code><br>集中同色获胜： 600 局  (100.0%)<br>到处撒获胜  ：   0 局  (0.0%)<br>平均活到最后的集中型玩家数：1.00 / 4<br><code>`</code></p>
+<h4>4.2 满级账</h4>
+<p>满级（5 级红房）单格总投入 = 购地 100% + 绿色 4 级 ×50% + 红色 100% = <strong>地价的 4 倍</strong>；满级过路费 = <strong>地价的 3 倍</strong>。</p>
+<div class="tw"><table>
+<thead><tr><th>组</th><th>格</th><th>段</th><th>落点占比</th><th>总地价</th><th>满级连锁过路费</th><th>满级总投入</th><th>期望收益/对手回合</th><th>回本（8 人局）</th></tr></thead>
+<tbody>
+<tr><td>💛 黄绿</td><td>6</td><td>2</td><td><strong>9.41%</strong></td><td>14,000</td><td><strong>42,000</strong></td><td>56,000</td><td><strong>4,214</strong></td><td><strong>1.9 圈</strong></td></tr>
+<tr><td>🔴 红</td><td>5</td><td>3</td><td>7.74%</td><td>12,700</td><td>38,100</td><td>50,800</td><td>3,146</td><td>2.3 圈</td></tr>
+<tr><td>⬛ 深灰</td><td>5</td><td>2</td><td>7.79%</td><td>12,600</td><td>37,800</td><td>50,400</td><td>3,142</td><td>2.3 圈</td></tr>
+<tr><td>🟩 绿</td><td>5</td><td>2</td><td>7.82%</td><td>10,100</td><td>30,300</td><td>40,400</td><td>2,529</td><td>2.3 圈</td></tr>
+<tr><td>🔵 浅蓝</td><td>5</td><td>1</td><td>7.84%</td><td>9,000</td><td>27,000</td><td>36,000</td><td>2,257</td><td>2.3 圈</td></tr>
+<tr><td>🌸 粉</td><td>4</td><td>1</td><td>6.10%</td><td>11,400</td><td>34,200</td><td>45,600</td><td>2,227</td><td>2.9 圈</td></tr>
+<tr><td>💗 粉红</td><td>4</td><td>2</td><td>6.20%</td><td>10,200</td><td>30,600</td><td>40,800</td><td>2,024</td><td>2.9 圈</td></tr>
+<tr><td>🟫 浅灰(卡其)</td><td>4</td><td>2</td><td>6.37%</td><td>9,200</td><td>27,600</td><td>36,800</td><td>1,876</td><td>2.8 圈</td></tr>
+</tbody></table></div>
+<h4>4.3 三个结论（沿用 v2）</h4>
+<ol>
+<li><strong>格数 = 收益率。</strong> 每对手回合收益率 ≈ <code>格数 / 80</code>：6 格 7.5%、5 格 6.25%、4 格 5%。
+</li>
+<li><strong>地价 = 打击力，不是收益。</strong> ROI 与地价无关；地价只决定一次踩中收多少绝对金额——v3 里胜负靠把人打破产，绝对金额就是胜负。满级一套连锁过路费 vs 初始 15,000：黄绿 <strong>2.80 倍</strong>、红 2.54、深灰 2.52。
+</li>
+<li><strong>段数 = 买入速度。</strong> 红组 3 段就是活例子：打击力第 2，夺冠率只剩深灰的 1/7。
+</li></ol>
+<h4>4.4 为什么必须升级</h4>
+<div class="tw"><table>
+<thead><tr><th>打法</th><th>回本需要</th></tr></thead>
+<tbody>
+<tr><td>只买空地不升级（过路费 20%）</td><td><strong>7.1 - 11.0 圈</strong></td></tr>
+<tr><td>升到满级（过路费 300%）</td><td><strong>1.9 - 2.9 圈</strong></td></tr>
+</tbody></table></div>
+<p>差距 4 倍。<strong>空地只能算占位，不升级等于没买。</strong></p>
+<h3>五、怎么挑组（结合上面四条）</h3>
+<p><strong>🥇 主攻：💛 黄绿组 #11-15 + #17</strong> — 6 格、2 段、总地价 14,000，夺冠率 <strong>41.0%</strong>（v2 是 45.2%），断层第一。准备好开局被全桌针对。</p>
+<p><strong>🥈 次选：⬛ 深灰组 #30-35</strong> — 5 格、2 段、总地价 12,600，夺冠率 <strong>28.7%</strong>。性价比最高、最抗针对（打击力 37,800 接近黄绿，但不招打）。</p>
+<p><strong>🥉 开局最优：🔵 浅蓝组 #5-9</strong> — 5 格、<strong>1 段</strong>、只要 9,000（起手 15,000 买得起整套还剩 6,000 升一级），夺冠率 <strong>9.8%</strong>。唯一「开局两个回合内形成战斗力」的组，先滚第一桶金再转黄绿 / 深灰。</p>
+<p><strong>兜底</strong>：💜 紫 #19-23 / 🔷 深蓝 #36-37+#39-40，便宜、钱紧先占住。</p>
+<p><strong>❌ 避开</strong>：红组（3 段、成型慢、夺冠率 4.0%）、🟢 浅绿（收益打击双垫底）、💗 粉红（4 格 2 段、4.5%）。</p>
+<h3>六、v3 独有的打法变化</h3>
+<h4>6.1 道具：红/绿卡封顶，主动道具每回合限 1 件</h4>
+<p>商店格在<strong>印度洋 #24 / 大西洋 #59</strong>；进店随机刷 3 件、可半价回售。v3 两处改动：</p>
+<ul>
+<li><strong>红卡 / 绿卡单次封顶 8000</strong>：满级黄绿 42,000 用红卡翻倍也只能多收 8000（不再是「一击灭一桌」的 84,000）。绿卡抵消一次付款也只免 8000，超出照付。
+</li>
+<li><strong>主动道具一回合最多 1 件</strong>：对手无法在一回合内「导弹降级 + 转向拉回 + 乌龟帽钉死」连环操作。
+</li></ul>
+<p>完整 14 种道具（AI 估价高→低）：</p>
+<div class="tw"><table>
+<thead><tr><th>道具</th><th>价格</th><th>效果</th><th>关键用法</th></tr></thead>
+<tbody>
+<tr><td><strong>遥控骰子</strong></td><td>1000</td><td>前进指定格数（1-16）</td><td>⭐ 跳进自己组的空格补位 / 踩中自家地免费升级</td></tr>
+<tr><td><strong>工程机器人</strong></td><td>2000</td><td>升级指定格房子</td><td>⭐ 免费升一级 ≈ 省半格地价</td></tr>
+<tr><td><strong>导弹</strong></td><td>2000</td><td>降级指定格房子</td><td>⭐ 打掉对手满级组 300%（5→4 级掉到 200%）——最强反领先牌</td></tr>
+<tr><td><strong>汽车</strong></td><td>1000</td><td>下次移动双倍格数</td><td>一次跨 2-32 格</td></tr>
+<tr><td><strong>拍卖卡</strong></td><td>2000</td><td>强制拍卖指定房子</td><td>打掉对手满级组关键一块，连锁断链</td></tr>
+<tr><td><strong>红卡</strong></td><td>1500</td><td>一次收款翻倍（<strong>封顶 +8000</strong>）</td><td>满级黄绿 42,000 → 最多 +8000</td></tr>
+<tr><td><strong>绿卡</strong></td><td>1500</td><td>抵消一次付款（<strong>封顶 8000</strong>）</td><td>被大额打到时的保命符</td></tr>
+<tr><td><strong>转向卡</strong></td><td>1000</td><td>指定玩家掉头</td><td>把刚走过你满级组的人送回来</td></tr>
+<tr><td><strong>冷冻枪</strong></td><td>1000</td><td>指定玩家原地停 1 回合</td><td>拖慢最强对手成型</td></tr>
+<tr><td><strong>乌龟帽</strong></td><td>1000</td><td>3 回合只能走 1 格</td><td>把领先者钉死</td></tr>
+<tr><td><strong>嫁祸卡</strong></td><td>1000</td><td>你坐牢时指定别人背锅</td><td><strong>v3 里身价暴涨</strong>（免一次 −1000~−3000 保释金）</td></tr>
+<tr><td><strong>免责卡</strong></td><td>1000</td><td>抵消一次送监狱</td><td>同上，必须留一张</td></tr>
+<tr><td><strong>抢夺卡</strong></td><td>1000</td><td>抢指定玩家 1 件道具（盲抽）</td><td>——</td></tr>
+<tr><td><strong>路障</strong></td><td>500</td><td>撞上者立即停止</td><td>⚠️ 模拟未建模效果，AI 不买</td></tr>
+</tbody></table></div>
+<p>实测道具购买分布（v3，24.4 件/局）：导弹 / 工程机器人 / 拍卖卡各约 1.9-2.0 次/局；<strong>红卡降到 0.70 次/局</strong>（封顶后 AI 觉得不值）。</p>
+<p><strong>心法：先爬到满级组旁蹲着，再用转向卡 / 冷冻枪 / 遥控骰子把人弄进来；手里永远留一张免责 / 嫁祸卡应对坐牢。</strong></p>
+<h4>6.2 拍卖 = 濒死状态（v3 更脆）</h4>
+<ul>
+<li>被动交钱不够才能拍卖，底价 = 已投入 50%，成交 25% 上交银行 → 实际拿回约 <strong>37.5%</strong>；
+</li>
+<li>v3 破产后这些地<strong>逐一拍卖、流拍归银行</strong>——连锁可能直接被拆散；
+</li>
+<li>所以：<strong>现金永远别砸空</strong>，一旦被迫拍卖 + 坐牢保释金双重挤压，基本回不来。
+</li></ul>
+<h4>6.3 v7 卡牌用法（全是损人利己）</h4>
+<p>规则 3 卡牌和 v2 内容一致（v7），但<strong>送监狱类的输家代价因保释金而剧变</strong>（见 3.2）：</p>
+<div class="tw"><table>
+<thead><tr><th>牌</th><th>效果</th><th>v3 下的注意点</th></tr></thead>
+<tbody>
+<tr><td>机会 1</td><td>现金最多者 −2000，你 +2000</td><td>领先时最爽</td></tr>
+<tr><td>机会 3</td><td>你 +3000，左手 −1000</td><td>记好左右手</td></tr>
+<tr><td>机会 8</td><td>强制拍卖现金最多者一处地产</td><td>打掉对手满级组关键块</td></tr>
+<tr><td>机会 11</td><td>所有坐牢玩家各付你 300</td><td>——</td></tr>
+<tr><td>机会 12</td><td>欧洲区域玩家各付你 1000</td><td>按「持有 ≥2 块欧洲地产」判定（#21-23、#25-28、#30-31、#33-37、#39-40）</td></tr>
+<tr><td><strong>机会 15</strong></td><td>名下无房 → 送监狱 3 回合</td><td><strong>v3 里 = −3000 保释金起步</strong>，裸奔最怕</td></tr>
+<tr><td>机会 18</td><td>你 −1000，下回合过路费翻倍</td><td>中了的赶紧躲开对手满级组</td></tr>
+<tr><td>命运 1 / 4 / 13</td><td>输 → 送监狱</td><td><strong>输家代价从「几乎免费」变成「−1000~−3000」</strong>（保释金在出狱时缴，审计里看不到）</td></tr>
+<tr><td>命运 3 / 12 / 18</td><td>比点数赌 2000 / 3000 / 现金 20%</td><td>纯赌</td></tr>
+<tr><td>命运 16</td><td>最贵房子被土豪按总价收购</td><td>别把身家压在一栋楼上</td></tr>
+</tbody></table></div>
+<p><strong>共同点：先买地</strong>——「名下无房」在机会 15 那边现在是 −3000 起步。</p>
+<h3>七、完整对局模拟结论</h3>
+<blockquote>数字跑于<strong>现行口径</strong>（道具每种 2 张 + 坐牢交保释金 + 走到监狱即坐牢 + 破产逐一拍卖 + 16 张牌池）。<code>AB=1 python3 sim/game.py</code>（8 人混战，每格 250 局）。</blockquote>
+<h4>7.1 主表（道具 × 监狱口径 2×2）</h4>
+<div class="tw"><table>
+<thead><tr><th>配置</th><th>平均回合</th><th>真正打完</th><th>黄绿夺冠率</th><th>道具购买/局</th></tr></thead>
+<tbody>
+<tr><td>无道具 · 只有被送才坐牢</td><td>239</td><td>96.8%</td><td>55.5%</td><td>—</td></tr>
+<tr><td>无道具 · 走到监狱坐牢</td><td>236</td><td>96.8%</td><td>55.0%</td><td>—</td></tr>
+<tr><td>道具 · 只有被送才坐牢</td><td><strong>216</strong></td><td>99.2%</td><td>39.9%</td><td>51.3</td></tr>
+<tr><td><strong>道具 · 走到监狱坐牢（现行默认）</strong></td><td><strong>219</strong></td><td><strong>99.3%</strong></td><td>41.0%</td><td>24.4</td></tr>
+</tbody></table></div>
+<h4>7.2 结论一：道具仍是全场最强加速器</h4>
+<p>开道具后对局从 239 → <strong>219 回合（−8%）</strong>，「真正打完」比例 96.8% → <strong>99.3%</strong>——道具把僵持局面打穿。</p>
+<h4>7.3 结论二：道具是反领先机制，拉平组间差距</h4>
+<div class="tw"><table>
+<thead><tr><th>组</th><th>无道具</th><th>带道具</th><th>变化</th></tr></thead>
+<tbody>
+<tr><td>💛 黄绿</td><td>55.0%</td><td><strong>41.0%</strong></td><td><strong>−14.0</strong></td></tr>
+<tr><td>⬛ 深灰</td><td>18.9%</td><td><strong>28.7%</strong></td><td><strong>+9.8</strong></td></tr>
+<tr><td>🔵 浅蓝</td><td>5.8%</td><td><strong>9.8%</strong></td><td><strong>+4.0</strong></td></tr>
+<tr><td>🌸 粉</td><td>6.5%</td><td>7.8%</td><td>+1.3</td></tr>
+<tr><td>🟩 绿</td><td>3.6%</td><td>3.2%</td><td>−0.4</td></tr>
+<tr><td>💗 粉红</td><td>3.1%</td><td>4.5%</td><td>+1.4</td></tr>
+<tr><td>🔴 红</td><td>6.6%</td><td>4.0%</td><td>−2.6</td></tr>
+<tr><td>🟫 浅灰(卡其)</td><td>0.5%</td><td>1.0%</td><td>+0.5</td></tr>
+</tbody></table></div>
+<p>道具 AI 优先招呼现金最多 / 房子最多的人——强的组被削、中游受益。<strong>开局拿黄绿不再是赢一半</strong>，全桌会联手拆你。</p>
+<h4>7.4 结论三：保释金坐牢让「监狱口径」从无关变成有关</h4>
+<p>v2 里两种坐牢口径对局长度差在噪声内（因为坐牢免费）。<strong>v3 里保释金让「走到也坐牢」显著拖慢节奏</strong>——每 5.5 圈坐一次、每次 −1071 元，全桌现金流被持续抽水。这是 v3 相对 v2 节奏变慢、更吃运营的主因。</p>
+<h4>7.5 嫌一局太久（现行口径 <strong>241 回合 ≈ 34 圈/人</strong>，每人行动 122 次）</h4>
+<p>按性价比：</p>
+<ol>
+<li><strong>设回合上限 150</strong>（推荐，按净值排名）——首次破产中位第 51 回合，150 回合局势已明朗；
+</li>
+<li><strong>人数降到 5-6 人</strong>——5 人局估算 2.5-3.5 小时；
+</li>
+<li><strong>道具不限量</strong>（半价回售即补货）——一局 241 → 223 回合；
+</li>
+<li><strong>降赤道酬金</strong> 2000 → 1500（每局赤道共注入约 25.7 万，是现金主要来源）；
+</li>
+<li><strong>提高起始资金</strong>——更快买满、更快互相打死。
+</li></ol>
+<h3>八、常见误区速查</h3>
+<div class="tw"><table>
+<thead><tr><th>误区</th><th>事实（v3）</th></tr></thead>
+<tbody>
+<tr><td>「找个人气高的位置占着」</td><td>统一起点后位置只剩残余偏差（组间 ≤4.4%），<strong>仍是次要因素</strong></td></tr>
+<tr><td>「买得越贵越赚」</td><td>ROI 与地价无关；地价只决定打的力度</td></tr>
+<tr><td>「先把便宜的地都买了占地盘」</td><td>撒开买 = 连锁全废，<strong>600 局 0 胜</strong></td></tr>
+<tr><td>「等有钱了再升级」</td><td>空地回本 7-11 圈，满级 2-3 圈，<strong>不升级等于没买</strong></td></tr>
+<tr><td>「囤现金最安全」</td><td>机会 15 专治没地的人，<strong>v3 里 = −3000 保释金起步</strong>；现金不产生收益</td></tr>
+<tr><td>「被送进监狱很惨」</td><td><strong>v2 里是真的假惩罚（−5 元），v3 里变成真罚单（−1071 元/次）</strong>。命运 1/4/13 的「送监狱」输面现在真疼</td></tr>
+<tr><td>「多走一次总是好事」</td><td>相反：机会 7 / 14「额外移动」实测负期望（−857 / −817）——多走一步多一次踩满级组</td></tr>
+<tr><td>「红卡一开就灭一桌」</td><td>v3 封顶 8000，满级黄绿最多多收 8000，不再是 84,000</td></tr>
+<tr><td>「道具只是锦上添花」</td><td>错。道具是唯一反领先机制（不限量时黄绿 55%→41%）；且 v3 里一回合只能开 1 件</td></tr>
+<tr><td>「监狱格离得远不用管」</td><td>坐牢每 5.5 圈一次、<strong>每次 −1071 元</strong>，出狱从北极继续走，#45-48 夏威夷一带因此最热</td></tr>
+</tbody></table></div>
+<h3>附：和规则 2 攻略的关系</h3>
+<div class="tw"><table>
+<thead><tr><th></th><th>规则 2 攻略</th><th><strong>规则 3（v3，本文）</strong></th></tr></thead>
+<tbody>
+<tr><td>抽卡</td><td>20 张等概率</td><td><strong>16 张牌池 + 掷骰点选</strong></td></tr>
+<tr><td>坐牢</td><td>免费（−5 元/次）</td><td><strong>保释金 1000×回合（−1071 元/次）</strong></td></tr>
+<tr><td>破产</td><td>房产 100% 过户</td><td><strong>逐一拍卖 75/25</strong></td></tr>
+<tr><td>红/绿卡</td><td>无上限</td><td><strong>封顶 8000</strong></td></tr>
+<tr><td>主动道具</td><td>可连用</td><td><strong>每回合限 1 件</strong></td></tr>
+<tr><td>胜利</td><td>现金排名</td><td><strong>净值排名</strong></td></tr>
+<tr><td>落点 / 节奏 / 连锁经济学</td><td>同</td><td><strong>同（结论原样继承）</strong></td></tr>
+<tr><td>最推荐组</td><td>黄绿 → 深灰 → 浅蓝</td><td><strong>黄绿 → 深灰 → 浅蓝（开局）</strong>（黄绿从 45% 微降到 41%）</td></tr>
+</tbody></table></div>
+<p>*本文所有数字由 <code>source/remix/map.json</code> + <code>source/remix/cards.md</code>（v7）+ <code>source/remix/props.md</code> + <code>sim/landing.py</code> + <code>sim/game.py</code> 现算得出（夺冠率 400 局、账本/审计 600 局）。改棋盘数据、卡牌或规则后请重跑这两个脚本核对。*</p>
+<p><strong>口径备忘</strong>（都写成常量，改一个就能重跑 <code>sim/game.py</code>）：</p>
+<ol>
+<li><strong>监狱/商店格</strong>：由 <code>source/remix/map.json</code> 的 <code>variants.v2</code> 决定（北极=监狱、印度洋/大西洋=商店），脚本不写死。
+</li>
+<li><strong>保释金开关</strong>：默认开（<code>BAIL=1</code>）；<code>BAIL=0</code> 回退到 v2「坐牢免费」口径，用来量这条修复的影响。
+</li>
+<li><strong>16 张牌池开关</strong>：默认开（<code>POOL16=1</code>）；<code>POOL16=0</code> 回退 20 张等概率。
+</li>
+<li><strong>回合上限</strong>：<code>MAX_ROUNDS</code>（默认 600，加速口径设 150）。
+</li>
+<li><strong>自然走到监狱算不算坐牢？</strong> 现行默认算（<code>ARRIVE_JAIL_CELL_JAILS=True</code>）。
+</li>
+<li><strong>统一起点</strong>：现行默认（<code>START_MODE=&quot;equator&quot;</code>）；四角随机起点保留为对照。
+</li></ol>
+</div>
+<footer>本文由 <code>tools/build.py</code> 从 <code>docs/strategy-v3.md</code> 生成，改文档改那份 md 再跑脚本。</footer>
+</div>
+</body>
+</html>

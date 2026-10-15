@@ -1,4 +1,4 @@
-"""棋盘真源（source/map.json）的读取、校验与统计渲染。
+"""棋盘真源（source/remix/map.json）的读取、校验与统计渲染。
 
 两档布局（打印版/放大版）共用这一份 JSON；统计表格给 original.html 的 {{STATS:key}} 占位符、
 首页「电子地图」区和 README「数据速览」用，数字全部现算不写死。

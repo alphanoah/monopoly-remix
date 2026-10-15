@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>更多文档 · 大富翁改版</title>
-<meta name="description" content="大富翁改版的分析文档：胜率攻略、卡牌与道具平衡性实测、卡牌对照、维护说明。">
+<meta name="description" content="大富翁改版的分析文档：胜率攻略、卡牌与道具平衡性实测、规则审查记录、维护说明。">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -21,6 +21,18 @@
   .nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; margin: 0 0 18px; }
   .nav a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
   .nav a:hover { border-color: #96597A; }
+
+  .guide {
+    margin: 18px 0 0; padding: 12px 16px; background: #fff; border: 1px solid #e8e5df;
+    border-radius: 10px; font-size: 13.5px; color: #6b6a66; line-height: 1.7;
+  }
+  .guide b { color: #2c2c2a; font-weight: 500; }
+  .guide a { color: #96597A; text-decoration: none; border-bottom: 1px solid #e8e5df; }
+
+  .status {
+    margin: 18px 0 0; padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+    background: #fdf6e9; border: 1px solid #e8d9b4; color: #7a5f2a;
+  }
 
   .md { font-size: 14.5px; padding: 8px 0 10px; }
   .md h3 { font-size: 17px; font-weight: 500; margin: 26px 0 10px; }
@@ -41,7 +53,10 @@
   .md th, .md td { border: 1px solid #e5e1da; padding: 5px 9px; text-align: left; vertical-align: top; }
   .md th { background: #f4f2ee; font-weight: 500; white-space: nowrap; }
 
-  .docs { list-style: none; margin: 22px 0 6px; padding: 0; display: grid; gap: 12px; }
+  .gcat { font-size: 15px; font-weight: 500; margin: 28px 0 2px; }
+  .gcat span { font-weight: 400; font-size: 13px; color: #8a8880; margin-left: 10px; }
+
+  .docs { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 12px; }
   .docs a {
     display: block; padding: 14px 18px; background: #fff; border: 1px solid #e8e5df;
     border-radius: 10px; text-decoration: none; color: inherit;
@@ -52,6 +67,9 @@
   .docs em {
     font-style: normal; font-size: 11.5px; color: #96597A;
     background: #f6eef2; border-radius: 4px; padding: 1px 7px; margin-left: 8px;
+  }
+  .docs i {
+    font-style: normal; font-size: 12.5px; color: #7a5f2a; display: block; margin-top: 5px;
   }
 
   footer { padding: 26px 0 60px; color: #8a8880; font-size: 13px; }
@@ -70,17 +88,32 @@
 <header>
   <p class="nav"><a href="../index.html">← 首页</a></p>
   <h1>更多文档</h1>
-  <p>改版过程中的推演与实测：胜率攻略、卡牌与道具平衡性、卡牌对照、数据维护说明。
-     这里每篇都由 <code>docs/</code> 下的同名 md 生成。</p>
+  <p>改版过程中的推演与实测，每篇都由 <code>docs/</code> 下的同名 md 生成。</p>
+  <p class="guide"><b>从哪看起</b>：只想开局 → 回<a href="../index.html">首页</a>，规则面板 + 卡牌区就够；
+     想知道「为什么这么定」 → 看下面的<b>规则</b>与<b>平衡性</b>；要自己改数据 → 看<b>维护</b>。</p>
 </header>
+<h3 class="gcat">攻略<span>打法与决策：这张牌该不该接、这步该不该买</span></h3>
 <ul class="docs">
-<li><a href="rule-v2-review.html"><b>大富翁改版规则 v2 审查报告<em>规则</em></b><span>v2 规则审查报告：800 局模拟 + 坐牢代价独立复核，17 条修订建议（P0 已全部并入 v3）</span></a></li>
-<li><a href="rule-v2-adjustments.html"><b>规则 v2 调整建议清单<em>规则</em></b><span>17 条修订建议的逐条落地状态：哪些并入了 manual-v3、哪些留作【建议】块</span></a></li>
-<li><a href="strategy-v2.html"><b>规则 2 胜率策略（1 枚十六面骰 · 连锁过路费）<em>攻略</em></b><span>现在在玩的规则 2：十六面骰 + 连锁过路费下的落点偏差、连锁放大器、夺冠率与道具效应实测</span></a></li>
-<li><a href="balance-v7.html"><b>v7 卡牌 &amp; 道具平衡性评估（8 人局实测）<em>平衡性</em></b><span>v7 卡牌 &amp; 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长</span></a></li>
-<li><a href="card-audit-report.html"><b>卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测<em>平衡性</em></b><span>卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定</span></a></li>
-<li><a href="card-fields.html"><b>卡牌字段说明（`source/cards.md`）<em>维护</em></b><span>卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导</span></a></li>
+<li><a href="strategy-v3.html"><b>规则 3（v3）胜率策略（1 枚十六面骰 · 连锁过路费 · 保释金坐牢）<em>攻略</em></b><span>规则 3（v3）胜率攻略：十六面骰 + 连锁放大器下的夺冠率、保释金坐牢的真实代价、16 张牌池与道具效应实测</span><i>状态：现行攻略，对应站点默认规则 manual-v3.md。前代见 strategy-v2（已过时）。</i></a></li>
+<li><a href="strategy-v2.html"><b>规则 2 胜率策略（1 枚十六面骰 · 连锁过路费）<em>攻略</em></b><span>规则 2（十六面骰 · 连锁过路费）下的落点偏差、连锁放大器、夺冠率与道具效应实测</span><i>状态：历史文档：结论基于规则 v2。v3 改了抽卡牌池 / 保释金 / 破产清算，本文数据已过时，现行攻略见 strategy-v3。</i></a></li>
 </ul>
+
+<h3 class="gcat">规则<span>规则迭代的审查与修订记录：现在这么定，是因为当初踩过什么</span></h3>
+<ul class="docs">
+<li><a href="rule-changelog.html"><b>规则修订记录：v2 审查 → v3 落地<em>规则</em></b><span>现行 v3 规则的来龙去脉：v2 的 17 条审查意见 + 实测数据 + 逐条去向（P0 已全部并入 v3）</span></a></li>
+</ul>
+
+<h3 class="gcat">平衡性<span>卡牌 / 道具 / 节奏的实测数据</span></h3>
+<ul class="docs">
+<li><a href="balance-v7.html"><b>v7 卡牌 &amp; 道具平衡性评估（8 人局实测）<em>平衡性</em></b><span>v7 卡牌 &amp; 道具平衡性评估：40 张牌实战净值、道具价格与供给缺口、8 人局节奏与时长</span><i>状态：历史数据：模拟口径为规则 v2（20 张等概率抽卡、无保释金）。v3 口径重测见 strategy-v3。</i></a></li>
+<li><a href="card-audit-report.html"><b>卡牌公平性审计报告：净值口径 · 坐牢代价 · 逐卡实测<em>平衡性</em></b><span>卡牌公平性审计：净值计算口径、坐牢代价实测（约 −5 元/次）、逐卡判定</span><i>状态：历史数据：基于规则 v2 口径的插桩实测，v3 加入保释金后坐牢代价已重算，见 strategy-v3。</i></a></li>
+</ul>
+
+<h3 class="gcat">维护<span>改数据时的操作手册：字段怎么填、怎么导出回导</span></h3>
+<ul class="docs">
+<li><a href="card-fields.html"><b>卡牌字段说明（`source/remix/cards.md`）<em>维护</em></b><span>卡牌真源 cards.md 的字段怎么填、对应 JSON 字段、脚本校验规则、Excel 批量编辑与回导</span></a></li>
+</ul>
+
 <footer>由 <code>tools/build.py</code> 生成，共 6 篇。</footer>
 </div>
 </body>

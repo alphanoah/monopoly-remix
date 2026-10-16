@@ -686,12 +686,19 @@ function amtHtml(s) {
 }
 const A = s => (showAmt ? amtHtml(s) : s);
 
-// 断行控制：标点之间的一段尽量不断开，换行优先发生在逗号/顿号/破折号后面
-// （中文没有空格，浏览器默认会按字乱断，出现「句读被拆到两行」的情况）
-// 片段太长就不锁，交给浏览器正常断行，免得横向溢出。
-const BRK_CHARS = '，、；：。！？—';        // 断行允许点
-const SEG_MAX = 18;                        // 超过这个字数就不锁不换行
-function brk(s) {
+// ===== 断行算法（两级：单元间强制换行 + 单元内弱断行）=====
+// 强制换行规则（从卡面文案总结）：
+//   ① 「（」前——把「（如果…则…）」「（事件照常触发）」这类补充说明独立成行；
+//   ② 金额收尾的子句后——「…+3000，」「…-2000，」「…+2000」等以金额收尾的子句后换行，
+//      「谁出钱」与「附加条件」分行，行宽均衡，字号不用被 autoFit 压得太小。
+// 其余标点只保留「断行机会」（.seg nowrap 单元），浏览器排不下才断：
+// 卡宽 / 字号怎么变都自动重排，断行决策仍然归浏览器。
+const BRK_CHARS = '，、；：。！？—';        // 弱断行点（标点留在上一段末尾）
+const SEG_MAX = 18;                        // 超过这个字数就不锁，交给浏览器正常断行
+const AMT_END = /[+\-\u2212]?\d{3,}$/;   // 子句以金额收尾（三位数门槛与 amtHtml 一致）
+
+// 单元内部弱断行：标点切段 + .seg 锁段（金额胶囊已在上一层套好）
+function segs(s) {
   const re = new RegExp('([' + BRK_CHARS + '])');
   return String(s).split(re).map(part => {
     if (!part) return '';
@@ -702,7 +709,42 @@ function brk(s) {
       : part;
   }).join('');
 }
-const AB = s => brk(A(s));
+
+// 切单元：C 单元 = 标点收尾的子句；P 单元 = （…）补充说明（尾部标点并入 P 单元）
+function wrapText(s) {
+  const str = String(s == null ? '' : s);
+  if (!str) return '';
+  const units = [];
+  let cur = '';
+  const closeC = () => {
+    if (!cur) return;
+    const body = cur.replace(/[，、；：。！？—]+$/, '');
+    units.push({ t: cur, brAfter: AMT_END.test(body) });   // 金额收尾 → 之后强制换行
+    cur = '';
+  };
+  let i = 0;
+  while (i < str.length) {
+    const ch = str[i];
+    if (ch === '（') {                       // 补充说明独立成单元，「（」前强制换行
+      closeC();
+      const end = str.indexOf('）', i + 1);
+      const stop = end < 0 ? str.length : end + 1;
+      let t = str.slice(i, stop), j = stop;
+      while (j < str.length && BRK_CHARS.indexOf(str[j]) >= 0) t += str[j++];  // 尾部标点并入
+      units.push({ t: t, brBefore: true });
+      i = j;
+      continue;
+    }
+    if (BRK_CHARS.indexOf(ch) >= 0) { cur += ch; closeC(); i++; continue; }
+    cur += ch;
+    i++;
+  }
+  closeC();
+  return units.map((u, idx) =>
+    (idx > 0 && (u.brBefore || units[idx - 1].brAfter) ? '<br>' : '') + segs(A(u.t))
+  ).join('');
+}
+const AB = s => wrapText(s);
 
 function cardNode(card, idxInDeck, total) {
   let inner;
